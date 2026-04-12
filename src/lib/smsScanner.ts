@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { db } from './db';
-import { parseMoMoSMS } from './smsParser';
+import { parseMoMoSMS, parseTransactionDate } from './smsParser';
 
 // Declare the cordova SMS plugin interface
 declare global {
@@ -100,9 +100,11 @@ export async function scanAndImportSMS(
 
             const categoryName = parsed.transaction_type.charAt(0).toUpperCase() + parsed.transaction_type.slice(1);
 
-            // Use the SMS date if available, otherwise fallback to message timestamp
+            // Use the parsed SMS date if available, otherwise fallback to message timestamp
             let txDate = new Date().toISOString();
-            if (msg.date) {
+            if (parsed.date) {
+              txDate = parseTransactionDate(parsed.date, parsed.time);
+            } else if (msg.date) {
               txDate = new Date(msg.date).toISOString();
             }
 

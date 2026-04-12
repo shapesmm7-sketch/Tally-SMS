@@ -6,6 +6,9 @@ import { ArrowDownRight, ArrowUpRight, Smartphone, ArrowRightLeft, Activity, Sen
 import { isToday, isYesterday, isThisMonth, isThisYear, parseISO, isSameDay, format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 type Timeframe = 'today' | 'yesterday' | 'month' | 'year' | 'all' | 'custom';
 
@@ -60,7 +63,7 @@ export default function Reports() {
     return { deposits, withdrawals, airtime, received, sent, totalVolume, filtered };
   }, [transactions, timeframe]);
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     const doc = new jsPDF();
     
     // Add title
@@ -103,7 +106,31 @@ export default function Reports() {
       });
     }
 
-    doc.save(`report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    const fileName = `report_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const pdfBase64 = doc.output('datauristring').split(',')[1];
+        
+        const result = await Filesystem.writeFile({
+          path: fileName,
+          data: pdfBase64,
+          directory: Directory.Cache,
+        });
+
+        await Share.share({
+          title: 'Financial Report',
+          text: 'Here is your financial report.',
+          url: result.uri,
+          dialogTitle: 'Share or Save PDF',
+        });
+      } catch (error) {
+        console.error('Error saving or sharing PDF:', error);
+        alert('Failed to save or share PDF. Please try again.');
+      }
+    } else {
+      doc.save(fileName);
+    }
   };
 
   return (

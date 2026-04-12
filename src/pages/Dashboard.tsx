@@ -86,11 +86,6 @@ export default function Dashboard() {
       return;
     }
 
-    if (typeof smsPlugin.requestPermission !== 'function') {
-      setSmsError('SMS plugin found but requestPermission is not available.');
-      return;
-    }
-
     setIsRequesting(true);
 
     // Set a safety timeout
@@ -99,21 +94,38 @@ export default function Dashboard() {
       setSmsError('Permission request timed out. Please try again.');
     }, 10000);
 
+    const handleSuccess = () => {
+      clearTimeout(timeout);
+      setIsRequesting(false);
+      setShowSmsModal(false);
+      startSmsScan();
+    };
+
+    const handleError = (err: any) => {
+      clearTimeout(timeout);
+      setIsRequesting(false);
+      console.error('SMS Permission Error:', err);
+      setSmsError('SMS permission denied.');
+    };
+
     try {
-      smsPlugin.requestPermission(
-        () => {
-          clearTimeout(timeout);
-          setIsRequesting(false);
-          setShowSmsModal(false);
-          startSmsScan();
-        },
-        (err: any) => {
-          clearTimeout(timeout);
-          setIsRequesting(false);
-          console.error('SMS Permission Error:', err);
-          setSmsError('SMS permission denied.');
-        }
-      );
+      if (typeof smsPlugin.requestPermission === 'function') {
+        smsPlugin.requestPermission(handleSuccess, handleError);
+      } else if (typeof smsPlugin.hasPermission === 'function') {
+        smsPlugin.hasPermission((hasPerm: boolean) => {
+          if (hasPerm) {
+            handleSuccess();
+          } else {
+            if (typeof smsPlugin.listSMS === 'function') {
+              smsPlugin.listSMS({ box: 'inbox', indexFrom: 0, maxCount: 1 }, handleSuccess, handleError);
+            } else {
+              handleError('Permission not granted and request method unavailable.');
+            }
+          }
+        }, handleError);
+      } else {
+        handleSuccess();
+      }
     } catch (error) {
       clearTimeout(timeout);
       setIsRequesting(false);

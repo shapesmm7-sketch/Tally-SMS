@@ -122,3 +122,30 @@ export function parseMoMoSMS(text: string): ParsedSMS | null {
 
   return result;
 }
+
+export function parseTransactionDate(dateStr?: string | null, timeStr?: string | null): string {
+  if (!dateStr) return new Date().toISOString();
+  
+  let cleanDate = dateStr.replace(/\//g, '-');
+  
+  // If DD-MM-YYYY, convert to YYYY-MM-DD for standard parsing
+  const parts = cleanDate.split('-');
+  if (parts.length === 3) {
+    if (parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+      // Assuming DD-MM-YYYY
+      cleanDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+
+  let dateTimeStr = cleanDate;
+  if (timeStr) {
+    dateTimeStr += ` ${timeStr}`;
+  }
+
+  const parsedDate = new Date(dateTimeStr);
+  if (!isNaN(parsedDate.getTime())) {
+    return parsedDate.toISOString();
+  }
+  
+  return new Date().toISOString();
+}

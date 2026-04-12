@@ -7,6 +7,9 @@ import { ArrowUpRight, ArrowDownRight, Filter, Search, Trash2, Calendar, Downloa
 import { format, parseISO, isToday, isYesterday, isThisWeek, isThisMonth, isThisYear, isSameDay } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
 
 type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'custom';
@@ -85,7 +88,7 @@ export default function Transactions() {
     return acc;
   }, { deposits: 0, withdrawals: 0, airtime: 0, received: 0, sent: 0 });
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     const doc = new jsPDF();
     
     // Add title
@@ -122,7 +125,31 @@ export default function Transactions() {
       styles: { fontSize: 9 },
     });
 
-    doc.save(`transactions_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    const fileName = `transactions_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const pdfBase64 = doc.output('datauristring').split(',')[1];
+        
+        const result = await Filesystem.writeFile({
+          path: fileName,
+          data: pdfBase64,
+          directory: Directory.Cache,
+        });
+
+        await Share.share({
+          title: 'Transaction Report',
+          text: 'Here is your transaction report.',
+          url: result.uri,
+          dialogTitle: 'Share or Save PDF',
+        });
+      } catch (error) {
+        console.error('Error saving or sharing PDF:', error);
+        alert('Failed to save or share PDF. Please try again.');
+      }
+    } else {
+      doc.save(fileName);
+    }
   };
 
   // Group by date

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info } from 'lucide-react';
+import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search } from 'lucide-react';
 import { db } from '../lib/db';
 import { COUNTRIES } from '../lib/utils';
 import { useAccessControl } from '../hooks/useAccessControl';
@@ -16,6 +16,8 @@ export default function Settings() {
   const [smsEnabled, setSmsEnabled] = useState(localStorage.getItem('momo_sms_enabled') === 'true');
   const [selectedCountry, setSelectedCountry] = useState(localStorage.getItem('momo_country') || 'UG');
   const [showSmsModal, setShowSmsModal] = useState(false);
+  const [showCountryModal, setShowCountryModal] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
   const [smsError, setSmsError] = useState<string | null>(null);
 
@@ -59,11 +61,6 @@ export default function Settings() {
       return;
     }
 
-    if (typeof smsPlugin.requestPermission !== 'function') {
-      setSmsError('SMS plugin found but requestPermission is not available. Version mismatch?');
-      return;
-    }
-
     setIsRequesting(true);
 
     // Set a safety timeout in case the plugin doesn't respond
@@ -72,25 +69,41 @@ export default function Settings() {
       setSmsError('Permission request timed out. Please try again.');
     }, 10000);
 
+    const handleSuccess = () => {
+      clearTimeout(timeout);
+      setIsRequesting(false);
+      setSmsEnabled(true);
+      localStorage.setItem('momo_sms_enabled', 'true');
+      setShowSmsModal(false);
+    };
+
+    const handleError = (err: any) => {
+      clearTimeout(timeout);
+      setIsRequesting(false);
+      console.error('SMS Permission Error:', err);
+      setSmsError('Permission denied or error occurred. SMS Auto-Detection cannot be enabled.');
+    };
+
     try {
-      smsPlugin.requestPermission(
-        () => {
-          clearTimeout(timeout);
-          setIsRequesting(false);
-          // Permission granted
-          setSmsEnabled(true);
-          localStorage.setItem('momo_sms_enabled', 'true');
-          setShowSmsModal(false);
-          // Optional: show a success toast here if you have one
-        },
-        (err: any) => {
-          clearTimeout(timeout);
-          setIsRequesting(false);
-          // Permission denied
-          console.error('SMS Permission Error:', err);
-          setSmsError('Permission denied or error occurred. SMS Auto-Detection cannot be enabled.');
-        }
-      );
+      if (typeof smsPlugin.requestPermission === 'function') {
+        smsPlugin.requestPermission(handleSuccess, handleError);
+      } else if (typeof smsPlugin.hasPermission === 'function') {
+        // Fallback if requestPermission doesn't exist
+        smsPlugin.hasPermission((hasPerm: boolean) => {
+          if (hasPerm) {
+            handleSuccess();
+          } else {
+            // Try to trigger permission by calling listSMS with 0 maxCount
+            if (typeof smsPlugin.listSMS === 'function') {
+              smsPlugin.listSMS({ box: 'inbox', indexFrom: 0, maxCount: 1 }, handleSuccess, handleError);
+            } else {
+               handleError('Permission not granted and request method unavailable.');
+            }
+          }
+        }, handleError);
+      } else {
+        handleSuccess(); // Assume it works if no permission methods exist
+      }
     } catch (error) {
       clearTimeout(timeout);
       setIsRequesting(false);
@@ -151,16 +164,22 @@ export default function Settings() {
     }
   };
 
-  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const code = e.target.value;
+  const handleCountrySelect = (code: string) => {
     const country = COUNTRIES.find(c => c.code === code);
     if (country) {
       setSelectedCountry(code);
       localStorage.setItem('momo_country', code);
       localStorage.setItem('momo_currency', country.currency);
+      setShowCountryModal(false);
       window.location.reload(); // Reload to apply currency changes everywhere
     }
   };
+
+  const filteredCountries = COUNTRIES.filter(c => 
+    c.name.toLowerCase().includes(countrySearch.toLowerCase()) || 
+    c.currency.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    c.code.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLang = e.target.value;
@@ -309,18 +328,13 @@ export default function Settings() {
                 </div>
               </div>
               <div className="relative">
-                <select 
-                  value={selectedCountry}
-                  onChange={handleCountryChange}
-                  className="appearance-none bg-gray-100 dark:bg-gray-800 border-none rounded-lg py-2 pl-3 pr-8 text-sm text-gray-700 dark:text-gray-200 font-medium focus:ring-2 focus:ring-blue-500"
+                <button 
+                  onClick={() => setShowCountryModal(true)}
+                  className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 rounded-lg py-2 pl-3 pr-3 text-sm text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 >
-                  {COUNTRIES.map(country => (
-                    <option key={country.code} value={country.code}>
-                      {country.name} ({country.currency})
-                    </option>
-                  ))}
-                </select>
-                <ChevronRight className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  <span>{COUNTRIES.find(c => c.code === selectedCountry)?.name || selectedCountry} ({COUNTRIES.find(c => c.code === selectedCountry)?.currency})</span>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
               </div>
             </div>
           </div>
@@ -445,6 +459,69 @@ export default function Settings() {
                   t('settings.sms_explanation_btn')
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Country Selection Modal */}
+      {showCountryModal && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Select Country</h3>
+              <button 
+                onClick={() => setShowCountryModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+              <div className="relative">
+                <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search country or currency..."
+                  value={countrySearch}
+                  onChange={(e) => setCountrySearch(e.target.value)}
+                  className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-xl py-3 pl-10 pr-4 text-gray-800 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 transition-shadow"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="overflow-y-auto flex-1 p-2">
+              {filteredCountries.length > 0 ? (
+                <div className="space-y-1">
+                  {filteredCountries.map((country) => (
+                    <button
+                      key={country.code}
+                      onClick={() => handleCountrySelect(country.code)}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${
+                        selectedCountry === country.code
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="font-medium">{country.name}</span>
+                      </div>
+                      <span className={`text-sm font-medium ${
+                        selectedCountry === country.code
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                        {country.currency}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                  No countries found matching "{countrySearch}"
+                </div>
+              )}
             </div>
           </div>
         </div>

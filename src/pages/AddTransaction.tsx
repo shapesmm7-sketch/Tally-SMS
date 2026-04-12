@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, AlertCircle } from 'lucide-react';
 import { db } from '../lib/db';
 import { cn, formatCurrency } from '../lib/utils';
-import { parseMoMoSMS, ParsedSMS } from '../lib/smsParser';
+import { parseMoMoSMS, ParsedSMS, parseTransactionDate } from '../lib/smsParser';
 
 export default function AddTransaction() {
   const navigate = useNavigate();
@@ -30,12 +30,14 @@ export default function AddTransaction() {
 
     const categoryName = parsed.transaction_type.charAt(0).toUpperCase() + parsed.transaction_type.slice(1);
 
+    const txDate = parseTransactionDate(parsed.date, parsed.time);
+
     await db.transactions.add({
       amount: parsed.amount || 0,
       type,
       category: categoryName,
       note,
-      date: new Date().toISOString(),
+      date: txDate,
       createdAt: new Date().toISOString(),
       tid: parsed.transaction_id || undefined,
       senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
