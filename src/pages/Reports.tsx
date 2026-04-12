@@ -121,12 +121,14 @@ export default function Reports() {
         await Share.share({
           title: 'Financial Report',
           text: 'Here is your financial report.',
-          url: result.uri,
+          files: [result.uri],
           dialogTitle: 'Share or Save PDF',
         });
-      } catch (error) {
-        console.error('Error saving or sharing PDF:', error);
-        alert('Failed to save or share PDF. Please try again.');
+      } catch (error: any) {
+        if (error.message !== 'Share canceled') {
+          console.error('Error saving or sharing PDF:', error);
+          alert('Failed to save or share PDF. Please try again.');
+        }
       }
     } else {
       doc.save(fileName);

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search } from 'lucide-react';
+import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search, Share2 } from 'lucide-react';
 import { db } from '../lib/db';
 import { COUNTRIES } from '../lib/utils';
 import { useAccessControl } from '../hooks/useAccessControl';
 import { useTheme } from '../context/ThemeContext';
 import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -175,6 +176,21 @@ export default function Settings() {
       localStorage.setItem('momo_currency', country.currency);
       setShowCountryModal(false);
       window.location.reload(); // Reload to apply currency changes everywhere
+    }
+  };
+
+  const handleShareApp = async () => {
+    try {
+      await Share.share({
+        title: 'MoMo Tracker',
+        text: 'Check out MoMo Tracker, the best app to track your mobile money transactions automatically!',
+        url: 'https://play.google.com/store/apps/details?id=com.momotracker.myapp', // Update with actual URL if different
+        dialogTitle: 'Share MoMo Tracker',
+      });
+    } catch (error: any) {
+      if (error.message !== 'Share canceled') {
+        console.error('Error sharing app:', error);
+      }
     }
   };
 
@@ -408,6 +424,18 @@ export default function Settings() {
                   <FileText className="w-4 h-4" />
                 </div>
                 <span className="font-medium text-gray-800 dark:text-white">{t('settings.terms')}</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+            <button 
+              onClick={handleShareApp}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <Share2 className="w-4 h-4" />
+                </div>
+                <span className="font-medium text-gray-800 dark:text-white">Share App</span>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>

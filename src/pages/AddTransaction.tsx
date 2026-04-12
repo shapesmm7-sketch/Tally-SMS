@@ -23,6 +23,14 @@ export default function AddTransaction() {
     e.preventDefault();
     if (!parsed) return;
 
+    if (parsed.transaction_id) {
+      const existingTx = await db.transactions.where('tid').equals(parsed.transaction_id).first();
+      if (existingTx) {
+        alert('This transaction is already added to the system so you can\'t add it again.');
+        return;
+      }
+    }
+
     const type = parsed.transaction_type === 'deposit' ? 'income' : 'expense';
     let note = '';
     if (parsed.sender_name) note = `From ${parsed.sender_name}`;

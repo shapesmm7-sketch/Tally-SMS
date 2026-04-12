@@ -140,12 +140,14 @@ export default function Transactions() {
         await Share.share({
           title: 'Transaction Report',
           text: 'Here is your transaction report.',
-          url: result.uri,
+          files: [result.uri],
           dialogTitle: 'Share or Save PDF',
         });
-      } catch (error) {
-        console.error('Error saving or sharing PDF:', error);
-        alert('Failed to save or share PDF. Please try again.');
+      } catch (error: any) {
+        if (error.message !== 'Share canceled') {
+          console.error('Error saving or sharing PDF:', error);
+          alert('Failed to save or share PDF. Please try again.');
+        }
       }
     } else {
       doc.save(fileName);
