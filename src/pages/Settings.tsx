@@ -106,6 +106,43 @@ export default function Settings() {
     }
   };
 
+  const handleBackup = async () => {
+    try {
+      const transactions = await db.transactions.toArray();
+      
+      const settings = {
+        currency: localStorage.getItem('momo_currency') || 'USD',
+        country: localStorage.getItem('momo_country') || 'US',
+        language: localStorage.getItem('momo_language') || 'en',
+        theme: localStorage.getItem('momo_theme') || 'light',
+        smsEnabled: localStorage.getItem('momo_sms_enabled') === 'true',
+        pinEnabled: localStorage.getItem('momo_pin_enabled') === 'true',
+      };
+
+      const backupData = {
+        version: '1.0',
+        timestamp: new Date().toISOString(),
+        transactions,
+        settings
+      };
+
+      const dataStr = JSON.stringify(backupData, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `momo_tracker_backup_${new Date().toISOString().split('T')[0]}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+      
+      alert('Backup downloaded successfully!');
+    } catch (error) {
+      console.error('Backup failed:', error);
+      alert('Failed to create backup. Please try again.');
+    }
+  };
+
   const handleResetPin = () => {
     if (window.confirm('Are you sure you want to reset your PIN? You will be logged out.')) {
       localStorage.removeItem('momo_pin');
@@ -183,12 +220,43 @@ export default function Settings() {
                   onChange={handleLanguageChange}
                   className="appearance-none bg-gray-100 dark:bg-gray-800 border-none rounded-lg py-2 pl-3 pr-8 text-sm text-gray-700 dark:text-gray-200 font-medium focus:ring-2 focus:ring-blue-500"
                 >
+                  <option value="ar">العربية (Arabic)</option>
+                  <option value="bn">বাংলা (Bengali)</option>
+                  <option value="zh">中文 (Chinese)</option>
+                  <option value="cs">Čeština (Czech)</option>
+                  <option value="da">Dansk (Danish)</option>
+                  <option value="nl">Nederlands (Dutch)</option>
                   <option value="en">English</option>
-                  <option value="fr">Français</option>
-                  <option value="es">Español</option>
-                  <option value="de">Deutsch</option>
-                  <option value="pt">Português</option>
-                  <option value="sw">Kiswahili</option>
+                  <option value="fi">Suomi (Finnish)</option>
+                  <option value="fr">Français (French)</option>
+                  <option value="de">Deutsch (German)</option>
+                  <option value="el">Ελληνικά (Greek)</option>
+                  <option value="he">עברית (Hebrew)</option>
+                  <option value="hi">हिन्दी (Hindi)</option>
+                  <option value="hu">Magyar (Hungarian)</option>
+                  <option value="id">Bahasa Indonesia</option>
+                  <option value="it">Italiano (Italian)</option>
+                  <option value="ja">日本語 (Japanese)</option>
+                  <option value="ko">한국어 (Korean)</option>
+                  <option value="ms">Bahasa Melayu (Malay)</option>
+                  <option value="mr">मराठी (Marathi)</option>
+                  <option value="no">Norsk (Norwegian)</option>
+                  <option value="fa">فارسی (Persian)</option>
+                  <option value="pl">Polski (Polish)</option>
+                  <option value="pt">Português (Portuguese)</option>
+                  <option value="ro">Română (Romanian)</option>
+                  <option value="ru">Русский (Russian)</option>
+                  <option value="es">Español (Spanish)</option>
+                  <option value="sw">Kiswahili (Swahili)</option>
+                  <option value="sv">Svenska (Swedish)</option>
+                  <option value="tl">Tagalog</option>
+                  <option value="ta">தமிழ் (Tamil)</option>
+                  <option value="te">తెలుగు (Telugu)</option>
+                  <option value="th">ไทย (Thai)</option>
+                  <option value="tr">Türkçe (Turkish)</option>
+                  <option value="uk">Українська (Ukrainian)</option>
+                  <option value="ur">اردو (Urdu)</option>
+                  <option value="vi">Tiếng Việt (Vietnamese)</option>
                 </select>
                 <ChevronRight className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
@@ -278,7 +346,7 @@ export default function Settings() {
         <div>
           <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">{t('settings.data')}</h3>
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
-            <button className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <button onClick={handleBackup} className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
                   <Database className="w-4 h-4" />

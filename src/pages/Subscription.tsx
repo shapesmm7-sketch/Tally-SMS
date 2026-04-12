@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, Crown, RefreshCw, ShieldCheck, Gift } from 'lucide-react';
 import { BillingManager } from '../lib/BillingManager';
@@ -11,6 +11,22 @@ export default function Subscription() {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   const { isTrial, daysLeft, isPremium } = useAccessControl();
+  const [exchangeRate, setExchangeRate] = useState<number>(1);
+
+  const currency = localStorage.getItem('momo_currency') || 'USD';
+
+  useEffect(() => {
+    if (currency !== 'USD') {
+      fetch('https://api.exchangerate-api.com/v4/latest/USD')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.rates && data.rates[currency]) {
+            setExchangeRate(data.rates[currency]);
+          }
+        })
+        .catch(err => console.error('Failed to fetch exchange rates', err));
+    }
+  }, [currency]);
 
   const plans = [
     { id: 'daily', name: 'Daily Pass', amount: 0.25, period: '24 hours', desc: 'One-time payment' },
@@ -125,7 +141,7 @@ export default function Subscription() {
               <div className="flex justify-between items-center mb-1">
                 <h4 className="font-bold text-gray-900 dark:text-white">{plan.name}</h4>
                 <div className="text-right">
-                  <span className="font-bold text-lg text-gray-900 dark:text-white">{formatCurrency(plan.amount)}</span>
+                  <span className="font-bold text-lg text-gray-900 dark:text-white">{formatCurrency(plan.amount * exchangeRate)}</span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">/{plan.period}</span>
                 </div>
               </div>
@@ -142,7 +158,7 @@ export default function Subscription() {
           {isPurchasing ? (
             <><RefreshCw className="w-5 h-5 mr-2 animate-spin" /> Processing...</>
           ) : (
-            `Subscribe for ${selectedPlanData ? formatCurrency(selectedPlanData.amount) : ''}`
+            `Subscribe for ${selectedPlanData ? formatCurrency(selectedPlanData.amount * exchangeRate) : ''}`
           )}
         </button>
         
