@@ -23,16 +23,19 @@ export default function Settings() {
 
   useEffect(() => {
     // Check actual permission on mount if it was supposed to be enabled
-    if (smsEnabled && Capacitor.isNativePlatform() && window.SMS) {
-      window.SMS.hasPermission(
-        (has) => {
-          if (!has) {
-            setSmsEnabled(false);
-            localStorage.setItem('momo_sms_enabled', 'false');
-          }
-        },
-        () => {}
-      );
+    const smsPlugin = (window as any).SMS || (window as any).sms || (window as any).cordova?.plugins?.sms;
+    if (smsEnabled && Capacitor.isNativePlatform() && smsPlugin) {
+      if (typeof smsPlugin.hasPermission === 'function') {
+        smsPlugin.hasPermission(
+          (has: boolean) => {
+            if (!has) {
+              setSmsEnabled(false);
+              localStorage.setItem('momo_sms_enabled', 'false');
+            }
+          },
+          () => {}
+        );
+      }
     }
   }, []);
 

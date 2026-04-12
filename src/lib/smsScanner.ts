@@ -23,7 +23,9 @@ export async function scanAndImportSMS(
     return;
   }
 
-  if (!window.SMS) {
+  const smsPlugin = (window as any).SMS || (window as any).sms || (window as any).cordova?.plugins?.sms;
+
+  if (!smsPlugin) {
     onError('SMS plugin not found. Make sure the app is built correctly with Cordova SMS plugin.');
     return;
   }
@@ -32,19 +34,27 @@ export async function scanAndImportSMS(
 
   const checkPermission = (): Promise<boolean> => {
     return new Promise((resolve) => {
-      window.SMS!.hasPermission(
-        (hasPermission) => resolve(hasPermission),
-        () => resolve(false)
-      );
+      if (typeof smsPlugin.hasPermission === 'function') {
+        smsPlugin.hasPermission(
+          (hasPermission: boolean) => resolve(hasPermission),
+          () => resolve(false)
+        );
+      } else {
+        resolve(true); // Assume true if method doesn't exist
+      }
     });
   };
 
   const requestPermission = (): Promise<boolean> => {
     return new Promise((resolve) => {
-      window.SMS!.requestPermission(
-        () => resolve(true),
-        () => resolve(false)
-      );
+      if (typeof smsPlugin.requestPermission === 'function') {
+        smsPlugin.requestPermission(
+          () => resolve(true),
+          () => resolve(false)
+        );
+      } else {
+        resolve(true); // Assume true if method doesn't exist
+      }
     });
   };
 
@@ -67,7 +77,12 @@ export async function scanAndImportSMS(
     maxCount: 200,
   };
 
-  window.SMS.listSMS(
+  if (typeof smsPlugin.listSMS !== 'function') {
+    onError('SMS reading is not supported by the current plugin.');
+    return;
+  }
+
+  smsPlugin.listSMS(
     filter,
     async (messages) => {
       onProgress(`Found ${messages.length} messages. Analyzing...`);

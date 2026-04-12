@@ -37,17 +37,23 @@ export default function Dashboard() {
     }
 
     // Check if we have permission first
-    if (Capacitor.isNativePlatform() && window.SMS) {
-      window.SMS.hasPermission(
-        (has) => {
-          if (!has) {
-            setShowSmsModal(true);
-          } else {
-            startSmsScan();
-          }
-        },
-        () => setShowSmsModal(true)
-      );
+    const smsPlugin = (window as any).SMS || (window as any).sms || (window as any).cordova?.plugins?.sms;
+    if (Capacitor.isNativePlatform() && smsPlugin) {
+      if (typeof smsPlugin.hasPermission === 'function') {
+        smsPlugin.hasPermission(
+          (has: boolean) => {
+            if (!has) {
+              setShowSmsModal(true);
+            } else {
+              startSmsScan();
+            }
+          },
+          () => setShowSmsModal(true)
+        );
+      } else {
+        // If hasPermission is not available, try to proceed
+        startSmsScan();
+      }
     } else {
       startSmsScan();
     }
