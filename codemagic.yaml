@@ -1,0 +1,82 @@
+workflows:
+  android-capacitor-workflow:
+    name: Android Capacitor Build
+    max_build_duration: 120
+    environment:
+      groups:
+        - Android signing
+      node: 22
+      java: 21
+    scripts:
+      - name: Install npm dependencies
+        script: npm install
+      - name: Build web app
+        script: npm run build
+      - name: Generate Android assets
+        script: |
+          # Create assets directory if it doesn't exist
+          mkdir -p assets
+          # If logo.png is uploaded to root, use it as the icon and splash
+          if [ -f "logo.png" ]; then
+            cp logo.png assets/icon-only.png
+            cp logo.png assets/icon-foreground.png
+            cp logo.png assets/icon-background.png
+            cp logo.png assets/splash.png
+            cp logo.png assets/splash-dark.png
+          fi
+          # Generate icons and splash screens for Android
+          # This assumes logo.png (as icon-only.png) is 1024x1024
+          npx -y @capacitor/assets generate --android
+      - name: Sync Capacitor Android project
+        script: npx cap sync android
+      - name: Build Android release
+        script: |
+          cd android
+          
+          # Check if variables are present
+          if [ -z "$CM_KEYSTORE" ]; then
+            echo "Error: CM_KEYSTORE variable is not set. Make sure you have a variable group named 'Android signing' in Codemagic and it contains CM_KEYSTORE."
+            exit 1
+          fi
+          
+          # Set up key properties for signing using the variables already set in Codemagic
+          echo "storeFile=keystore.jks" >> local.properties
+          echo "storePassword=$CM_KEYSTORE_PASSWORD" >> local.properties
+          echo "keyAlias=$CM_KEY_ALIAS" >> local.properties
+          echo "keyPassword=$CM_KEY_PASSWORD" >> local.properties
+          
+          # Decode keystore file or copy if it's a path
+          if [[ "$CM_KEYSTORE" == /* ]]; then
+            cp "$CM_KEYSTORE" keystore.jks
+          else
+            echo "$CM_KEYSTORE" | base64 --decode > keystore.jks
+          fi
+          
+          # Verify keystore exists and is not empty
+          if [ ! -s keystore.jks ]; then
+            echo "Error: keystore.jks is empty or was not created correctly. Check your CM_KEYSTORE variable content."
+            exit 1
+          fi
+          
+          # Build signed APK and AAB using system gradle
+          gradle assembleRelease \
+            -Pandroid.injected.signing.store.file=$(pwd)/keystore.jks \
+            -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
+            
+          gradle bundleRelease \
+            -Pandroid.injected.signing.store.file=$(pwd)/keystore.jks \
+            -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
+    artifacts:
+      - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/bundle/release/*.aab
+    publishing:
+      email:
+        recipients:
+          - tabsmrman@gmail.com
+        notify:
+          success: true
+          failure: true
