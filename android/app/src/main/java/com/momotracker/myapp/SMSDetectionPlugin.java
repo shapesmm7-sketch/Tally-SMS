@@ -25,7 +25,7 @@ import org.json.JSONArray;
     permissions = {
         @Permission(
             alias = "sms",
-            strings = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS}
+            strings = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE}
         )
     }
 )
@@ -74,7 +74,12 @@ public class SMSDetectionPlugin extends Plugin {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                 intent.setData(Uri.parse("package:" + getContext().getPackageName()));
-                getContext().startActivity(intent);
+                if (getActivity() != null) {
+                    getActivity().startActivity(intent);
+                } else {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getContext().startActivity(intent);
+                }
             }
             call.resolve();
         } catch (Exception e) {
@@ -89,8 +94,12 @@ public class SMSDetectionPlugin extends Plugin {
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
             intent.setData(uri);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            getContext().startActivity(intent);
+            if (getActivity() != null) {
+                getActivity().startActivity(intent);
+            } else {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+            }
             call.resolve();
         } catch (Exception e) {
             Log.e(TAG, "Error opening app settings: " + e.getMessage());
