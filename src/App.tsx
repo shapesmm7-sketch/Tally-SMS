@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import Layout from './components/Layout';
 import PinScreen from './pages/PinScreen';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +18,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AdProvider } from './context/AdContext';
 import InterstitialAdModal from './components/ads/InterstitialAdModal';
 import { useInterstitialAd } from './hooks/useInterstitialAd';
+import { syncPendingSMS } from './lib/smsDetector';
 
 // Preload ads on startup
 InterstitialAdController.preload();
@@ -23,6 +26,34 @@ InterstitialAdController.preload();
 function AppContent() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const { showInterstitialModal, handleAdClosed } = useInterstitialAd();
+
+  useEffect(() => {
+    // Sync any pending SMS detected in background
+    if (Capacitor.isNativePlatform()) {
+      syncPendingSMS();
+    }
+
+    // Listen for app foregrounding to sync again
+    let listenerHandle: any;
+    
+    const setup = async () => {
+      if (!Capacitor.isNativePlatform()) return;
+      
+      listenerHandle = await CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+        if (isActive) {
+          syncPendingSMS();
+        }
+      });
+    };
+
+    setup();
+
+    return () => {
+      if (listenerHandle) {
+        listenerHandle.remove();
+      }
+    };
+  }, []);
 
   return (
     <>

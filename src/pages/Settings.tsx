@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search, Share2 } from 'lucide-react';
+import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search, Share2, Zap, RefreshCcw } from 'lucide-react';
 import { db } from '../lib/db';
 import { COUNTRIES } from '../lib/utils';
 import { useAccessControl } from '../hooks/useAccessControl';
 import { useTheme } from '../context/ThemeContext';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
+import SMSDetection from '../lib/smsDetector';
+import { scanAndImportSMS } from '../lib/smsScanner';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -21,24 +23,32 @@ export default function Settings() {
   const [countrySearch, setCountrySearch] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
   const [smsError, setSmsError] = useState<string | null>(null);
+  const [batteryOptimizationDisabled, setBatteryOptimizationDisabled] = useState(true);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState<{ count: number; error?: string } | null>(null);
 
   useEffect(() => {
-    // Check actual permission on mount if it was supposed to be enabled
-    const smsPlugin = (window as any).SMS || (window as any).sms || (window as any).cordova?.plugins?.sms;
-    if (smsEnabled && Capacitor.isNativePlatform() && smsPlugin) {
-      if (typeof smsPlugin.hasPermission === 'function') {
-        smsPlugin.hasPermission(
-          (has: boolean) => {
-            if (!has) {
-              setSmsEnabled(false);
-              localStorage.setItem('momo_sms_enabled', 'false');
-            }
-          },
-          () => {}
-        );
-      }
+    if (Capacitor.isNativePlatform()) {
+      checkBatteryOptimization();
     }
   }, []);
+
+  const checkBatteryOptimization = async () => {
+    try {
+      const { disabled } = await SMSDetection.isBatteryOptimizationDisabled();
+      setBatteryOptimizationDisabled(disabled);
+    } catch (e) {
+      console.error('Error checking battery optimization:', e);
+    }
+  };
+
+  const handleOpenBatterySettings = async () => {
+    try {
+      await SMSDetection.openBatteryOptimizationSettings();
+    } catch (e) {
+      console.error('Error opening battery settings:', e);
+    }
+  };
 
   const handleSmsToggle = async () => {
     if (smsEnabled) {
@@ -54,6 +64,24 @@ export default function Settings() {
     } else {
       alert('SMS Auto-Detection is only available on Android devices.');
     }
+  };
+
+  const handleManualScan = () => {
+    setIsScanning(true);
+    setScanResult(null);
+    scanAndImportSMS(
+      (msg) => console.log(msg),
+      (count) => {
+        setIsScanning(false);
+        setScanResult({ count });
+        alert(`Scan complete! Found ${count} new transactions.`);
+      },
+      (error) => {
+        setIsScanning(false);
+        setScanResult({ count: 0, error });
+        alert(`Scan failed: ${error}`);
+      }
+    );
   };
 
   const requestSmsPermission = () => {
@@ -379,6 +407,22 @@ export default function Settings() {
         <div>
           <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">{t('settings.data')}</h3>
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
+            <button 
+              onClick={handleManualScan} 
+              disabled={isScanning}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <RefreshCcw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
+                </div>
+                <div>
+                  <span className="font-medium text-gray-800 dark:text-white">Manual Scan Inbox</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Scan existing SMS for transactions</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
             <button onClick={handleBackup} className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
@@ -398,6 +442,36 @@ export default function Settings() {
             </button>
           </div>
         </div>
+
+        {/* System & Reliability (Android Only) */}
+        {Capacitor.isNativePlatform() && (
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">Reliability</h3>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
+              <button 
+                onClick={handleOpenBatterySettings}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${batteryOptimizationDisabled ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-gray-800 dark:text-white">Battery Optimization</p>
+                    <p className={`text-xs ${batteryOptimizationDisabled ? 'text-green-600' : 'text-amber-600 font-medium'}`}>
+                      {batteryOptimizationDisabled ? 'Optimized for background detection' : 'Restricted (Detection may fail)'}
+                    </p>
+                  </div>
+                </div>
+                {!batteryOptimizationDisabled && (
+                  <div className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-xs px-2 py-1 rounded-lg font-bold">
+                    FIX NOW
+                  </div>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* About */}
         <div>

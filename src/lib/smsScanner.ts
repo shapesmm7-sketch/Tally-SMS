@@ -94,12 +94,18 @@ export async function scanAndImportSMS(
       const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
 
       for (const msg of messages) {
-        // Basic filter to only parse likely MoMo messages
-        const body = msg.body || '';
-        const address = (msg.address || '').toLowerCase();
+        // Basic filter to only parse likely financial messages
+        const body = (msg.body || '').toLowerCase();
         
-        // Skip if it doesn't look like a MoMo message
-        if (!body.toLowerCase().includes('ugx') && !body.toLowerCase().includes('balance')) {
+        const keywords = [
+          'received', 'sent', 'withdrawn', 'withdraw', 'airtime', 'deposit', 
+          'payment', 'paid', 'confirmed', 'transfer', 'credited', 'debited', 
+          'recharged', 'cash', 'transid', 'txn:', 'ref:', 'balance',
+          'ugx', 'kes', 'ghs', 'rwf', 'tzs', 'zar', 'ngn', 'xof', 'xaf', 
+          'mzn', 'bwp', 'zmw', 'eur', 'usd', 'gbp'
+        ];
+
+        if (!keywords.some(k => body.includes(k))) {
           continue;
         }
 
