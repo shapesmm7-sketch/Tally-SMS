@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { db } from './db';
 import { parseMoMoSMS, parseTransactionDate } from './smsParser';
+import { requestSmsPermissions } from './smsDetector';
 
 // Declare the cordova SMS plugin interface
 declare global {
@@ -32,40 +33,10 @@ export async function scanAndImportSMS(
 
   onProgress('Checking permissions...');
 
-  const checkPermission = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (typeof smsPlugin.hasPermission === 'function') {
-        smsPlugin.hasPermission(
-          (hasPermission: boolean) => resolve(hasPermission),
-          () => resolve(false)
-        );
-      } else {
-        resolve(true); // Assume true if method doesn't exist
-      }
-    });
-  };
-
-  const requestPermission = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (typeof smsPlugin.requestPermission === 'function') {
-        smsPlugin.requestPermission(
-          () => resolve(true),
-          () => resolve(false)
-        );
-      } else {
-        resolve(true); // Assume true if method doesn't exist
-      }
-    });
-  };
-
-  let hasPerm = await checkPermission();
+  const hasPerm = await requestSmsPermissions();
   if (!hasPerm) {
-    onProgress('Requesting SMS permission...');
-    hasPerm = await requestPermission();
-    if (!hasPerm) {
-      onError('SMS permission denied. Cannot scan messages.');
-      return;
-    }
+    onError('SMS permission denied. Please enable it in your phone settings to scan messages.');
+    return;
   }
 
   onProgress('Syncing transactions...');

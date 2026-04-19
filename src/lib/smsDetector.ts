@@ -1,16 +1,45 @@
-import { registerPlugin, Capacitor } from '@capacitor/core';
+import { registerPlugin, Capacitor, type PermissionState } from '@capacitor/core';
 import { db } from './db';
 import { parseMoMoSMS, parseTransactionDate } from './smsParser';
+
+export interface PermissionStatus {
+  sms: PermissionState;
+}
 
 export interface SMSDetectionPlugin {
   getPendingSMS(): Promise<{ messages: Array<{ sender: string; body: string; timestamp: number }> }>;
   isBatteryOptimizationDisabled(): Promise<{ disabled: boolean }>;
   openBatteryOptimizationSettings(): Promise<void>;
-  checkPermissions(): Promise<{ granted: boolean }>;
-  requestPermissions(): Promise<{ granted: boolean }>;
+  checkPermissions(): Promise<PermissionStatus>;
+  requestPermissions(): Promise<PermissionStatus>;
 }
 
 const SMSDetection = registerPlugin<SMSDetectionPlugin>('SMSDetection');
+
+export async function requestSmsPermissions(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return true;
+
+  try {
+    let status = await SMSDetection.checkPermissions();
+    
+    if (status.sms === 'granted') {
+      return true;
+    }
+
+    if (status.sms === 'denied') {
+      // In Capacitor 3+, 'denied' often means the user has checked "Never ask again"
+      // However, first we try to request
+      status = await SMSDetection.requestPermissions();
+    } else if (status.sms === 'prompt' || status.sms === 'prompt-with-rationale') {
+      status = await SMSDetection.requestPermissions();
+    }
+
+    return status.sms === 'granted';
+  } catch (e) {
+    console.error('Error requesting permissions:', e);
+    return false;
+  }
+}
 
 export async function syncPendingSMS() {
   if (!Capacitor.isNativePlatform()) {

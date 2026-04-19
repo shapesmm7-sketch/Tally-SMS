@@ -8,7 +8,7 @@ import { useAccessControl } from '../hooks/useAccessControl';
 import { useTheme } from '../context/ThemeContext';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
-import SMSDetection from '../lib/smsDetector';
+import SMSDetection, { requestSmsPermissions } from '../lib/smsDetector';
 import { scanAndImportSMS } from '../lib/smsScanner';
 
 export default function Settings() {
@@ -84,63 +84,25 @@ export default function Settings() {
     );
   };
 
-  const requestSmsPermission = () => {
+  const requestSmsPermission = async () => {
     setSmsError(null);
-    const smsPlugin = window.SMS || (window as any).sms || (window as any).cordova?.plugins?.sms;
-    
-    if (!smsPlugin) {
-      setSmsError('SMS plugin not found. Please ensure the app is built correctly and running on a real Android device.');
-      return;
-    }
-
     setIsRequesting(true);
 
-    // Set a safety timeout in case the plugin doesn't respond
-    const timeout = setTimeout(() => {
-      setIsRequesting(false);
-      setSmsError('Permission request timed out. Please try again.');
-    }, 10000);
-
-    const handleSuccess = () => {
-      clearTimeout(timeout);
-      setIsRequesting(false);
-      setSmsEnabled(true);
-      localStorage.setItem('momo_sms_enabled', 'true');
-      setShowSmsModal(false);
-    };
-
-    const handleError = (err: any) => {
-      clearTimeout(timeout);
-      setIsRequesting(false);
-      console.error('SMS Permission Error:', err);
-      setSmsError('Permission denied or error occurred. SMS Auto-Detection cannot be enabled.');
-    };
-
     try {
-      if (typeof smsPlugin.requestPermission === 'function') {
-        smsPlugin.requestPermission(handleSuccess, handleError);
-      } else if (typeof smsPlugin.hasPermission === 'function') {
-        // Fallback if requestPermission doesn't exist
-        smsPlugin.hasPermission((hasPerm: boolean) => {
-          if (hasPerm) {
-            handleSuccess();
-          } else {
-            // Try to trigger permission by calling listSMS with 0 maxCount
-            if (typeof smsPlugin.listSMS === 'function') {
-              smsPlugin.listSMS({ box: 'inbox', indexFrom: 0, maxCount: 1 }, handleSuccess, handleError);
-            } else {
-               handleError('Permission not granted and request method unavailable.');
-            }
-          }
-        }, handleError);
+      const granted = await requestSmsPermissions();
+      
+      if (granted) {
+        setSmsEnabled(true);
+        localStorage.setItem('momo_sms_enabled', 'true');
+        setShowSmsModal(false);
       } else {
-        handleSuccess(); // Assume it works if no permission methods exist
+        setSmsError('SMS permission is required to detect transactions. Please enable it in your phone settings.');
       }
     } catch (error) {
-      clearTimeout(timeout);
+      console.error('SMS Permission Error:', error);
+      setSmsError('An error occurred while requesting permissions.');
+    } finally {
       setIsRequesting(false);
-      console.error('SMS Permission Exception:', error);
-      setSmsError('An unexpected error occurred while requesting permission.');
     }
   };
 
