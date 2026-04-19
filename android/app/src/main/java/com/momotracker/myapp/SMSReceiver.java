@@ -16,20 +16,27 @@ public class SMSReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")) {
+        if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 Object[] pdus = (Object[]) bundle.get("pdus");
+                String format = bundle.getString("format");
                 if (pdus != null) {
                     for (Object pdu : pdus) {
                         try {
-                            SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
+                            SmsMessage smsMessage;
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
+                            } else {
+                                smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
+                            }
+                            
                             String sender = smsMessage.getDisplayOriginatingAddress();
                             String messageBody = smsMessage.getDisplayMessageBody();
                             
-                            Log.d(TAG, "SMS Received from: " + sender + " Body: " + messageBody);
+                            Log.d(TAG, "SMS Received from: " + sender);
 
-                            if (isMoMoMessage(messageBody)) {
+                            if (isMoMoMessage(messageBody, sender)) {
                                 saveMessageToPending(context, sender, messageBody);
                             }
                         } catch (Exception e) {
@@ -41,9 +48,10 @@ public class SMSReceiver extends BroadcastReceiver {
         }
     }
 
-    private boolean isMoMoMessage(String body) {
+    private boolean isMoMoMessage(String body, String sender) {
         if (body == null) return false;
         String lowerBody = body.toLowerCase();
+        String lowerSender = (sender != null) ? sender.toLowerCase() : "";
         
         // Comprehensive list of keywords used in Mobile Money transactions globally
         String[] keywords = {
@@ -52,9 +60,23 @@ public class SMSReceiver extends BroadcastReceiver {
             "recharged", "cash", "transid", "txn:", "ref:", "balance", "float",
             "ugx", "kes", "ghs", "rwf", "tzs", "zar", "ngn", "xof", "xaf", 
             "mzn", "bwp", "zmw", "eur", "usd", "gbp", "etb", "ssp", "mad", 
-            "tnd", "egp", "mtn", "airtel", "mpesa", "orange", "vodafone", "tigo"
+            "tnd", "egp", "mtn", "airtel", "mpesa", "orange", "vodafone", "tigo",
+            "m-pesa", "momo", "halopesa", "ecocash", "telecash", "mukuru"
         };
         
+        // If sender is a known MoMo shortcode or contains MoMo keywords
+        if (lowerSender.contains("momo") || 
+            lowerSender.contains("mpesa") || 
+            lowerSender.contains("airtel") || 
+            lowerSender.contains("mtn") ||
+            lowerSender.contains("money") ||
+            lowerSender.contains("payment") ||
+            lowerSender.equals("150") || // Common USSD/SMS shortcode
+            lowerSender.equals("164") ||
+            lowerSender.equals("160")) {
+            return true;
+        }
+
         for (String keyword : keywords) {
             if (lowerBody.contains(keyword)) {
                 return true;

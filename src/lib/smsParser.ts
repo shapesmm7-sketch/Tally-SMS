@@ -15,7 +15,7 @@ export interface ParsedSMS {
   raw_message: string;
 }
 
-export function parseMoMoSMS(text: string): ParsedSMS | null {
+export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   if (!text || !text.trim()) return null;
 
   const result: ParsedSMS = {
@@ -36,26 +36,30 @@ export function parseMoMoSMS(text: string): ParsedSMS | null {
   };
 
   const lowerText = text.toLowerCase();
+  const lowerAddress = (address || '').toLowerCase();
 
   // 1. Transaction Type Detection
-  if (/(received|credited|deposit)/i.test(lowerText)) result.transaction_type = "deposit";
-  else if (/(sent|transferred|paid to)/i.test(lowerText)) result.transaction_type = "sent";
-  else if (/(withdrawn|cash out)/i.test(lowerText)) result.transaction_type = "withdrawal";
+  if (/(received|credited|deposit|cash-in|cashed in)/i.test(lowerText)) result.transaction_type = "deposit";
+  else if (/(sent|transferred|paid to|cash-out|cashed out)/i.test(lowerText)) result.transaction_type = "sent";
+  else if (/(withdrawn|withdraw|cash out)/i.test(lowerText)) result.transaction_type = "withdrawal";
   else if (/(paid|bill|purchase)/i.test(lowerText)) result.transaction_type = "payment";
-  else if (/(airtime|bundle)/i.test(lowerText)) result.transaction_type = "airtime";
+  else if (/(airtime|bundle|recharge)/i.test(lowerText)) result.transaction_type = "airtime";
 
   // 2. Currency Detection
-  const currencyMatch = text.match(/(UGX|KES|NGN|GHS|INR|USD|EUR|\$|€|₹)/i);
+  const currencyMatch = text.match(/(UGX|KES|NGN|GHS|INR|USD|EUR|RWF|TZS|ZAR|XOF|XAF|MWK|ZMW|\$|€|₹)/i);
   if (currencyMatch) result.currency = currencyMatch[1].toUpperCase();
 
   // Helper to clean numbers (remove commas and spaces)
   const cleanNumber = (str: string) => parseFloat(str.replace(/[, ]/g, ''));
 
   // 3. Amount Extraction
-  const amountMatch = text.match(/(?:UGX|KES|NGN|GHS|INR|USD|EUR|\$|€|₹)\s*([\d,.\s]+\d)/i) || 
-                      text.match(/([\d,.\s]+\d)\s*(?:UGX|KES|NGN|GHS|INR|USD|EUR|\$|€|₹)/i) ||
-                      text.match(/(?:amount|cash deposit of)[:\s]*([\d,.\s]+\d)/i);
-  if (amountMatch) result.amount = cleanNumber(amountMatch[1]);
+  // Look for currency followed by numbers or numbers followed by currency
+  const amountRegex = /(?:UGX|KES|NGN|GHS|INR|USD|EUR|RWF|TZS|ZAR|XOF|XAF|MWK|ZMW|\$|€|₹)\s*([\d, \.]+\d)|([\d, \.]+\d)\s*(?:UGX|KES|NGN|GHS|INR|USD|EUR|RWF|TZS|ZAR|XOF|XAF|MWK|ZMW|\$|€|₹)/i;
+  const amountMatch = text.match(amountRegex) || text.match(/(?:amount|cash deposit of)[:\s]*([\d,.\s]+\d)/i);
+  
+  if (amountMatch) {
+    result.amount = cleanNumber(amountMatch[1] || amountMatch[2]);
+  }
 
   // 4. Name Detection
   const fromMatch = text.match(/from\s+([A-Za-z0-9\s]+?)(?=\.|\s+Bal|\s+TID|\s+ID|\s+Ref|\s+on|$)/i);
@@ -65,7 +69,7 @@ export function parseMoMoSMS(text: string): ParsedSMS | null {
   if (toMatch) result.receiver_name = toMatch[1].trim();
 
   // 5. Transaction ID
-  const tidMatch = text.match(/(?:TID|TxID|Txn|Ref|Reference|Transaction ID|ID)\s*:?-?\s*([A-Za-z0-9]+)/i);
+  const tidMatch = text.match(/(?:TID|TxID|Txn|Ref|Reference|Transaction ID|ID)\s*:?\s*([A-Za-z0-9]+)/i);
   if (tidMatch) result.transaction_id = tidMatch[1].trim();
 
   // 6. Phone Number Extraction
@@ -81,25 +85,31 @@ export function parseMoMoSMS(text: string): ParsedSMS | null {
   }
 
   // 7. Date & Time
-  const dateMatch = text.match(/\b(\d{2}[-/\s]\d{2}[-/\s]\d{4}|\d{4}[-/\s]\d{2}[-/\s]\d{2}|\d{2}[-/\s][A-Za-z]{3,9}[-/\s]\d{4})\b/);
+  const dateMatch = text.match(/\b(\d{2}[-/\s.]\d{2}[-/\s.]\d{4}|\d{4}[-/\s.]\d{2}[-/\s.]\d{2}|\d{2}[-/\s.][A-Za-z]{3,9}[-/\s.]\d{4})\b/);
   if (dateMatch) result.date = dateMatch[1];
 
   const timeMatch = text.match(/\b(\d{2}:\d{2}(?::\d{2})?(?:\s*[AaPp][Mm])?)\b/);
   if (timeMatch) result.time = timeMatch[1];
 
   // 8. Balance
-  const balMatch = text.match(/(?:Balance|New balance|Available balance|Bal)[^\d]*([\d,.\s]+\d)/i);
+  const balMatch = text.match(/(?:Balance|New balance|Available balance|Bal|Amt)[^\d]*([\d, \.]+\d)/i);
   if (balMatch) result.balance = cleanNumber(balMatch[1]);
 
   // 9. Fee
-  const feeMatch = text.match(/(?:Fee|Charge|Cost)[^\d]*([\d,.\s]+\d)/i);
+  const feeMatch = text.match(/(?:Fee|Charge|Cost)[^\d]*([\d, \.]+\d)/i);
   if (feeMatch) result.fee = cleanNumber(feeMatch[1]);
 
   // 10. Provider
-  const providerMatch = text.match(/(M-Pesa|Orange Money|bKash|Paytm|MTN|Airtel|Safaricom)/i);
-  if (providerMatch) result.provider = providerMatch[1];
+  const providerMatch = text.match(/(M-Pesa|Orange Money|bKash|Paytm|MTN|Airtel|Safaricom|MoMo|HaloPesa|Tigo|Vodafone)/i);
+  if (providerMatch) {
+    result.provider = providerMatch[1];
+  } else if (lowerAddress.includes('mtn')) {
+    result.provider = 'MTN';
+  } else if (lowerAddress.includes('airtel')) {
+    result.provider = 'Airtel';
+  }
 
-  // 11. Confidence Score
+  // 11. Confidence Score Calculation
   const fieldsToScore = [
     'transaction_type', 'amount', 'currency', 'sender_name', 
     'receiver_name', 'phone_number', 'transaction_id', 

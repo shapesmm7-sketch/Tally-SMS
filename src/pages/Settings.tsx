@@ -26,6 +26,7 @@ export default function Settings() {
   const [batteryOptimizationDisabled, setBatteryOptimizationDisabled] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<{ count: number; error?: string } | null>(null);
+  const [needsManualSettings, setNeedsManualSettings] = useState(false);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -60,6 +61,8 @@ export default function Settings() {
 
     // Turning on requires explanation and permission
     if (Capacitor.isNativePlatform()) {
+      setSmsError(null);
+      setNeedsManualSettings(false);
       setShowSmsModal(true);
     } else {
       alert('SMS Auto-Detection is only available on Android devices.');
@@ -79,12 +82,27 @@ export default function Settings() {
       (error) => {
         setIsScanning(false);
         setScanResult({ count: 0, error });
-        alert(`Scan failed: ${error}`);
+        if (error.toLowerCase().includes('permission denied')) {
+          setShowSmsModal(true);
+          setNeedsManualSettings(true);
+          setSmsError('SMS permission is required to scan your inbox. Please enable it in your phone settings.');
+        } else {
+          alert(`Scan failed: ${error}`);
+        }
       }
     );
   };
 
   const requestSmsPermission = async () => {
+    if (needsManualSettings) {
+      try {
+        await SMSDetection.openAppSettings();
+      } catch (e) {
+        console.error('Error opening app settings:', e);
+      }
+      return;
+    }
+
     setSmsError(null);
     setIsRequesting(true);
 
@@ -97,6 +115,7 @@ export default function Settings() {
         setShowSmsModal(false);
       } else {
         setSmsError('SMS permission is required to detect transactions. Please enable it in your phone settings.');
+        setNeedsManualSettings(true);
       }
     } catch (error) {
       console.error('SMS Permission Error:', error);
@@ -523,9 +542,14 @@ export default function Settings() {
                     <span>{t('common.loading') || 'Processing...'}</span>
                   </div>
                 ) : (
-                  t('settings.sms_explanation_btn')
+                  needsManualSettings ? 'Open App Settings' : t('settings.sms_explanation_btn')
                 )}
               </button>
+              {needsManualSettings && (
+                <p className="mt-3 text-xs text-blue-600 dark:text-blue-400 font-medium">
+                  After enabling permissions, return to the app and try again.
+                </p>
+              )}
             </div>
           </div>
         </div>

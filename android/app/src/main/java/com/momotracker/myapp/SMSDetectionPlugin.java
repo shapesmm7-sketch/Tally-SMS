@@ -81,4 +81,17 @@ public class SMSDetectionPlugin extends Plugin {
             call.reject("Could not open settings: " + e.getMessage());
         }
     }
+
+    @PluginMethod
+    public void openAppSettings(PluginCall call) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
+            intent.setData(uri);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Could not open app settings: " + e.getMessage());
+        }
+    }
 }

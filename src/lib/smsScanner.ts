@@ -80,7 +80,7 @@ export async function scanAndImportSMS(
           continue;
         }
 
-        const parsed = parseMoMoSMS(body);
+        const parsed = parseMoMoSMS(body, msg.address);
         
         if (parsed && parsed.transaction_id) {
           // Check if we already have this transaction

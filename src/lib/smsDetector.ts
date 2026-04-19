@@ -10,6 +10,7 @@ export interface SMSDetectionPlugin {
   getPendingSMS(): Promise<{ messages: Array<{ sender: string; body: string; timestamp: number }> }>;
   isBatteryOptimizationDisabled(): Promise<{ disabled: boolean }>;
   openBatteryOptimizationSettings(): Promise<void>;
+  openAppSettings(): Promise<void>;
   checkPermissions(): Promise<PermissionStatus>;
   requestPermissions(): Promise<PermissionStatus>;
 }
@@ -56,7 +57,7 @@ export async function syncPendingSMS() {
       const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
 
       for (const msg of messages) {
-        const parsed = parseMoMoSMS(msg.body);
+        const parsed = parseMoMoSMS(msg.body, msg.sender);
         // Only add if not already in DB
         if (parsed && parsed.transaction_id && !existingTids.has(parsed.transaction_id)) {
           const txDate = parseTransactionDate(parsed.date, parsed.time);
