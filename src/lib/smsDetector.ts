@@ -17,6 +17,16 @@ export interface SMSDetectionPlugin {
 
 const SMSDetection = registerPlugin<SMSDetectionPlugin>('SMSDetection');
 
+export async function checkSmsPermission(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return true;
+  try {
+    const status = await SMSDetection.checkPermissions();
+    return status.sms === 'granted';
+  } catch (e) {
+    return false;
+  }
+}
+
 export async function requestSmsPermissions(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return true;
 

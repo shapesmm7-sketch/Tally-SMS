@@ -8,8 +8,9 @@ import { useAccessControl } from '../hooks/useAccessControl';
 import { useTheme } from '../context/ThemeContext';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
-import SMSDetection, { requestSmsPermissions } from '../lib/smsDetector';
+import SMSDetection, { requestSmsPermissions, checkSmsPermission } from '../lib/smsDetector';
 import { scanAndImportSMS } from '../lib/smsScanner';
+import { App as CapacitorApp } from '@capacitor/app';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -27,6 +28,31 @@ export default function Settings() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<{ count: number; error?: string } | null>(null);
   const [needsManualSettings, setNeedsManualSettings] = useState(false);
+
+  useEffect(() => {
+    let listener: any;
+    
+    const setupAutoCheck = async () => {
+      if (!Capacitor.isNativePlatform()) return;
+      
+      listener = await CapacitorApp.addListener('appStateChange', async ({ isActive }) => {
+        if (isActive && showSmsModal) {
+          const granted = await checkSmsPermission();
+          if (granted) {
+            setSmsEnabled(true);
+            localStorage.setItem('momo_sms_enabled', 'true');
+            setShowSmsModal(false);
+          }
+        }
+      });
+    };
+
+    setupAutoCheck();
+
+    return () => {
+      if (listener) listener.remove();
+    };
+  }, [showSmsModal]);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -95,6 +121,15 @@ export default function Settings() {
 
   const requestSmsPermission = async () => {
     if (needsManualSettings) {
+      // First check if user actually enabled it manually before opening settings again
+      const alreadyGranted = await checkSmsPermission();
+      if (alreadyGranted) {
+        setSmsEnabled(true);
+        localStorage.setItem('momo_sms_enabled', 'true');
+        setShowSmsModal(false);
+        return;
+      }
+
       try {
         await SMSDetection.openAppSettings();
       } catch (e) {
@@ -546,9 +581,27 @@ export default function Settings() {
                 )}
               </button>
               {needsManualSettings && (
-                <p className="mt-3 text-xs text-blue-600 dark:text-blue-400 font-medium">
-                  After enabling permissions, return to the app and try again.
-                </p>
+                <div className="mt-3 flex flex-col items-center">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-3">
+                    After enabling permissions, return to the app and try again.
+                  </p>
+                  <button 
+                    onClick={async () => {
+                      const granted = await checkSmsPermission();
+                      if (granted) {
+                        setSmsEnabled(true);
+                        localStorage.setItem('momo_sms_enabled', 'true');
+                        setShowSmsModal(false);
+                      } else {
+                        alert('Permission still not detected. Please make sure "SMS" is allowed in Settings.');
+                      }
+                    }}
+                    className="flex items-center space-x-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 p-2"
+                  >
+                    <RefreshCcw className="w-4 h-4" />
+                    <span>Check Again</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>
