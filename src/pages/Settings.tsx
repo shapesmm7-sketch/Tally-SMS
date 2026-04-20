@@ -121,19 +121,27 @@ export default function Settings() {
 
   const requestSmsPermission = async () => {
     if (needsManualSettings) {
-      // First check if user actually enabled it manually before opening settings again
-      const alreadyGranted = await checkSmsPermission();
-      if (alreadyGranted) {
-        setSmsEnabled(true);
-        localStorage.setItem('momo_sms_enabled', 'true');
-        setShowSmsModal(false);
-        return;
-      }
-
       try {
+        setIsRequesting(true);
+        setSmsError('Checking permission status...');
+        
+        const alreadyGranted = await checkSmsPermission();
+        if (alreadyGranted) {
+          setSmsEnabled(true);
+          localStorage.setItem('momo_sms_enabled', 'true');
+          setShowSmsModal(false);
+          setSmsError(null);
+          return;
+        }
+
+        setSmsError('Attempting to open phone settings...');
         await SMSDetection.openAppSettings();
-      } catch (e) {
+        setSmsError('Please grant the SMS and Phone permissions, then return here.');
+      } catch (e: any) {
         console.error('Error opening app settings:', e);
+        setSmsError(`Failed to open settings: ${e.message || String(e)}. Please go to your phone Settings > Apps > MoMo Tracker > Permissions manually.`);
+      } finally {
+        setIsRequesting(false);
       }
       return;
     }
