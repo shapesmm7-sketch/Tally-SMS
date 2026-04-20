@@ -3,18 +3,19 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { formatCurrency, cn } from '../lib/utils';
 import { ArrowDownRight, ArrowUpRight, Smartphone, ArrowRightLeft, Activity, Send, Download, Calendar, FileText } from 'lucide-react';
-import { isToday, isYesterday, isThisMonth, isThisYear, parseISO, isSameDay, format } from 'date-fns';
+import { isToday, isYesterday, isThisWeek, isThisMonth, isThisYear, parseISO, isSameDay, format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 
-type Timeframe = 'today' | 'yesterday' | 'month' | 'year' | 'all' | 'custom';
+type Timeframe = 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'all' | 'custom';
 
 const TIMEFRAMES: { id: Timeframe; label: string }[] = [
   { id: 'today', label: 'Today' },
   { id: 'yesterday', label: 'Yesterday' },
+  { id: 'week', label: 'This Week' },
   { id: 'month', label: 'This Month' },
   { id: 'year', label: 'This Year' },
   { id: 'all', label: 'All Time' },
@@ -34,6 +35,7 @@ export default function Reports() {
         const txDate = parseISO(tx.date);
         if (timeframe === 'today') return isToday(txDate);
         if (timeframe === 'yesterday') return isYesterday(txDate);
+        if (timeframe === 'week') return isThisWeek(txDate, { weekStartsOn: 1 }); // Assuming week starts on Monday, or use default
         if (timeframe === 'month') return isThisMonth(txDate);
         if (timeframe === 'year') return isThisYear(txDate);
         if (timeframe === 'custom' && customDate) {

@@ -27,7 +27,7 @@ import org.json.JSONArray;
     permissions = {
         @Permission(
             alias = "sms",
-            strings = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE}
+            strings = {Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS}
         )
     }
 )
