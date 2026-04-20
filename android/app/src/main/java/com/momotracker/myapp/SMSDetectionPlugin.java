@@ -9,6 +9,8 @@ import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
+import androidx.core.content.ContextCompat;
+import android.content.pm.PackageManager;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -68,6 +70,15 @@ public class SMSDetectionPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void checkSmsPermissionNative(PluginCall call) {
+        boolean granted = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED &&
+                          ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED;
+        JSObject ret = new JSObject();
+        ret.put("granted", granted);
+        call.resolve(ret);
+    }
+
+    @PluginMethod
     public void openBatteryOptimizationSettings(PluginCall call) {
         try {
             Intent intent = new Intent();
@@ -91,16 +102,27 @@ public class SMSDetectionPlugin extends Plugin {
     public void openAppSettings(PluginCall call) {
         try {
             Log.d(TAG, "Opening application settings for package: " + getContext().getPackageName());
-            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-            Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
-            intent.setData(uri);
             if (getActivity() != null) {
-                getActivity().startActivity(intent);
+                getActivity().runOnUiThread(() -> {
+                    try {
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
+                        intent.setData(uri);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        getContext().startActivity(intent);
+                        call.resolve();
+                    } catch (Exception e) {
+                        call.reject("Could not open app settings: " + e.getMessage());
+                    }
+                });
             } else {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
+                intent.setData(uri);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getContext().startActivity(intent);
+                call.resolve();
             }
-            call.resolve();
         } catch (Exception e) {
             Log.e(TAG, "Error opening app settings: " + e.getMessage());
             call.reject("Could not open app settings: " + e.getMessage());

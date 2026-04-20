@@ -13,6 +13,7 @@ export interface SMSDetectionPlugin {
   openAppSettings(): Promise<void>;
   checkPermissions(): Promise<PermissionStatus>;
   requestPermissions(): Promise<PermissionStatus>;
+  checkSmsPermissionNative(): Promise<{ granted: boolean }>;
 }
 
 const SMSDetection = registerPlugin<SMSDetectionPlugin>('SMSDetection');
@@ -20,10 +21,16 @@ const SMSDetection = registerPlugin<SMSDetectionPlugin>('SMSDetection');
 export async function checkSmsPermission(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return true;
   try {
-    const status = await SMSDetection.checkPermissions();
-    return status.sms === 'granted';
+    const status = await SMSDetection.checkSmsPermissionNative();
+    return status.granted;
   } catch (e) {
-    return false;
+    console.error('Error with native check, falling back to plugin', e);
+    try {
+      const status = await SMSDetection.checkPermissions();
+      return status.sms === 'granted';
+    } catch (err) {
+      return false;
+    }
   }
 }
 
