@@ -6,14 +6,16 @@ export function useAccessControl() {
   const [isTrial, setIsTrial] = useState(false);
   const [daysLeft, setDaysLeft] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
-  const [dailyUsage, setDailyUsage] = useState(0);
+  const [autoDetectUsage, setAutoDetectUsage] = useState(0);
+  const [manualScanUsage, setManualScanUsage] = useState(0);
 
   const refresh = useCallback(() => {
     UsageLimiter.initializeTrial();
     setIsTrial(UsageLimiter.isTrialActive());
     setDaysLeft(UsageLimiter.getDaysUntilTrialEnds());
     setIsPremium(BillingManager.hasActiveSubscription() || BillingManager.hasActiveDailyPass());
-    setDailyUsage(UsageLimiter.getDailyUsage());
+    setAutoDetectUsage(UsageLimiter.getDailyUsage('autodetect'));
+    setManualScanUsage(UsageLimiter.getDailyUsage('manualscan'));
   }, []);
 
   useEffect(() => {
@@ -24,20 +26,36 @@ export function useAccessControl() {
     return () => clearInterval(interval);
   }, [refresh]);
 
-  const canProcessSms = () => {
-    if (BillingManager.hasActiveSubscription()) return true;
-    if (BillingManager.hasActiveDailyPass()) return true;
-    if (UsageLimiter.isTrialActive()) return true;
-    if (UsageLimiter.canUseFreeTier()) return true;
-    return false;
+  const canProcessAutoDetectSms = () => {
+    if (isPremium || isTrial) return true;
+    return UsageLimiter.canUseFreeTier('autodetect');
   };
 
-  const recordSmsUsage = (count: number = 1) => {
-    // Only increment usage if they are relying on the free tier
-    if (!BillingManager.hasActiveSubscription() && 
-        !BillingManager.hasActiveDailyPass() && 
-        !UsageLimiter.isTrialActive()) {
-      UsageLimiter.incrementUsage(count);
+  const getAutoDetectAllowance = () => {
+    if (isPremium || isTrial) return Infinity;
+    return Math.max(0, UsageLimiter.DAILY_LIMIT - autoDetectUsage);
+  };
+
+  const canProcessManualScan = () => {
+    if (isPremium || isTrial) return true;
+    return UsageLimiter.canUseFreeTier('manualscan');
+  };
+
+  const getManualScanAllowance = () => {
+    if (isPremium || isTrial) return Infinity;
+    return Math.max(0, UsageLimiter.DAILY_LIMIT - manualScanUsage);
+  };
+
+  const recordAutoDetectUsage = (count: number = 1) => {
+    if (!isPremium && !isTrial) {
+      UsageLimiter.incrementUsage('autodetect', count);
+      refresh();
+    }
+  };
+
+  const recordManualScanUsage = (count: number = 1) => {
+    if (!isPremium && !isTrial) {
+      UsageLimiter.incrementUsage('manualscan', count);
       refresh();
     }
   };
@@ -46,10 +64,16 @@ export function useAccessControl() {
     isTrial,
     daysLeft,
     isPremium,
-    dailyUsage,
+    autoDetectUsage,
+    manualScanUsage,
     dailyLimit: UsageLimiter.DAILY_LIMIT,
-    canProcessSms,
-    recordSmsUsage,
+    canProcessAutoDetectSms,
+    getAutoDetectAllowance,
+    canProcessManualScan,
+    getManualScanAllowance,
+    recordAutoDetectUsage,
+    recordManualScanUsage,
+    needsAdForPdf: !isPremium && !isTrial,
     refresh
   };
 }

@@ -4,6 +4,7 @@ import { InterstitialAdController } from '../lib/ads/InterstitialAdController';
 interface AdContextType {
   showInterstitialModal: boolean;
   triggerAction: (action: () => void) => void;
+  forceAd: (action: () => void) => void;
   handleAdClosed: () => void;
 }
 
@@ -24,6 +25,11 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const forceAd = useCallback((action: () => void) => {
+    setPendingAction(() => action);
+    setShowModal(true);
+  }, []);
+
   const handleAdClosed = useCallback(() => {
     setShowModal(false);
     InterstitialAdController.onAdShown();
@@ -34,7 +40,7 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
   }, [pendingAction]);
 
   return (
-    <AdContext.Provider value={{ showInterstitialModal: showModal, triggerAction, handleAdClosed }}>
+    <AdContext.Provider value={{ showInterstitialModal: showModal, triggerAction, forceAd, handleAdClosed }}>
       {children}
     </AdContext.Provider>
   );

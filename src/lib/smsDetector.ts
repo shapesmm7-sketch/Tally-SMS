@@ -59,21 +59,23 @@ export async function requestSmsPermissions(): Promise<boolean> {
   }
 }
 
-export async function syncPendingSMS() {
-  if (!Capacitor.isNativePlatform()) {
+export async function syncPendingSMS(limit: number = Infinity) {
+  if (!Capacitor.isNativePlatform() || limit <= 0) {
     return 0;
   }
   
   try {
     const { messages } = await SMSDetection.getPendingSMS();
     if (messages && messages.length > 0) {
-      console.log(`Processing ${messages.length} pending SMS messages...`);
+      console.log(`Processing up to ${limit} from ${messages.length} pending SMS messages...`);
       let count = 0;
       
       const existingTxs = await db.transactions.toArray();
       const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
 
       for (const msg of messages) {
+        if (count >= limit) break; // ENFORCE LIMIT
+
         const parsed = parseMoMoSMS(msg.body, msg.sender);
         // Only add if not already in DB
         if (parsed && parsed.transaction_id && !existingTids.has(parsed.transaction_id)) {

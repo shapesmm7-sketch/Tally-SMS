@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search, Share2, Zap, RefreshCcw } from 'lucide-react';
+import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search, Share2, Zap, RefreshCcw, LogOut } from 'lucide-react';
 import { db } from '../lib/db';
 import { COUNTRIES } from '../lib/utils';
 import { useAccessControl } from '../hooks/useAccessControl';
@@ -15,7 +15,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 export default function Settings() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const { isPremium } = useAccessControl();
+  const { isPremium, isTrial, canProcessManualScan, getManualScanAllowance, recordManualScanUsage } = useAccessControl();
   const { theme, toggleTheme } = useTheme();
   const [smsEnabled, setSmsEnabled] = useState(localStorage.getItem('momo_sms_enabled') === 'true');
   const [selectedCountry, setSelectedCountry] = useState(localStorage.getItem('momo_country') || 'UG');
@@ -96,13 +96,20 @@ export default function Settings() {
   };
 
   const handleManualScan = () => {
+    if (!canProcessManualScan()) {
+      alert('Daily manual scan limit reached. Please upgrade to Premium or try again tomorrow.');
+      return;
+    }
+
     setIsScanning(true);
     setScanResult(null);
     scanAndImportSMS(
+      getManualScanAllowance(),
       (msg) => console.log(msg),
       (count) => {
         setIsScanning(false);
         setScanResult({ count });
+        if (count > 0) recordManualScanUsage(count);
         alert(`Scan complete! Found ${count} new transactions.`);
       },
       (error) => {
@@ -213,9 +220,15 @@ export default function Settings() {
   };
 
   const handleResetPin = () => {
-    if (window.confirm('Are you sure you want to reset your PIN? You will be logged out.')) {
+    if (window.confirm('Are you sure you want to reset your PIN? You will be logged out and your secret will be deleted.')) {
       localStorage.removeItem('momo_pin');
       localStorage.removeItem('momo_secret');
+      window.location.reload();
+    }
+  };
+
+  const handleSignOut = () => {
+    if (window.confirm('Are you sure you want to sign out? You will need your PIN to unlock the app.')) {
       window.location.reload();
     }
   };
@@ -289,7 +302,74 @@ export default function Settings() {
           )}
         </div>
 
-        {/* Features */}
+        {/* Core Features */}
+        <div>
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">Core Features</h3>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
+            
+            <div className="p-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <Smartphone className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800 dark:text-white">{t('settings.sms_detection')}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('settings.sms_desc')}</p>
+                </div>
+              </div>
+              <button 
+                onClick={handleSmsToggle}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${smsEnabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${smsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            <button 
+              onClick={handleManualScan} 
+              disabled={isScanning}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <RefreshCcw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
+                </div>
+                <div className="text-left">
+                  <span className="font-medium text-gray-800 dark:text-white">Manual Scan Inbox</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Scan existing SMS for transactions</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            {Capacitor.isNativePlatform() && (
+              <button 
+                onClick={handleOpenBatterySettings}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                style={{ borderTopWidth: '1px' }}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${batteryOptimizationDisabled ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-gray-800 dark:text-white">Battery Optimization</p>
+                    <p className={`text-xs ${batteryOptimizationDisabled ? 'text-green-600' : 'text-amber-600 font-medium'}`}>
+                      {batteryOptimizationDisabled ? 'Optimized for background detection' : 'Restricted (Detection may fail)'}
+                    </p>
+                  </div>
+                </div>
+                {!batteryOptimizationDisabled && (
+                  <div className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-xs px-2 py-1 rounded-lg font-bold">
+                    FIX NOW
+                  </div>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Preferences */}
         <div>
           <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">{t('settings.preferences')}</h3>
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
@@ -354,24 +434,6 @@ export default function Settings() {
 
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <Smartphone className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-800 dark:text-white">{t('settings.sms_detection')}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('settings.sms_desc')}</p>
-                </div>
-              </div>
-              <button 
-                onClick={handleSmsToggle}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${smsEnabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${smsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
-              </button>
-            </div>
-
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
                   {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                 </div>
@@ -424,6 +486,14 @@ export default function Settings() {
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
+            <button onClick={handleSignOut} className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <LogOut className="w-4 h-4" />
+                </div>
+                <span className="font-medium text-blue-600 dark:text-blue-400">Sign Out / Lock App</span>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -431,22 +501,6 @@ export default function Settings() {
         <div>
           <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">{t('settings.data')}</h3>
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
-            <button 
-              onClick={handleManualScan} 
-              disabled={isScanning}
-              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <RefreshCcw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
-                </div>
-                <div>
-                  <span className="font-medium text-gray-800 dark:text-white">Manual Scan Inbox</span>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Scan existing SMS for transactions</p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </button>
             <button onClick={handleBackup} className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
@@ -467,40 +521,22 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* System & Reliability (Android Only) */}
-        {Capacitor.isNativePlatform() && (
-          <div>
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">Reliability</h3>
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
-              <button 
-                onClick={handleOpenBatterySettings}
-                className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${batteryOptimizationDisabled ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
-                    <Zap className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-gray-800 dark:text-white">Battery Optimization</p>
-                    <p className={`text-xs ${batteryOptimizationDisabled ? 'text-green-600' : 'text-amber-600 font-medium'}`}>
-                      {batteryOptimizationDisabled ? 'Optimized for background detection' : 'Restricted (Detection may fail)'}
-                    </p>
-                  </div>
-                </div>
-                {!batteryOptimizationDisabled && (
-                  <div className="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-xs px-2 py-1 rounded-lg font-bold">
-                    FIX NOW
-                  </div>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* About */}
         <div>
           <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">{t('settings.about')}</h3>
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
+            <button 
+              onClick={() => navigate('/help')}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <Info className="w-4 h-4" />
+                </div>
+                <span className="font-medium text-gray-800 dark:text-white">Help & Guide</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
             <button 
               onClick={() => navigate('/privacy')}
               className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"

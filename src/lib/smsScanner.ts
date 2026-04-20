@@ -15,12 +15,17 @@ declare global {
 }
 
 export async function scanAndImportSMS(
+  limit: number = Infinity,
   onProgress: (msg: string) => void,
   onComplete: (count: number) => void,
   onError: (err: string) => void
 ) {
-  if (!Capacitor.isNativePlatform()) {
-    onError('Auto-scan is only available on Android. Please use the manual paste option on the web.');
+  if (!Capacitor.isNativePlatform() || limit <= 0) {
+    if (limit <= 0) {
+      onError('Daily scan limit reached. Upgrade to Premium for unlimited scans.');
+    } else {
+      onError('Auto-scan is only available on Android. Please use the manual paste option on the web.');
+    }
     return;
   }
 
@@ -65,6 +70,8 @@ export async function scanAndImportSMS(
       const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
 
       for (const msg of messages) {
+        if (newTransactionsCount >= limit) break; // ENFORCE LIMIT
+
         // Basic filter to only parse likely financial messages
         const body = (msg.body || '').toLowerCase();
         

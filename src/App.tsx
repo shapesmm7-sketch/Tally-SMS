@@ -9,6 +9,7 @@ import AddTransaction from './pages/AddTransaction';
 import Transactions from './pages/Transactions';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import Help from './pages/Help';
 import TransactionDetail from './pages/TransactionDetail';
 import Subscription from './pages/Subscription';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -18,6 +19,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AdProvider } from './context/AdContext';
 import InterstitialAdModal from './components/ads/InterstitialAdModal';
 import { useInterstitialAd } from './hooks/useInterstitialAd';
+import { useAccessControl } from './hooks/useAccessControl';
 import { syncPendingSMS } from './lib/smsDetector';
 
 // Preload ads on startup
@@ -57,6 +59,7 @@ function NativeBackButtonHandler() {
 function AppContent() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const { showInterstitialModal, handleAdClosed } = useInterstitialAd();
+  const { getAutoDetectAllowance, recordAutoDetectUsage } = useAccessControl();
 
   useEffect(() => {
     // Hardware back button for PIN screen (Exit app if locked and back pressed)
@@ -69,10 +72,18 @@ function AppContent() {
     };
     setupPinBack();
 
+    const runSync = async () => {
+      if (Capacitor.isNativePlatform()) {
+        const allowance = getAutoDetectAllowance();
+        if (allowance > 0) {
+          const count = await syncPendingSMS(allowance);
+          if (count > 0) recordAutoDetectUsage(count);
+        }
+      }
+    };
+
     // Sync any pending SMS detected in background
-    if (Capacitor.isNativePlatform()) {
-      syncPendingSMS();
-    }
+    runSync();
 
     // Listen for app foregrounding to sync again
     let listenerHandle: any;
@@ -82,7 +93,7 @@ function AppContent() {
       
       listenerHandle = await CapacitorApp.addListener('appStateChange', ({ isActive }) => {
         if (isActive) {
-          syncPendingSMS();
+          runSync();
         }
       });
     };
@@ -97,7 +108,7 @@ function AppContent() {
         pinBackHandle.remove();
       }
     };
-  }, [isUnlocked]);
+  }, [isUnlocked, getAutoDetectAllowance, recordAutoDetectUsage]);
 
   return (
     <>
@@ -115,6 +126,7 @@ function AppContent() {
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="/add" element={<AddTransaction />} />
+            <Route path="/help" element={<Help />} />
             <Route path="/transaction/:id" element={<TransactionDetail />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />

@@ -21,9 +21,14 @@ const TIMEFRAMES: { id: Timeframe; label: string }[] = [
   { id: 'all', label: 'All Time' },
 ];
 
+import { useAccessControl } from '../hooks/useAccessControl';
+import { useInterstitialAd } from '../hooks/useInterstitialAd';
+
 export default function Reports() {
   const [timeframe, setTimeframe] = useState<Timeframe>('today');
   const [customDate, setCustomDate] = useState('');
+  const { needsAdForPdf } = useAccessControl();
+  const { forceAd } = useInterstitialAd();
   
   const transactions = useLiveQuery(() => db.transactions.toArray()) || [];
 
@@ -65,7 +70,7 @@ export default function Reports() {
     return { deposits, withdrawals, airtime, received, sent, totalVolume, filtered };
   }, [transactions, timeframe]);
 
-  const handleDownloadPDF = async () => {
+  const generateAndDownloadPDF = async () => {
     const doc = new jsPDF();
     
     // Add title
@@ -134,6 +139,14 @@ export default function Reports() {
       }
     } else {
       doc.save(fileName);
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    if (needsAdForPdf) {
+      forceAd(generateAndDownloadPDF);
+    } else {
+      generateAndDownloadPDF();
     }
   };
 

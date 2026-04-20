@@ -28,23 +28,27 @@ export class UsageLimiter {
     return Math.max(0, this.TRIAL_DAYS - days);
   }
 
-  static getDailyUsage(): number {
-    const lastDate = localStorage.getItem('momo_last_usage_date');
+  static getDailyUsage(type: 'autodetect' | 'manualscan' = 'autodetect'): number {
+    const dateKey = `momo_${type}_date`;
+    const usageKey = `momo_${type}_usage`;
+    const lastDate = localStorage.getItem(dateKey);
+    
     if (!lastDate || !isSameDay(new Date(lastDate), new Date())) {
       // Reset if it's a new day
-      localStorage.setItem('momo_daily_usage', '0');
+      localStorage.setItem(usageKey, '0');
+      localStorage.setItem(dateKey, new Date().toISOString());
       return 0;
     }
-    return parseInt(localStorage.getItem('momo_daily_usage') || '0', 10);
+    return parseInt(localStorage.getItem(usageKey) || '0', 10);
   }
 
-  static incrementUsage(count: number = 1) {
-    const current = this.getDailyUsage();
-    localStorage.setItem('momo_daily_usage', (current + count).toString());
-    localStorage.setItem('momo_last_usage_date', new Date().toISOString());
+  static incrementUsage(type: 'autodetect' | 'manualscan', count: number = 1) {
+    const current = this.getDailyUsage(type);
+    localStorage.setItem(`momo_${type}_usage`, (current + count).toString());
+    localStorage.setItem(`momo_${type}_date`, new Date().toISOString());
   }
 
-  static canUseFreeTier(): boolean {
-    return this.getDailyUsage() < this.DAILY_LIMIT;
+  static canUseFreeTier(type: 'autodetect' | 'manualscan'): boolean {
+    return this.getDailyUsage(type) < this.DAILY_LIMIT;
   }
 }

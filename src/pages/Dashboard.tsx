@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [isRequesting, setIsRequesting] = useState(false);
   const [smsError, setSmsError] = useState<string | null>(null);
   
-  const { isTrial, daysLeft, isPremium, dailyUsage, dailyLimit, canProcessSms, recordSmsUsage } = useAccessControl();
+  const { isTrial, daysLeft, isPremium, manualScanUsage, dailyLimit, canProcessManualScan, getManualScanAllowance, recordManualScanUsage } = useAccessControl();
   const { triggerAction } = useInterstitialAd();
 
   const transactions = useLiveQuery(async () => {
@@ -31,7 +31,7 @@ export default function Dashboard() {
   }) || [];
 
   const handleScanSMS = async () => {
-    if (!canProcessSms()) {
+    if (!canProcessManualScan()) {
       setShowLimitModal(true);
       return;
     }
@@ -65,11 +65,12 @@ export default function Dashboard() {
     setScanMessage('Starting scan...');
 
     await scanAndImportSMS(
+      getManualScanAllowance(),
       (msg) => setScanMessage(msg),
       (count) => {
         setScanMessage(`Success! Found and added ${count} new transactions.`);
         if (count > 0) {
-          recordSmsUsage(count);
+          recordManualScanUsage(count);
         }
         setTimeout(() => {
           setIsScanning(false);
@@ -79,6 +80,9 @@ export default function Dashboard() {
       (err) => {
         setScanError(err);
         setIsScanning(false);
+        if (err.includes('limit reached')) {
+            setShowLimitModal(true);
+        }
       }
     );
   };
