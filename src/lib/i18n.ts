@@ -44,7 +44,7 @@ const resources = {
       common: {
         upgrade: 'Upgrade to Premium',
         premium_active: 'Premium Active',
-        premium_desc: 'Remove ads and unlock SMS auto-detection.',
+        premium_desc: 'Remove ads, unlock unlimited SMS auto-detection and manual scanning.',
         premium_active_desc: 'You have access to all advanced features. Tap to manage.',
         upgrade_now: 'Upgrade Now',
         loading: 'Processing...',

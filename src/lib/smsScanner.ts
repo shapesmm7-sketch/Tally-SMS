@@ -3,9 +3,13 @@ import { db } from './db';
 import { parseMoMoSMS, parseTransactionDate } from './smsParser';
 import { requestSmsPermissions } from './smsDetector';
 
-// Declare the cordova SMS plugin interface
+// Declare the cordova plugins interface
 declare global {
   interface Window {
+    CdvPurchase?: any;
+    store?: any;
+    sms?: any;
+    cordova?: any;
     SMS?: {
       hasPermission: (success: (hasPermission: boolean) => void, error: (err: any) => void) => void;
       requestPermission: (success: () => void, error: (err: any) => void) => void;

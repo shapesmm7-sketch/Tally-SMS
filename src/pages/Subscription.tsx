@@ -95,7 +95,7 @@ export default function Subscription() {
               <Gift className="w-6 h-6" />
             </div>
             <div>
-              <p className="font-bold text-sm leading-tight">Enjoy unlimited auto-detection free for 30 days 🎉</p>
+              <p className="font-bold text-sm leading-tight">Enjoy all premium features free for 30 days 🎉</p>
               <p className="text-xs text-green-100 mt-1">{daysLeft} days left in your trial</p>
             </div>
           </div>
@@ -114,6 +114,8 @@ export default function Subscription() {
           <ul className="space-y-3">
             {[
               'Unlimited SMS auto-detection',
+              'Unlimited manual Scanning',
+              'Download Reports',
               'No daily transaction limits',
               'Priority customer support',
               'Ad-free experience'

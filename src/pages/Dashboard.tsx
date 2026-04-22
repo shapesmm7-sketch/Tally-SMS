@@ -10,6 +10,7 @@ import { scanAndImportSMS } from '../lib/smsScanner';
 import { Capacitor } from '@capacitor/core';
 import { useAccessControl } from '../hooks/useAccessControl';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
+import LimitModal from '../components/LimitModal';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -68,14 +69,17 @@ export default function Dashboard() {
       getManualScanAllowance(),
       (msg) => setScanMessage(msg),
       (count) => {
-        setScanMessage(`Success! Found and added ${count} new transactions.`);
         if (count > 0) {
+          setScanMessage(`Scan complete! Found and successfully added ${count} new transactions to your History section.`);
           recordManualScanUsage(count);
+        } else {
+          setScanMessage(`Scan complete! No new transactions found in your inbox.`);
         }
+        
         setTimeout(() => {
           setIsScanning(false);
           setScanMessage('');
-        }, 3000);
+        }, 4000); // Increased slightly so they can read the longer message
       },
       (err) => {
         setScanError(err);
@@ -233,48 +237,7 @@ export default function Dashboard() {
 
       {/* Limit Reached Modal */}
       {showLimitModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-xl animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center relative">
-              <button 
-                onClick={() => setShowLimitModal(false)}
-                className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
-              </div>
-              
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Limit Reached</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
-                You’ve reached your daily limit of {dailyLimit} transactions. Upgrade to continue auto-detecting SMS.
-              </p>
-              
-              <div className="space-y-3">
-                <button 
-                  onClick={() => {
-                    setShowLimitModal(false);
-                    navigate('/subscription');
-                  }}
-                  className="w-full bg-blue-600 dark:bg-blue-700 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
-                >
-                  Unlock for Today ($0.25)
-                </button>
-                <button 
-                  onClick={() => {
-                    setShowLimitModal(false);
-                    navigate('/subscription');
-                  }}
-                  className="w-full bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-gray-700 font-bold py-3.5 rounded-xl hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Go Premium (Weekly / Monthly)
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <LimitModal onClose={() => setShowLimitModal(false)} />
       )}
 
       {/* SMS Permission Explanation Modal */}

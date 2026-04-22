@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search, Share2, Zap, RefreshCcw, LogOut } from 'lucide-react';
+import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search, Share2, Zap, RefreshCcw, LogOut, Star } from 'lucide-react';
 import { db } from '../lib/db';
 import { COUNTRIES } from '../lib/utils';
 import { useAccessControl } from '../hooks/useAccessControl';
@@ -11,6 +11,7 @@ import { Share } from '@capacitor/share';
 import SMSDetection, { requestSmsPermissions, checkSmsPermission } from '../lib/smsDetector';
 import { scanAndImportSMS } from '../lib/smsScanner';
 import { App as CapacitorApp } from '@capacitor/app';
+import LimitModal from '../components/LimitModal';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function Settings() {
   const [smsEnabled, setSmsEnabled] = useState(localStorage.getItem('momo_sms_enabled') === 'true');
   const [selectedCountry, setSelectedCountry] = useState(localStorage.getItem('momo_country') || 'UG');
   const [showSmsModal, setShowSmsModal] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
@@ -29,19 +31,38 @@ export default function Settings() {
   const [scanResult, setScanResult] = useState<{ count: number; error?: string } | null>(null);
   const [needsManualSettings, setNeedsManualSettings] = useState(false);
 
+  const checkBatteryOptimization = async () => {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const { disabled } = await SMSDetection.isBatteryOptimizationDisabled();
+      setBatteryOptimizationDisabled(disabled);
+    } catch (e) {
+      console.error('Error checking battery optimization:', e);
+    }
+  };
+
   useEffect(() => {
     let listener: any;
+    
+    // Initial check
+    checkBatteryOptimization();
     
     const setupAutoCheck = async () => {
       if (!Capacitor.isNativePlatform()) return;
       
       listener = await CapacitorApp.addListener('appStateChange', async ({ isActive }) => {
-        if (isActive && showSmsModal) {
-          const granted = await checkSmsPermission();
-          if (granted) {
-            setSmsEnabled(true);
-            localStorage.setItem('momo_sms_enabled', 'true');
-            setShowSmsModal(false);
+        if (isActive) {
+          // Re-check battery optimization when app is brought to foreground
+          checkBatteryOptimization();
+
+          // Re-check SMS permission if modal is open
+          if (showSmsModal) {
+            const granted = await checkSmsPermission();
+            if (granted) {
+              setSmsEnabled(true);
+              localStorage.setItem('momo_sms_enabled', 'true');
+              setShowSmsModal(false);
+            }
           }
         }
       });
@@ -54,24 +75,13 @@ export default function Settings() {
     };
   }, [showSmsModal]);
 
-  useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      checkBatteryOptimization();
-    }
-  }, []);
-
-  const checkBatteryOptimization = async () => {
-    try {
-      const { disabled } = await SMSDetection.isBatteryOptimizationDisabled();
-      setBatteryOptimizationDisabled(disabled);
-    } catch (e) {
-      console.error('Error checking battery optimization:', e);
-    }
-  };
-
   const handleOpenBatterySettings = async () => {
     try {
       await SMSDetection.openBatteryOptimizationSettings();
+      // Fallback checks in case the appStateChange event doesn't fire immediately
+      setTimeout(() => checkBatteryOptimization(), 1500);
+      setTimeout(() => checkBatteryOptimization(), 3500);
+      setTimeout(() => checkBatteryOptimization(), 6000);
     } catch (e) {
       console.error('Error opening battery settings:', e);
     }
@@ -97,7 +107,7 @@ export default function Settings() {
 
   const handleManualScan = () => {
     if (!canProcessManualScan()) {
-      alert('Daily manual scan limit reached. Please upgrade to Premium or try again tomorrow.');
+      setShowLimitModal(true);
       return;
     }
 
@@ -109,8 +119,12 @@ export default function Settings() {
       (count) => {
         setIsScanning(false);
         setScanResult({ count });
-        if (count > 0) recordManualScanUsage(count);
-        alert(`Scan complete! Found ${count} new transactions.`);
+        if (count > 0) {
+          recordManualScanUsage(count);
+          alert(`Scan complete! Found and successfully added ${count} new transactions to your History section. You can navigate to History to view them.`);
+        } else {
+          alert('Scan complete! No new transactions found in your inbox.');
+        }
       },
       (error) => {
         setIsScanning(false);
@@ -256,6 +270,14 @@ export default function Settings() {
       if (error.message !== 'Share canceled') {
         console.error('Error sharing app:', error);
       }
+    }
+  };
+
+  const handleRateUs = () => {
+    if (Capacitor.isNativePlatform()) {
+      window.open('market://details?id=com.momotracker.myapp', '_system') || window.open('https://play.google.com/store/apps/details?id=com.momotracker.myapp', '_system');
+    } else {
+      window.open('https://play.google.com/store/apps/details?id=com.momotracker.myapp', '_blank');
     }
   };
 
@@ -573,6 +595,18 @@ export default function Settings() {
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
+            <button 
+              onClick={handleRateUs}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400">
+                  <Star className="w-4 h-4" />
+                </div>
+                <span className="font-medium text-gray-800 dark:text-white">Rate Us</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
           </div>
         </div>
 
@@ -713,6 +747,10 @@ export default function Settings() {
             </div>
           </div>
         </div>
+      )}
+      {/* Limit Modal */}
+      {showLimitModal && (
+        <LimitModal onClose={() => setShowLimitModal(false)} />
       )}
     </div>
   );

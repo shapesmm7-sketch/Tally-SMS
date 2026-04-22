@@ -18,6 +18,7 @@ import { InterstitialAdController } from './lib/ads/InterstitialAdController';
 import { ThemeProvider } from './context/ThemeContext';
 import { AdProvider } from './context/AdContext';
 import InterstitialAdModal from './components/ads/InterstitialAdModal';
+import LimitModal from './components/LimitModal';
 import { useInterstitialAd } from './hooks/useInterstitialAd';
 import { useAccessControl } from './hooks/useAccessControl';
 import { syncPendingSMS } from './lib/smsDetector';
@@ -58,6 +59,7 @@ function NativeBackButtonHandler() {
 
 function AppContent() {
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [showGlobalLimitModal, setShowGlobalLimitModal] = useState(false);
   const { showInterstitialModal, handleAdClosed } = useInterstitialAd();
   const { getAutoDetectAllowance, recordAutoDetectUsage } = useAccessControl();
 
@@ -75,9 +77,10 @@ function AppContent() {
     const runSync = async () => {
       if (Capacitor.isNativePlatform()) {
         const allowance = getAutoDetectAllowance();
-        if (allowance > 0) {
-          const count = await syncPendingSMS(allowance);
-          if (count > 0) recordAutoDetectUsage(count);
+        const { count, limitReached } = await syncPendingSMS(allowance);
+        if (count > 0) recordAutoDetectUsage(count);
+        if (limitReached) {
+          setShowGlobalLimitModal(true);
         }
       }
     };
@@ -132,6 +135,9 @@ function AppContent() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsAndConditions />} />
           </Routes>
+          {showGlobalLimitModal && (
+            <LimitModal onClose={() => setShowGlobalLimitModal(false)} />
+          )}
         </BrowserRouter>
       )}
     </>
