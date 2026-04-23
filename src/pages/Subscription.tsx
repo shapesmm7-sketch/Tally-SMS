@@ -45,9 +45,9 @@ export default function Subscription() {
   }, []);
 
   useEffect(() => {
-    // Only attempt currency API exchange if we are strictly using the web fallback
-    // In native mode, Google Play handles everything
-    if (!window.CdvPurchase && currency !== 'USD') {
+    // Always attempt currency API exchange for the web fallback
+    // or if the native Google Play store fails to retrieve localized prices
+    if (currency !== 'USD') {
       fetch('https://api.exchangerate-api.com/v4/latest/USD')
         .then(res => res.json())
         .then(data => {
@@ -59,13 +59,15 @@ export default function Subscription() {
     }
   }, [currency]);
 
-  // If we have localized prices from store, don't multiply by exchange rate
-  const hasDynamicPrices = localizedPrices.monthly !== '$2.00';
+  // If we have localized prices from store AND they aren't the USD fallback, use them.
+  // Otherwise, use our calculated exchange rate.
+  const hasDynamicPrices = !!(localizedPrices.monthly && localizedPrices.monthly !== '$2.00');
 
   const getDisplayPrice = (planId: keyof typeof localizedPrices, amount: number) => {
     if (hasDynamicPrices) {
        return localizedPrices[planId];
     }
+    // Fallback: manually format using their selected currency and the live exchange API
     return formatCurrency(amount * exchangeRate);
   };
 
