@@ -45,8 +45,8 @@ export default function Subscription() {
   }, []);
 
   useEffect(() => {
-    // Always attempt currency API exchange for the web fallback
-    // or if the native Google Play store fails to retrieve localized prices
+    // Always attempt currency API exchange if user chose anything but USD.
+    // This allows the UI to match the user's manual preference inside the app settings.
     if (currency !== 'USD') {
       fetch('https://api.exchangerate-api.com/v4/latest/USD')
         .then(res => res.json())
@@ -59,15 +59,18 @@ export default function Subscription() {
     }
   }, [currency]);
 
-  // If we have localized prices from store AND they aren't the USD fallback, use them.
-  // Otherwise, use our calculated exchange rate.
-  const hasDynamicPrices = !!(localizedPrices.monthly && localizedPrices.monthly !== '$2.00');
+  // Use the native localized price ONLY if the user is keeping the default USD selection
+  // and the store has actually fetched the live strings from Google Play.
+  // Otherwise, respect their manually selected currency dropdown via exchange rate format.
+  const hasDynamicNativePrices = !!(localizedPrices.monthly && localizedPrices.monthly !== '$2.00');
 
   const getDisplayPrice = (planId: keyof typeof localizedPrices, amount: number) => {
-    if (hasDynamicPrices) {
+    // Check if the user specifically forced a custom currency
+    if (currency === 'USD' && hasDynamicNativePrices) {
        return localizedPrices[planId];
     }
-    // Fallback: manually format using their selected currency and the live exchange API
+    
+    // Otherwise strictly honor the custom currency they picked and format mathematically
     return formatCurrency(amount * exchangeRate);
   };
 
@@ -210,7 +213,7 @@ export default function Subscription() {
         </button>
         
         <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-4 px-4">
-          Subscriptions automatically renew unless canceled in your Google Play settings.
+          Subscriptions via Google Play might be charged in your native Google Account currency regardless of your app settings.
         </p>
       </div>
     </div>
