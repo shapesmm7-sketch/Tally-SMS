@@ -14,9 +14,40 @@ export default function Subscription() {
   const [exchangeRate, setExchangeRate] = useState<number>(1);
 
   const currency = localStorage.getItem('momo_currency') || 'USD';
+  const [localizedPrices, setLocalizedPrices] = useState<Record<string, string>>({
+    daily: '$0.25',
+    weekly: '$0.70',
+    monthly: '$2.00',
+    yearly: '$19.00'
+  });
 
   useEffect(() => {
-    if (currency !== 'USD') {
+    // Attempt to load localized prices from Google Play Store if native
+    const loadPrices = () => {
+      const prices = BillingManager.getLocalizedPrices();
+      setLocalizedPrices(prices);
+    };
+
+    loadPrices();
+    
+    // Sometimes store takes a moment to initialize prices over network
+    // We poll briefly in case prices haven't populated yet
+    const interval = setInterval(() => {
+       const prices = BillingManager.getLocalizedPrices();
+       // Only update if they look like they've changed dynamically from the store
+       if (prices.monthly !== '$2.00') {
+          setLocalizedPrices(prices);
+          clearInterval(interval);
+       }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Only attempt currency API exchange if we are strictly using the web fallback
+    // In native mode, Google Play handles everything
+    if (!window.CdvPurchase && currency !== 'USD') {
       fetch('https://api.exchangerate-api.com/v4/latest/USD')
         .then(res => res.json())
         .then(data => {
@@ -27,6 +58,16 @@ export default function Subscription() {
         .catch(err => console.error('Failed to fetch exchange rates', err));
     }
   }, [currency]);
+
+  // If we have localized prices from store, don't multiply by exchange rate
+  const hasDynamicPrices = localizedPrices.monthly !== '$2.00';
+
+  const getDisplayPrice = (planId: keyof typeof localizedPrices, amount: number) => {
+    if (hasDynamicPrices) {
+       return localizedPrices[planId];
+    }
+    return formatCurrency(amount * exchangeRate);
+  };
 
   const plans = [
     { id: 'daily', name: 'Daily Pass', amount: 0.25, period: '24 hours', desc: 'One-time payment' },
@@ -143,7 +184,9 @@ export default function Subscription() {
               <div className="flex justify-between items-center mb-1">
                 <h4 className="font-bold text-gray-900 dark:text-white">{plan.name}</h4>
                 <div className="text-right">
-                  <span className="font-bold text-lg text-gray-900 dark:text-white">{formatCurrency(plan.amount * exchangeRate)}</span>
+                  <span className="font-bold text-lg text-gray-900 dark:text-white">
+                    {getDisplayPrice(plan.id, plan.amount)}
+                  </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">/{plan.period}</span>
                 </div>
               </div>
@@ -160,7 +203,7 @@ export default function Subscription() {
           {isPurchasing ? (
             <><RefreshCw className="w-5 h-5 mr-2 animate-spin" /> Processing...</>
           ) : (
-            `Subscribe for ${selectedPlanData ? formatCurrency(selectedPlanData.amount * exchangeRate) : ''}`
+            `Subscribe for ${selectedPlanData ? getDisplayPrice(selectedPlanData.id, selectedPlanData.amount) : ''}`
           )}
         </button>
         

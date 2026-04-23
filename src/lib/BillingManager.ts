@@ -10,6 +10,7 @@ const PRODUCT_IDS = {
 
 export class BillingManager {
   private static isInitialized = false;
+  private static activePurchaseResolver: ((result: boolean) => void) | null = null;
 
   static async initialize() {
     if (this.isInitialized || !Capacitor.isNativePlatform()) return;
@@ -46,6 +47,25 @@ export class BillingManager {
 
       store.when().finished((p: any) => {
         this.updateLocalStateFromPurchase(p);
+        if (this.activePurchaseResolver) {
+          this.activePurchaseResolver(true);
+          this.activePurchaseResolver = null;
+        }
+      });
+
+      store.when().unverified((p: any) => {
+        if (this.activePurchaseResolver) {
+          this.activePurchaseResolver(false);
+          this.activePurchaseResolver = null;
+        }
+      });
+
+      store.error((err: any) => {
+        console.error('Store error:', err);
+        if (this.activePurchaseResolver) {
+          this.activePurchaseResolver(false);
+          this.activePurchaseResolver = null;
+        }
       });
 
       await store.initialize([Platform.GOOGLE_PLAY]);
@@ -100,6 +120,45 @@ export class BillingManager {
     return new Date(expiry) > new Date();
   }
 
+  static getLocalizedPrices(): Record<string, string> {
+    const defaultPrices = {
+      daily: '$0.25',
+      weekly: '$0.70',
+      monthly: '$2.00',
+      yearly: '$19.00'
+    };
+
+    if (!Capacitor.isNativePlatform()) {
+      return defaultPrices;
+    }
+
+    try {
+      const { store } = window.CdvPurchase || {};
+      if (!store) return defaultPrices;
+
+      const prices: Record<string, string> = { ...defaultPrices };
+
+      Object.entries(PRODUCT_IDS).forEach(([plan, id]) => {
+        const product = store.get(id);
+        if (product) {
+           const offers = product.offers || [];
+           if (offers.length > 0 && offers[0].pricingPhases && offers[0].pricingPhases.length > 0) {
+              const priceString = offers[0].pricingPhases[0].price;
+              if (priceString) prices[plan] = priceString;
+           } else if (product.pricing && product.pricing.price) {
+              // Fallback for some legacy setups
+              prices[plan] = product.pricing.price;
+           }
+        }
+      });
+
+      return prices;
+    } catch (e) {
+      console.error('Failed to get localized prices', e);
+      return defaultPrices;
+    }
+  }
+
   static async purchaseDailyPass(): Promise<boolean> {
     if (!Capacitor.isNativePlatform()) {
       return this.simulatePurchase('daily');
@@ -112,15 +171,44 @@ export class BillingManager {
       const product = store.get(PRODUCT_IDS.daily);
       if (!product) throw new Error('Product not loaded');
 
+      if (product.owned) {
+        this.updateLocalStateFromPurchase(product);
+        return true;
+      }
+
+      if (!product.canPurchase) {
+        console.warn('Product cannot be purchased currently:', product);
+        return false;
+      }
+
       return new Promise((resolve) => {
-        store.when().finished((p: any) => {
-          if (p.id === PRODUCT_IDS.daily) resolve(true);
-        });
-        store.when().cancelled((p: any) => {
-          if (p.id === PRODUCT_IDS.daily) resolve(false);
-        });
+        this.activePurchaseResolver = resolve;
         
-        store.order(product);
+        const offer = product.getOffer ? product.getOffer() : product;
+
+        store.order(offer).then((error: any) => {
+          if (error) {
+            console.error('Order error:', error);
+            if (this.activePurchaseResolver) {
+              this.activePurchaseResolver(false);
+              this.activePurchaseResolver = null;
+            }
+          }
+        }).catch((e: any) => {
+          console.error(e);
+          if (this.activePurchaseResolver) {
+            this.activePurchaseResolver(false);
+            this.activePurchaseResolver = null;
+          }
+        });
+
+        // 3 minute timeout fallback
+        setTimeout(() => {
+          if (this.activePurchaseResolver) {
+            this.activePurchaseResolver(false);
+            this.activePurchaseResolver = null;
+          }
+        }, 180000);
       });
     } catch (e) {
       console.error(e);
@@ -137,19 +225,49 @@ export class BillingManager {
       const { store } = window.CdvPurchase || {};
       if (!store) throw new Error('Store not available');
 
-      const productId = PRODUCT_IDS[plan];
+      const productId = (PRODUCT_IDS as any)[plan];
       const product = store.get(productId);
       if (!product) throw new Error('Product not loaded');
 
+      if (product.owned) {
+        this.updateLocalStateFromPurchase(product);
+        return true;
+      }
+
+      if (!product.canPurchase) {
+         console.warn('Product cannot be purchased currently:', product);
+         // If a subscription is in a weird state where it cannot be purchased but is owned implicitly handled above
+         return false;
+      }
+
       return new Promise((resolve) => {
-        store.when().finished((p: any) => {
-          if (p.id === productId) resolve(true);
-        });
-        store.when().cancelled((p: any) => {
-          if (p.id === productId) resolve(false);
-        });
+        this.activePurchaseResolver = resolve;
         
-        store.order(product);
+        const offer = product.getOffer ? product.getOffer() : product;
+
+        store.order(offer).then((error: any) => {
+          if (error) {
+            console.error('Order error:', error);
+            if (this.activePurchaseResolver) {
+              this.activePurchaseResolver(false);
+              this.activePurchaseResolver = null;
+            }
+          }
+        }).catch((e: any) => {
+          console.error(e);
+          if (this.activePurchaseResolver) {
+            this.activePurchaseResolver(false);
+            this.activePurchaseResolver = null;
+          }
+        });
+
+        // 3 minute timeout fallback
+        setTimeout(() => {
+          if (this.activePurchaseResolver) {
+            this.activePurchaseResolver(false);
+            this.activePurchaseResolver = null;
+          }
+        }, 180000);
       });
     } catch (e) {
       console.error(e);
