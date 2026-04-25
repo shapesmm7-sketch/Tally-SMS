@@ -95,7 +95,9 @@ export async function scanAndImportSMS(
         
         if (parsed && parsed.transaction_id) {
           // Check if we already have this transaction
-          if (!existingTids.has(parsed.transaction_id)) {
+          const existingTx = existingTxs.find(t => t.tid === parsed.transaction_id);
+          
+          if (!existingTx) {
             const type = parsed.transaction_type === 'deposit' ? 'income' : 'expense';
             let note = '';
             if (parsed.sender_name) note = `From ${parsed.sender_name}`;
@@ -132,6 +134,11 @@ export async function scanAndImportSMS(
             
             existingTids.add(parsed.transaction_id);
             newTransactionsCount++;
+          } else if (existingTx.id && parsed.provider && existingTx.provider !== parsed.provider) {
+             // Update the provider for existing transactions if the newly parsed one (which prioritizes sender address) differs.
+             await db.transactions.update(existingTx.id, {
+               provider: parsed.provider
+             });
           }
         }
       }

@@ -17,20 +17,32 @@ export interface ParsedSMS {
 
 export function normalizeProviderName(provider: string): string {
   if (!provider) return provider;
-  const p = provider.trim().toUpperCase();
-  if (p === 'MTN') return 'MTN';
-  if (p === 'AIRTEL') return 'Airtel';
-  if (p === 'M-PESA' || p === 'MPESA') return 'M-Pesa';
-  if (p === 'SAFARICOM') return 'Safaricom';
-  if (p === 'ORANGE MONEY') return 'Orange Money';
-  if (p === 'VODAFONE') return 'Vodafone';
-  if (p === 'TIGO') return 'Tigo';
-  if (p === 'ECOCASH') return 'EcoCash';
-  if (p === 'BKASH') return 'bKash';
-  if (p === 'WAVE') return 'Wave';
   
-  // Default capitalization: First letter capitalized, rest lower
-  return provider.trim().charAt(0).toUpperCase() + provider.trim().slice(1).toLowerCase();
+  // Clean up the string and remove common suffixes that create duplicate categories
+  let p = provider.trim().toUpperCase();
+  p = p.replace(/(?:\s|-)*(?:MOBILE\s*MONEY|MOBMONEY|MONEY)$/, '');
+
+  if (p.startsWith('MTN') || p === 'MT') return 'MTN';
+  if (p.startsWith('AIRTEL')) return 'Airtel';
+  if (p.startsWith('LYCA')) return 'Lycamobile';
+  if (p.startsWith('M-PESA') || p.startsWith('MPESA')) return 'M-Pesa';
+  if (p.startsWith('SAFARICOM')) return 'Safaricom';
+  if (p.startsWith('ORANGE')) return 'Orange Money';
+  if (p.startsWith('VODAFONE')) return 'Vodafone';
+  if (p.startsWith('TIGO')) return 'Tigo';
+  if (p.startsWith('ECOCASH')) return 'EcoCash';
+  if (p.startsWith('BKASH')) return 'bKash';
+  if (p.startsWith('WAVE')) return 'Wave';
+  if (p.startsWith('PAYTM')) return 'Paytm';
+  if (p.startsWith('HALOPESA')) return 'HaloPesa';
+  if (p.startsWith('TELECEL')) return 'Telecel';
+  if (p.startsWith('CHIPPER')) return 'Chipper';
+  if (p.startsWith('ZAMTEL')) return 'Zamtel';
+  if (p.startsWith('SASAPAY')) return 'Sasapay';
+  if (p.startsWith('MOMO') || p.startsWith('MO MO')) return 'MoMo';
+  
+  // For any other provider, format nicely: First letter capitalized, rest lower (e.g., "Hello money" -> "Hello")
+  return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
 }
 
 export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
@@ -80,7 +92,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   else if (/(received|credited|deposit|cash-in|cashed in|reçu|d[eé]p[oô]t|pokea|imepokelewa|weka|recebido|deposito|recibido)/i.test(lowerText)) result.transaction_type = "deposit";
   else if (/(sent|transferred|paid to|cash-out|cashed out|envoy[eé]|transfert|tuma|imetumwa|enviado|transferencia)/i.test(lowerText)) result.transaction_type = "sent";
   else if (/(withdrawn|withdraw|cash out|retrait|retir[eé]|toa|imetolewa|levantamento|retirado|retiro)/i.test(lowerText)) result.transaction_type = "withdrawal";
-  else if (/(paid|bill|purchase|pay[eé]|paiement|achat|lipa|imelipwa|pago|pagamento|pagado)/i.test(lowerText)) result.transaction_type = "payment";
+  else if (/(paid|debited|bill|purchase|pay[eé]|d[eé]bit[eé]|paiement|achat|lipa|imelipwa|pago|pagamento|pagado)/i.test(lowerText)) result.transaction_type = "payment";
 
   // 2. Global Currency Detection
   const isoCodes = "AED|AFN|ALL|AMD|ANG|AOA|ARS|AUD|AWG|AZN|BAM|BBD|BDT|BGN|BHD|BIF|BMD|BND|BOB|BRL|BSD|BTN|BWP|BZD|CAD|CDF|CHF|CLP|CNY|COP|CRC|CUP|CVE|CZK|DJF|DKK|DOP|DZD|EGP|ERN|ETB|EUR|FJD|FKP|GBP|GEL|GHS|GIP|GMD|GNF|GTQ|GYD|HKD|HNL|HRK|HTG|HUF|IDR|ILS|INR|IQD|IRR|ISK|JMD|JOD|JPY|KES|KGS|KHR|KMF|KPW|KRW|KWD|KYD|KZT|LAK|LBP|LKR|LRD|LSL|LYD|MAD|MDL|MGA|MKD|MMK|MNT|MOP|MRU|MUR|MVR|MWK|MXN|MYR|MZN|NAD|NGN|NIO|NOK|NPR|NZD|OMR|PAB|PEN|PGK|PHP|PKR|PLN|PYG|QAR|RON|RSD|RUB|RWF|SAR|SBD|SCR|SDG|SEK|SGD|SHP|SLL|SOS|SRD|SSP|STN|SYP|SZL|THB|TJS|TMT|TND|TOP|TRY|TTD|TWD|TZS|UAH|UGX|USD|UYU|UZS|VES|VND|VUV|WST|XAF|XCD|XOF|XPF|YER|ZAR|ZMW|ZWL";
@@ -183,20 +195,25 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   if (feeMatch) result.fee = cleanNumber(feeMatch[1]);
 
   // 10. Provider Detection (Global scope)
-  const providerMatch = text.match(/(M-Pesa|Orange Money|bKash|Paytm|MTN|Airtel|Safaricom|MoMo|HaloPesa|Tigo|Vodafone|Ecocash|Telecel|Wave|Chipper|Zamtel|Sasapay)/i);
-  const genericProviderMatch = text.match(/(?:from|via)\s+([a-zA-Z0-9\s]+?)(?:\s+mobile\s+money|\s+money|\s+cash|\s+m-pesa|\s+m-shwari)/i);
-  
-  if (providerMatch) {
-    result.provider = normalizeProviderName(providerMatch[1]);
-  } else if (genericProviderMatch) {
-    result.provider = normalizeProviderName(genericProviderMatch[1]);
-  } else if (address) {
-    // Fallback: If we have a Sender ID (address) and it's alphanumeric (not a standard phone number),
-    // use it as the provider name for any unknown global mobile money line.
-    if (!/^\+?[\d\s-]+$/.test(address)) {
-      result.provider = normalizeProviderName(address);
+  let foundProvider = null;
+
+  // Prioritize the Sender ID (address) over the body text to distinguish providers accurately
+  if (address && !/^\+?[\d\s-]+$/.test(address)) {
+    foundProvider = normalizeProviderName(address);
+  }
+
+  if (!foundProvider) {
+    const providerMatch = text.match(/(M-Pesa|Orange Money|bKash|Paytm|MTN|Airtel|Safaricom|MoMo|HaloPesa|Tigo|Vodafone|Ecocash|Telecel|Wave|Chipper|Zamtel|Sasapay)/i);
+    const genericProviderMatch = text.match(/(?:from|via)\s+([a-zA-Z0-9\s]+?)(?:\s+mobile\s+money|\s+money|\s+cash|\s+m-pesa|\s+m-shwari)/i);
+    
+    if (providerMatch) {
+      foundProvider = normalizeProviderName(providerMatch[1]);
+    } else if (genericProviderMatch) {
+      foundProvider = normalizeProviderName(genericProviderMatch[1]);
     }
   }
+
+  result.provider = foundProvider;
 
   // 11. Confidence Score Calculation
   const fieldsToScore = [

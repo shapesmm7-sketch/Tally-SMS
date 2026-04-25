@@ -90,29 +90,38 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
 
       const parsed = parseMoMoSMS(msg.body, msg.sender);
       // Only add if not already in DB
-      if (parsed && parsed.transaction_id && !existingTids.has(parsed.transaction_id)) {
-        const txDate = parseTransactionDate(parsed.date, parsed.time);
-        
-        await db.transactions.add({
-          amount: parsed.amount || 0,
-          type: parsed.transaction_type === 'deposit' ? 'income' : 'expense',
-          category: parsed.transaction_type.charAt(0).toUpperCase() + parsed.transaction_type.slice(1),
-          note: parsed.sender_name ? `From ${parsed.sender_name}` : (parsed.receiver_name ? `To ${parsed.receiver_name}` : ''),
-          date: txDate,
-          createdAt: new Date().toISOString(),
-          tid: parsed.transaction_id,
-          senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
-          smsDate: parsed.date || undefined,
-          smsTime: parsed.time || undefined,
-          currency: parsed.currency || undefined,
-          phoneNumber: parsed.phone_number || undefined,
-          balance: parsed.balance || undefined,
-          fee: parsed.fee || undefined,
-          provider: parsed.provider || undefined,
-          rawMessage: parsed.raw_message
-        });
-        count++;
-        existingTids.add(parsed.transaction_id);
+      if (parsed && parsed.transaction_id) {
+        if (!existingTids.has(parsed.transaction_id)) {
+          const txDate = parseTransactionDate(parsed.date, parsed.time);
+          
+          await db.transactions.add({
+            amount: parsed.amount || 0,
+            type: parsed.transaction_type === 'deposit' ? 'income' : 'expense',
+            category: parsed.transaction_type.charAt(0).toUpperCase() + parsed.transaction_type.slice(1),
+            note: parsed.sender_name ? `From ${parsed.sender_name}` : (parsed.receiver_name ? `To ${parsed.receiver_name}` : ''),
+            date: txDate,
+            createdAt: new Date().toISOString(),
+            tid: parsed.transaction_id,
+            senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
+            smsDate: parsed.date || undefined,
+            smsTime: parsed.time || undefined,
+            currency: parsed.currency || undefined,
+            phoneNumber: parsed.phone_number || undefined,
+            balance: parsed.balance || undefined,
+            fee: parsed.fee || undefined,
+            provider: parsed.provider || undefined,
+            rawMessage: parsed.raw_message
+          });
+          count++;
+          existingTids.add(parsed.transaction_id);
+        } else {
+          const existingTx = existingTxs.find((t: any) => t.tid === parsed.transaction_id);
+          if (existingTx && existingTx.id && parsed.provider && existingTx.provider !== parsed.provider) {
+             await db.transactions.update(existingTx.id, {
+               provider: parsed.provider
+             });
+          }
+        }
       } else if (parsed && !parsed.transaction_id) {
         // Fallback if no TID (less common for mobile money)
         const txDate = parseTransactionDate(parsed.date, parsed.time);
