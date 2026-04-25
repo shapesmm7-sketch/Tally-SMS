@@ -12,6 +12,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { useTranslation } from 'react-i18next';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
+import { normalizeProviderName } from '../lib/smsParser';
 
 type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'custom';
 
@@ -37,7 +38,7 @@ export default function Transactions() {
 
   const availableProviders = useLiveQuery(async () => {
     const all = await db.transactions.toArray();
-    const providers = new Set(all.map(tx => tx.provider).filter(Boolean));
+    const providers = new Set(all.map(tx => normalizeProviderName(tx.provider || '')).filter(Boolean));
     return Array.from(providers) as string[];
   }, []) || [];
 
@@ -65,7 +66,7 @@ export default function Transactions() {
         }
       }
 
-      const matchProvider = providerFilter === 'all' || tx.provider === providerFilter;
+      const matchProvider = providerFilter === 'all' || normalizeProviderName(tx.provider || '') === providerFilter;
 
       return matchType && matchSearch && matchDate && matchProvider;
     });

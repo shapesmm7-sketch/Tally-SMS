@@ -217,16 +217,38 @@ export default function Settings() {
       };
 
       const dataStr = JSON.stringify(backupData, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      
       const exportFileDefaultName = `momo_tracker_backup_${new Date().toISOString().split('T')[0]}.json`;
       
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-      
-      alert('Backup downloaded successfully!');
+      if (Capacitor.isNativePlatform()) {
+        const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
+        
+        try {
+          const result = await Filesystem.writeFile({
+            path: exportFileDefaultName,
+            data: dataStr,
+            directory: Directory.Cache,
+            encoding: Encoding.UTF8
+          });
+          
+          await Share.share({
+            title: 'MoMo Tracker Backup',
+            text: 'Save or send your MoMo Tracker backup file.',
+            url: result.uri,
+            dialogTitle: 'Export Backup',
+          });
+        } catch (fileErr) {
+          console.error('Filesystem/Share error:', fileErr);
+          alert('Failed to share backup file.');
+        }
+      } else {
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        
+        alert('Backup downloaded successfully!');
+      }
     } catch (error) {
       console.error('Backup failed:', error);
       alert('Failed to create backup. Please try again.');

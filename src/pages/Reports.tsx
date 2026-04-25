@@ -13,6 +13,7 @@ import { Share } from '@capacitor/share';
 import { useTranslation } from 'react-i18next';
 import { useAccessControl } from '../hooks/useAccessControl';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
+import { normalizeProviderName } from '../lib/smsParser';
 
 export default function Reports() {
   const { t } = useTranslation();
@@ -34,14 +35,16 @@ export default function Reports() {
   const [showCommissionModal, setShowCommissionModal] = useState(false);
   const [manualCommissionAmount, setManualCommissionAmount] = useState('');
   const [manualCommissionDate, setManualCommissionDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [manualCommissionProvider, setManualCommissionProvider] = useState('MTN');
+  const [manualCommissionProvider, setManualCommissionProvider] = useState('');
   const { needsAdForPdf } = useAccessControl();
   const { forceAd } = useInterstitialAd();
   
   const transactions = useLiveQuery(() => db.transactions.toArray()) || [];
 
   const availableProviders = useMemo(() => {
-    const providers = new Set(transactions.map(tx => tx.provider).filter(Boolean));
+    const providers = new Set(
+      transactions.map(tx => normalizeProviderName(tx.provider || '')).filter(Boolean)
+    );
     return Array.from(providers) as string[];
   }, [transactions]);
 
@@ -49,7 +52,7 @@ export default function Reports() {
     let filtered = transactions;
     
     if (providerFilter !== 'all') {
-      filtered = filtered.filter(tx => tx.provider === providerFilter);
+      filtered = filtered.filter(tx => normalizeProviderName(tx.provider || '') === providerFilter);
     }
     
     if (timeframe !== 'all') {
@@ -189,7 +192,7 @@ export default function Reports() {
       note: 'Manual Commission Entry',
       date: selectedDate,
       createdAt: new Date().toISOString(),
-      provider: manualCommissionProvider || undefined,
+      provider: normalizeProviderName(manualCommissionProvider) || undefined,
     });
 
     setManualCommissionAmount('');

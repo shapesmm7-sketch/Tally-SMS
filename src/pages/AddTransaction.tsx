@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, AlertCircle } from 'lucide-react';
 import { db } from '../lib/db';
 import { cn, formatCurrency } from '../lib/utils';
-import { parseMoMoSMS, ParsedSMS, parseTransactionDate } from '../lib/smsParser';
+import { parseMoMoSMS, ParsedSMS, parseTransactionDate, normalizeProviderName } from '../lib/smsParser';
 
 export default function AddTransaction() {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ export default function AddTransaction() {
       phoneNumber: parsed.phone_number || undefined,
       balance: parsed.balance || undefined,
       fee: parsed.fee || undefined,
-      provider: manualProvider || parsed.provider || undefined,
+      provider: normalizeProviderName(manualProvider) || parsed.provider || undefined,
       rawMessage: parsed.raw_message
     });
 

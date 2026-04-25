@@ -15,6 +15,24 @@ export interface ParsedSMS {
   raw_message: string;
 }
 
+export function normalizeProviderName(provider: string): string {
+  if (!provider) return provider;
+  const p = provider.trim().toUpperCase();
+  if (p === 'MTN') return 'MTN';
+  if (p === 'AIRTEL') return 'Airtel';
+  if (p === 'M-PESA' || p === 'MPESA') return 'M-Pesa';
+  if (p === 'SAFARICOM') return 'Safaricom';
+  if (p === 'ORANGE MONEY') return 'Orange Money';
+  if (p === 'VODAFONE') return 'Vodafone';
+  if (p === 'TIGO') return 'Tigo';
+  if (p === 'ECOCASH') return 'EcoCash';
+  if (p === 'BKASH') return 'bKash';
+  if (p === 'WAVE') return 'Wave';
+  
+  // Default capitalization: First letter capitalized, rest lower
+  return provider.trim().charAt(0).toUpperCase() + provider.trim().slice(1).toLowerCase();
+}
+
 export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   if (!text || !text.trim()) return null;
 
@@ -169,43 +187,14 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const genericProviderMatch = text.match(/(?:from|via)\s+([a-zA-Z0-9\s]+?)(?:\s+mobile\s+money|\s+money|\s+cash|\s+m-pesa|\s+m-shwari)/i);
   
   if (providerMatch) {
-    // Normalize to standard capitalization to prevent duplicate buttons (e.g., "mtn", "MTN")
-    const p = providerMatch[1].toUpperCase();
-    if (p === 'MTN') result.provider = 'MTN';
-    else if (p === 'AIRTEL') result.provider = 'Airtel';
-    else if (p === 'M-PESA') result.provider = 'M-Pesa';
-    else if (p === 'SAFARICOM') result.provider = 'Safaricom';
-    else if (p === 'ORANGE MONEY') result.provider = 'Orange Money';
-    else if (p === 'VODAFONE') result.provider = 'Vodafone';
-    else if (p === 'TIGO') result.provider = 'Tigo';
-    else if (p === 'ECOCASH') result.provider = 'EcoCash';
-    else if (p === 'BKASH') result.provider = 'bKash';
-    else if (p === 'WAVE') result.provider = 'Wave';
-    else result.provider = providerMatch[1].charAt(0).toUpperCase() + providerMatch[1].slice(1).toLowerCase();
+    result.provider = normalizeProviderName(providerMatch[1]);
   } else if (genericProviderMatch) {
-    result.provider = genericProviderMatch[1].trim();
-    // Capitalize properly
-    result.provider = result.provider.charAt(0).toUpperCase() + result.provider.slice(1).toLowerCase();
+    result.provider = normalizeProviderName(genericProviderMatch[1]);
   } else if (address) {
     // Fallback: If we have a Sender ID (address) and it's alphanumeric (not a standard phone number),
     // use it as the provider name for any unknown global mobile money line.
     if (!/^\+?[\d\s-]+$/.test(address)) {
-      if (lowerAddress.includes('mtn')) result.provider = 'MTN';
-      else if (lowerAddress.includes('airtel')) result.provider = 'Airtel';
-      else if (lowerAddress.includes('mpesa') || lowerAddress.includes('m-pesa')) result.provider = 'M-Pesa';
-      else if (lowerAddress.includes('tigo')) result.provider = 'Tigo';
-      else if (lowerAddress.includes('vodafone')) result.provider = 'Vodafone';
-      else if (lowerAddress.includes('ecocash')) result.provider = 'EcoCash';
-      else if (lowerAddress.includes('bkash')) result.provider = 'bKash';
-      else if (lowerAddress.includes('wave')) result.provider = 'Wave';
-      else {
-        // Use the generic sender ID as the provider name (e.g., "Zuku", "Sasapay")
-        result.provider = address.trim();
-        // Capitalize nicely if it's all uppercase or lowercase
-        if (result.provider === result.provider.toUpperCase() || result.provider === result.provider.toLowerCase()) {
-           result.provider = result.provider.charAt(0).toUpperCase() + result.provider.slice(1).toLowerCase();
-        }
-      }
+      result.provider = normalizeProviderName(address);
     }
   }
 
