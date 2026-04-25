@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Check, Crown, RefreshCw, ShieldCheck, Gift } from 'lucide-react';
 import { BillingManager } from '../lib/BillingManager';
 import { cn, formatCurrency } from '../lib/utils';
@@ -7,6 +8,7 @@ import { useAccessControl } from '../hooks/useAccessControl';
 
 export default function Subscription() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isRestoring, setIsRestoring] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
@@ -75,10 +77,10 @@ export default function Subscription() {
   };
 
   const plans = [
-    { id: 'daily', name: 'Daily Pass', amount: 0.25, period: '24 hours', desc: 'One-time payment' },
-    { id: 'weekly', name: 'Weekly Plan', amount: 0.70, period: 'per week', desc: 'Auto-renewing' },
-    { id: 'monthly', name: 'Monthly Plan', amount: 2.00, period: 'per month', desc: 'Auto-renewing, most popular' },
-    { id: 'yearly', name: 'Yearly Plan', amount: 19.00, period: 'per year', desc: 'Auto-renewing, best value' },
+    { id: 'daily', name: t('subscription.daily_pass', 'Daily Pass'), amount: 0.25, period: t('subscription.period_day', '24 hours'), desc: t('subscription.one_time', 'One-time payment') },
+    { id: 'weekly', name: t('subscription.weekly_plan', 'Weekly Plan'), amount: 0.70, period: t('subscription.period_week', 'per week'), desc: t('subscription.auto_renewing', 'Auto-renewing') },
+    { id: 'monthly', name: t('subscription.monthly_plan', 'Monthly Plan'), amount: 2.00, period: t('subscription.period_month', 'per month'), desc: t('subscription.most_popular', 'Auto-renewing, most popular') },
+    { id: 'yearly', name: t('subscription.yearly_plan', 'Yearly Plan'), amount: 19.00, period: t('subscription.period_year', 'per year'), desc: t('subscription.best_value', 'Auto-renewing, best value') },
   ] as const;
 
   const handleRestore = async () => {
@@ -86,10 +88,10 @@ export default function Subscription() {
     const success = await BillingManager.restorePurchases();
     setIsRestoring(false);
     if (success) {
-      alert('Purchases restored successfully!');
+      alert(t('subscription.purchases_restored', 'Purchases restored successfully!'));
       navigate(-1);
     } else {
-      alert('No active purchases found.');
+      alert(t('subscription.no_purchases', 'No active purchases found.'));
     }
   };
 
@@ -106,10 +108,10 @@ export default function Subscription() {
     setIsPurchasing(false);
     
     if (success) {
-      alert('Purchase successful! Thank you.');
+      alert(t('subscription.purchase_success', 'Purchase successful! Thank you.'));
       navigate(-1);
     } else {
-      alert('Purchase failed. Please try again.');
+      alert(t('subscription.purchase_failed', 'Purchase failed. Please try again.'));
     }
   };
 
@@ -122,7 +124,7 @@ export default function Subscription() {
           <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-semibold ml-2 text-gray-800 dark:text-white">Premium</h1>
+          <h1 className="text-lg font-semibold ml-2 text-gray-800 dark:text-white">{t('subscription.title', 'Premium')}</h1>
         </div>
         <button 
           onClick={handleRestore}
@@ -130,19 +132,19 @@ export default function Subscription() {
           className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center disabled:opacity-50"
         >
           {isRestoring ? <RefreshCw className="w-4 h-4 mr-1 animate-spin" /> : null}
-          Restore
+          {t('subscription.restore', 'Restore')}
         </button>
       </div>
 
-      <div className="p-6">
+        <div className="p-6">
         {isTrial && !isPremium && (
           <div className="mb-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-5 text-white shadow-md flex items-center space-x-4">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0">
               <Gift className="w-6 h-6" />
             </div>
             <div>
-              <p className="font-bold text-sm leading-tight">Enjoy all premium features free for 30 days 🎉</p>
-              <p className="text-xs text-green-100 mt-1">{daysLeft} days left in your trial</p>
+              <p className="font-bold text-sm leading-tight">{t('subscription.trial_title', 'Enjoy all premium features free for 30 days 🎉')}</p>
+              <p className="text-xs text-green-100 mt-1">{t('subscription.trial_desc', '{{days}} days left in your trial', { days: daysLeft })}</p>
             </div>
           </div>
         )}
@@ -151,20 +153,20 @@ export default function Subscription() {
           <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
             <Crown className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Unlock Unlimited</h2>
-          <p className="text-gray-600 dark:text-gray-400">Get unlimited SMS auto-detection and premium features.</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('subscription.unlock_unlimited', 'Unlock Unlimited')}</h2>
+          <p className="text-gray-600 dark:text-gray-400">{t('subscription.unlock_desc', 'Get unlimited SMS auto-detection and premium features.')}</p>
         </div>
 
         <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 mb-8 transition-colors">
-          <h3 className="font-semibold text-gray-800 dark:text-white mb-4">Premium Benefits</h3>
+          <h3 className="font-semibold text-gray-800 dark:text-white mb-4">{t('subscription.premium_benefits', 'Premium Benefits')}</h3>
           <ul className="space-y-3">
             {[
-              'Unlimited SMS auto-detection',
-              'Unlimited manual Scanning',
-              'Download Reports',
-              'No daily transaction limits',
-              'Priority customer support',
-              'Ad-free experience'
+              t('subscription.benefit_1', 'Unlimited SMS auto-detection'),
+              t('subscription.benefit_2', 'Unlimited manual Scanning'),
+              t('subscription.benefit_3', 'Download Reports'),
+              t('subscription.benefit_4', 'No daily transaction limits'),
+              t('subscription.benefit_5', 'Priority customer support'),
+              t('subscription.benefit_6', 'Ad-free experience')
             ].map((benefit, i) => (
               <li key={i} className="flex items-start">
                 <ShieldCheck className="w-5 h-5 text-green-500 dark:text-green-400 mr-3 shrink-0" />
@@ -206,14 +208,14 @@ export default function Subscription() {
           className="w-full bg-blue-600 dark:bg-blue-700 text-white rounded-xl py-4 font-bold shadow-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-70 flex items-center justify-center"
         >
           {isPurchasing ? (
-            <><RefreshCw className="w-5 h-5 mr-2 animate-spin" /> Processing...</>
+            <><RefreshCw className="w-5 h-5 mr-2 animate-spin" /> {t('subscription.processing', 'Processing...')}</>
           ) : (
-            `Subscribe for ${selectedPlanData ? getDisplayPrice(selectedPlanData.id, selectedPlanData.amount) : ''}`
+            t('subscription.subscribe_for', 'Subscribe for {{price}}', { price: selectedPlanData ? getDisplayPrice(selectedPlanData.id, selectedPlanData.amount) : '' })
           )}
         </button>
         
         <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-4 px-4">
-          Subscriptions via Google Play might be charged in your native Google Account currency regardless of your app settings.
+          {t('subscription.subscription_notice', 'Subscriptions via Google Play might be charged in your native Google Account currency regardless of your app settings.')}
         </p>
       </div>
     </div>

@@ -10,27 +10,36 @@ import autoTable from 'jspdf-autotable';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { useTranslation } from 'react-i18next';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
 
 type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'custom';
 
-const DATE_FILTERS: { id: DateFilter; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'today', label: 'Today' },
-  { id: 'yesterday', label: 'Yesterday' },
-  { id: 'week', label: 'This Week' },
-  { id: 'month', label: 'This Month' },
-  { id: 'year', label: 'This Year' },
-];
-
 export default function Transactions() {
+  const { t } = useTranslation();
+  
+  const DATE_FILTERS: { id: DateFilter; label: string }[] = [
+    { id: 'all', label: t('reports.all_time') },
+    { id: 'today', label: t('reports.today') },
+    { id: 'yesterday', label: t('reports.yesterday') },
+    { id: 'week', label: t('reports.this_week') },
+    { id: 'month', label: t('reports.this_month') },
+    { id: 'year', label: t('reports.this_year') },
+  ];
   const navigate = useNavigate();
   const { triggerAction } = useInterstitialAd();
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [providerFilter, setProviderFilter] = useState<string>('all');
   const [customDate, setCustomDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const availableProviders = useLiveQuery(async () => {
+    const all = await db.transactions.toArray();
+    const providers = new Set(all.map(tx => tx.provider).filter(Boolean));
+    return Array.from(providers) as string[];
+  }, []) || [];
 
   const transactions = useLiveQuery(async () => {
     let collection = db.transactions.orderBy('date').reverse();
@@ -56,9 +65,11 @@ export default function Transactions() {
         }
       }
 
-      return matchType && matchSearch && matchDate;
+      const matchProvider = providerFilter === 'all' || tx.provider === providerFilter;
+
+      return matchType && matchSearch && matchDate && matchProvider;
     });
-  }, [filterType, searchQuery, dateFilter, customDate]) || [];
+  }, [filterType, searchQuery, dateFilter, customDate, providerFilter]) || [];
 
   const handleDeleteClick = (e: React.MouseEvent, id?: number) => {
     e.stopPropagation();
@@ -82,11 +93,14 @@ export default function Transactions() {
     const cat = tx.category.toLowerCase();
     if (cat === 'withdrawal') acc.withdrawals += tx.amount;
     else if (cat === 'deposit') acc.deposits += tx.amount;
-    else if (cat === 'airtime') acc.airtime += tx.amount;
+    else if (cat === 'airtime_bought') acc.airtimeBought += tx.amount;
+    else if (cat === 'airtime_sold') acc.airtimeSold += tx.amount;
+    else if (cat === 'airtime') acc.airtimeBought += tx.amount;
+    else if (cat === 'commission') acc.commission += tx.amount;
     else if (tx.type === 'income') acc.received += tx.amount;
     else acc.sent += tx.amount;
     return acc;
-  }, { deposits: 0, withdrawals: 0, airtime: 0, received: 0, sent: 0 });
+  }, { deposits: 0, withdrawals: 0, airtimeBought: 0, airtimeSold: 0, received: 0, sent: 0, commission: 0 });
 
   const handleDownloadPDF = async () => {
     const doc = new jsPDF();
@@ -104,20 +118,21 @@ export default function Transactions() {
     // Add totals summary
     doc.setFontSize(10);
     doc.text(`Deposits: ${formatCurrency(totals.deposits)} | Withdrawals: ${formatCurrency(totals.withdrawals)}`, 14, 38);
-    doc.text(`Received: ${formatCurrency(totals.received)} | Sent: ${formatCurrency(totals.sent)} | Airtime: ${formatCurrency(totals.airtime)}`, 14, 44);
+    doc.text(`Received: ${formatCurrency(totals.received)} | Sent: ${formatCurrency(totals.sent)} | Airtime Bought: ${formatCurrency(totals.airtimeBought)}`, 14, 44);
+    doc.text(`Airtime Sold: ${formatCurrency(totals.airtimeSold)} | Commission: ${formatCurrency(totals.commission)}`, 14, 50);
 
     // Prepare table data
     const tableData = transactions.map(tx => [
       format(parseISO(tx.date), 'MMM d, yyyy') + (tx.smsTime ? ` ${tx.smsTime}` : ''),
       tx.type === 'income' ? 'Income' : 'Expense',
-      tx.category,
+      tx.category.replace('_', ' '),
       tx.senderReceiverName || '-',
       tx.tid || '-',
       (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
     ]);
 
     autoTable(doc, {
-      startY: 50,
+      startY: 56,
       head: [['Date', 'Type', 'Category', 'Name', 'TID', 'Amount']],
       body: tableData,
       theme: 'striped',
@@ -168,40 +183,73 @@ export default function Transactions() {
     <div className="flex flex-col min-h-full bg-[var(--background)] transition-colors">
       <div className="bg-white dark:bg-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10 transition-colors">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Transaction History</h1>
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">{t('history.title')}</h1>
           <button 
             onClick={handleDownloadPDF}
             className="flex items-center space-x-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors text-sm font-medium"
           >
             <Download className="w-4 h-4" />
-            <span>Download History</span>
+            <span>{t('history.download_report')}</span>
           </button>
         </div>
         
         {/* Search and Filter */}
-        <div className="flex space-x-2 mb-4">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-            <input 
-              type="text" 
-              placeholder="Search names, TID, notes..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-lg py-2 pl-9 pr-4 text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
-            />
+        <div className="flex flex-col space-y-3 mb-4">
+          <div className="flex space-x-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+              <input 
+                type="text" 
+                placeholder={t('history.search_placeholder', 'Search transactions...')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-lg py-2 pl-9 pr-4 text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="relative shrink-0">
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value as any)}
+                className="appearance-none bg-gray-100 dark:bg-gray-800 border-none rounded-lg py-2 pl-3 pr-8 text-sm text-gray-600 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 h-full font-medium"
+              >
+                <option value="all">{t('history.filter_all', 'All Types')}</option>
+                <option value="income">{t('history.filter_income', 'Income')}</option>
+                <option value="expense">{t('history.filter_expense', 'Expense')}</option>
+              </select>
+              <Filter className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
+            </div>
           </div>
-          <div className="relative shrink-0">
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value as any)}
-              className="appearance-none bg-gray-100 dark:bg-gray-800 border-none rounded-lg py-2 pl-3 pr-8 text-sm text-gray-600 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 h-full font-medium"
-            >
-              <option value="all">All Types</option>
-              <option value="income">Income</option>
-              <option value="expense">Expense</option>
-            </select>
-            <Filter className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
-          </div>
+          
+          {/* Provider Filter */}
+          {availableProviders.length > 0 && (
+            <div className="flex space-x-2 overflow-x-auto pb-1 scrollbar-hide">
+              <button
+                onClick={() => setProviderFilter('all')}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border",
+                  providerFilter === 'all'
+                    ? "bg-purple-600 border-purple-600 text-white"
+                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                )}
+              >
+                All Lines
+              </button>
+              {availableProviders.map(provider => (
+                <button
+                  key={provider}
+                  onClick={() => setProviderFilter(provider)}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border",
+                    providerFilter === provider
+                      ? "bg-purple-600 border-purple-600 text-white"
+                      : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  )}
+                >
+                  {provider}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Date Filters & Calendar */}
@@ -215,7 +263,7 @@ export default function Transactions() {
             )}>
               <Calendar className="w-3.5 h-3.5" />
               <span className="font-medium whitespace-nowrap">
-                {customDate ? format(parseISO(customDate), 'MMM d, yyyy') : 'Select Date'}
+                {customDate ? format(parseISO(customDate), 'MMM d, yyyy') : t('reports.select_date', 'Select Date')}
               </span>
             </div>
             <input
@@ -252,24 +300,32 @@ export default function Transactions() {
         {/* Summary */}
         <div className="mt-3 flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 rounded-xl p-3 min-w-[110px] shrink-0">
-            <p className="text-[10px] text-green-600 dark:text-green-400 uppercase font-semibold mb-1">Deposits</p>
+            <p className="text-[10px] text-green-600 dark:text-green-400 font-semibold mb-1 uppercase tracking-wider">{t('history.deposits')}</p>
             <p className="text-sm font-bold text-green-700 dark:text-green-300">{formatCurrency(totals.deposits)}</p>
           </div>
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-xl p-3 min-w-[110px] shrink-0">
-            <p className="text-[10px] text-red-600 dark:text-red-400 uppercase font-semibold mb-1">Withdrawals</p>
+            <p className="text-[10px] text-red-600 dark:text-red-400 font-semibold mb-1 uppercase tracking-wider">{t('history.withdrawals')}</p>
             <p className="text-sm font-bold text-red-700 dark:text-red-300">{formatCurrency(totals.withdrawals)}</p>
           </div>
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-xl p-3 min-w-[110px] shrink-0">
-            <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase font-semibold mb-1">Received</p>
+            <p className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold mb-1 uppercase tracking-wider">{t('history.received')}</p>
             <p className="text-sm font-bold text-blue-700 dark:text-blue-300">{formatCurrency(totals.received)}</p>
           </div>
           <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-900/30 rounded-xl p-3 min-w-[110px] shrink-0">
-            <p className="text-[10px] text-orange-600 dark:text-orange-400 uppercase font-semibold mb-1">Sent/Paid</p>
+            <p className="text-[10px] text-orange-600 dark:text-orange-400 font-semibold mb-1 uppercase tracking-wider">{t('history.sent')}</p>
             <p className="text-sm font-bold text-orange-700 dark:text-orange-300">{formatCurrency(totals.sent)}</p>
           </div>
           <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-900/30 rounded-xl p-3 min-w-[110px] shrink-0">
-            <p className="text-[10px] text-purple-600 dark:text-purple-400 uppercase font-semibold mb-1">Airtime</p>
-            <p className="text-sm font-bold text-purple-700 dark:text-purple-300">{formatCurrency(totals.airtime)}</p>
+            <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold mb-1 uppercase tracking-wider">{t('history.airtime_bought')}</p>
+            <p className="text-sm font-bold text-purple-700 dark:text-purple-300">{formatCurrency(totals.airtimeBought)}</p>
+          </div>
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 rounded-xl p-3 min-w-[110px] shrink-0">
+            <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold mb-1 uppercase tracking-wider">{t('history.airtime_sold')}</p>
+            <p className="text-sm font-bold text-indigo-700 dark:text-indigo-300">{formatCurrency(totals.airtimeSold)}</p>
+          </div>
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 rounded-xl p-3 min-w-[110px] shrink-0">
+            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mb-1 uppercase tracking-wider">{t('history.commission')}</p>
+            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{formatCurrency(totals.commission)}</p>
           </div>
         </div>
       </div>
@@ -277,7 +333,7 @@ export default function Transactions() {
       <div className="p-4 flex-1">
         {Object.keys(groupedTransactions).length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            No transactions found.
+            {t('reports.no_transactions', 'No transactions found.')}
           </div>
         ) : (
           Object.keys(groupedTransactions).sort().reverse().map(dateStr => (
@@ -300,7 +356,7 @@ export default function Transactions() {
                         {tx.type === 'income' ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-800 dark:text-white">{tx.category}</p>
+                        <p className="font-medium text-gray-800 dark:text-white capitalize">{tx.category.replace('_', ' ')}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 max-w-[200px] mt-0.5">
                           {tx.rawMessage || tx.note || (tx.senderReceiverName ? `${tx.type === 'income' ? 'From' : 'To'} ${tx.senderReceiverName}` : '')}
                         </p>
@@ -336,22 +392,22 @@ export default function Transactions() {
       {deleteId && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Delete Transaction</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{t('history.confirm_delete_title', 'Delete Transaction')}</h3>
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-              Are you sure you want to delete this transaction? This action cannot be undone.
+              {t('history.confirm_delete_body', 'Are you sure you want to delete this transaction? This action cannot be undone.')}
             </p>
             <div className="flex space-x-3">
               <button
                 onClick={cancelDelete}
                 className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
-                Cancel
+                {t('history.cancel', 'Cancel')}
               </button>
               <button
                 onClick={confirmDelete}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors"
               >
-                Delete
+                {t('history.delete', 'Delete')}
               </button>
             </div>
           </div>

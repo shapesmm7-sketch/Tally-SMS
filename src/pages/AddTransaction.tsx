@@ -9,13 +9,20 @@ export default function AddTransaction() {
   const navigate = useNavigate();
   const [smsText, setSmsText] = useState('');
   const [parsed, setParsed] = useState<ParsedSMS | null>(null);
+  const [manualProvider, setManualProvider] = useState<string>('');
 
   useEffect(() => {
     if (smsText.trim().length > 10) {
       const result = parseMoMoSMS(smsText);
       setParsed(result);
+      if (result && result.provider) {
+        setManualProvider(result.provider);
+      } else {
+        setManualProvider('');
+      }
     } else {
       setParsed(null);
+      setManualProvider('');
     }
   }, [smsText]);
 
@@ -55,7 +62,7 @@ export default function AddTransaction() {
       phoneNumber: parsed.phone_number || undefined,
       balance: parsed.balance || undefined,
       fee: parsed.fee || undefined,
-      provider: parsed.provider || undefined,
+      provider: manualProvider || parsed.provider || undefined,
       rawMessage: parsed.raw_message
     });
 
@@ -79,10 +86,24 @@ export default function AddTransaction() {
             value={smsText}
             onChange={(e) => setSmsText(e.target.value)}
             className="w-full h-40 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none shadow-sm transition-colors"
-            placeholder="e.g. Yello. You have received UGX 50,000 from JOHN DOE..."
+            placeholder="e.g. You have received $50 or UGX 50,000 from JOHN DOE..."
             autoFocus
           />
         </div>
+
+        {parsed && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Detected / Manual Mobile Money Line</label>
+            <input
+              type="text"
+              value={manualProvider}
+              onChange={(e) => setManualProvider(e.target.value)}
+              placeholder="e.g. MTN, Airtel, M-Pesa"
+              className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-xl py-3 px-4 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 font-medium"
+            />
+            <p className="text-xs text-gray-500 mt-2">If your line was not automatically detected, type it here.</p>
+          </div>
+        )}
 
         {smsText.trim().length > 10 && !parsed && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl flex items-start text-sm">

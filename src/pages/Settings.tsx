@@ -357,8 +357,8 @@ export default function Settings() {
                   <RefreshCcw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
                 </div>
                 <div className="text-left">
-                  <span className="font-medium text-gray-800 dark:text-white">Manual Scan Inbox</span>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Scan existing SMS for transactions</p>
+                  <span className="font-medium text-gray-800 dark:text-white">{t('settings.manual_scan', 'Manual Scan Inbox')}</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('settings.manual_scan_desc', 'Scan existing SMS for transactions')}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -513,7 +513,7 @@ export default function Settings() {
                 <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                   <LogOut className="w-4 h-4" />
                 </div>
-                <span className="font-medium text-blue-600 dark:text-blue-400">Sign Out / Lock App</span>
+                <span className="font-medium text-blue-600 dark:text-blue-400">{t('settings.logout_lock')}</span>
               </div>
             </button>
           </div>
@@ -555,7 +555,7 @@ export default function Settings() {
                 <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                   <Info className="w-4 h-4" />
                 </div>
-                <span className="font-medium text-gray-800 dark:text-white">Help & Guide</span>
+                <span className="font-medium text-gray-800 dark:text-white">{t('settings.help_guide')}</span>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
@@ -591,7 +591,7 @@ export default function Settings() {
                 <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                   <Share2 className="w-4 h-4" />
                 </div>
-                <span className="font-medium text-gray-800 dark:text-white">Share App</span>
+                <span className="font-medium text-gray-800 dark:text-white">{t('settings.share_app')}</span>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
@@ -603,7 +603,7 @@ export default function Settings() {
                 <div className="w-8 h-8 rounded-full bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400">
                   <Star className="w-4 h-4" />
                 </div>
-                <span className="font-medium text-gray-800 dark:text-white">Rate Us</span>
+                <span className="font-medium text-gray-800 dark:text-white">{t('settings.rate_us')}</span>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>

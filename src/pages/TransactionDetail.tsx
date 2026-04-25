@@ -67,7 +67,7 @@ export default function TransactionDetail() {
           <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-1">
             {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">{tx.category}</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium capitalize">{tx.category.replace('_', ' ')}</p>
         </div>
 
         {tx.rawMessage && (
