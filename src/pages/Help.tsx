@@ -92,6 +92,22 @@ export default function Help() {
           </div>
         </section>
 
+        {/* Feature: Commission */}
+        <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+          <h2 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white mb-2">
+            <ClipboardCopy className="w-5 h-5 mr-2 text-teal-500" />
+            Commission Management
+          </h2>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Entering Commission:</strong> You can quickly add manual commission entries by going to the <strong>Reports</strong> tab and clicking the "Add Manual Commission" button. From there, select a date, choose the line/provider, input the figures, and save it.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Editing a Mistake:</strong> If you wrote the wrong commission figures by mistake, you can easily correct them. Simply find the commission transaction in the <strong>History</strong> tab, tap on it to view the details, and click the <strong>pencil icon</strong> next to the amount. Correct the figures and press <strong>Save</strong>. This will update your manual commission without affecting your overall transaction data.
+            </p>
+          </div>
+        </section>
+
         {/* Contact */}
         <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 text-center mt-8">
           <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-3">

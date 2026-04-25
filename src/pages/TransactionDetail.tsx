@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
-import { ArrowLeft, Trash2, ArrowUpRight, ArrowDownRight, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Trash2, ArrowUpRight, ArrowDownRight, AlertTriangle, Pencil, Save, X } from 'lucide-react';
 import { formatCurrency, cn } from '../lib/utils';
 import { format, parseISO } from 'date-fns';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
@@ -11,13 +11,22 @@ export default function TransactionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editAmount, setEditAmount] = useState('');
   const { showInterstitialModal, handleAdClosed, triggerAction } = useInterstitialAd();
 
   const tx = useLiveQuery(() => db.transactions.get(Number(id)), [id]);
 
+  React.useEffect(() => {
+    if (tx && isEditing === false) {
+      setEditAmount(tx.amount.toString());
+    }
+  }, [tx, isEditing]);
+
   const handleBack = () => {
     triggerAction(() => navigate(-1));
   };
+
 
   if (tx === undefined) {
     return <div className="p-6 text-center text-gray-500 dark:text-gray-400">Loading...</div>;
@@ -37,10 +46,21 @@ export default function TransactionDetail() {
     );
   }
 
+  const handleSave = async () => {
+    if (!tx || !editAmount) return;
+    const amount = parseFloat(editAmount);
+    if (!isNaN(amount) && amount >= 0) {
+      await db.transactions.update(tx.id!, { amount });
+      setIsEditing(false);
+    }
+  };
+
   const handleDelete = async () => {
     await db.transactions.delete(tx.id!);
     triggerAction(() => navigate('/'));
   };
+
+  const isManual = !tx.rawMessage;
 
   return (
     <div className="flex flex-col min-h-full bg-[var(--background)] relative transition-colors">
@@ -51,9 +71,16 @@ export default function TransactionDetail() {
           </button>
           <h1 className="text-lg font-semibold ml-2 text-gray-800 dark:text-white">Transaction Details</h1>
         </div>
-        <button type="button" onClick={() => setShowDeleteConfirm(true)} className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors">
-          <Trash2 className="w-5 h-5" />
-        </button>
+        <div className="flex items-center">
+          {isManual && !isEditing && (
+             <button type="button" onClick={() => setIsEditing(true)} className="p-2 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors mr-1">
+               <Pencil className="w-5 h-5" />
+             </button>
+          )}
+          <button type="button" onClick={() => setShowDeleteConfirm(true)} className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors">
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <div className="p-6 flex-1">
@@ -64,9 +91,34 @@ export default function TransactionDetail() {
           )}>
             {tx.type === 'income' ? <ArrowDownRight className="w-8 h-8" /> : <ArrowUpRight className="w-8 h-8" />}
           </div>
-          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-1">
-            {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-          </h2>
+          
+          {isEditing ? (
+             <div className="flex items-center mb-1 space-x-2 w-full max-w-sm mx-auto">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={editAmount}
+                  onChange={(e) => setEditAmount(e.target.value)}
+                  className="w-full text-center text-2xl font-bold bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl py-2 px-4 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
+                  autoFocus
+                />
+                <button type="button" onClick={handleSave} className="px-4 py-2 h-full min-h-[44px] bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition">
+                  Save
+                </button>
+                <button type="button" onClick={() => setIsEditing(false)} className="p-3 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition">
+                  <X className="w-5 h-5" />
+                </button>
+             </div>
+          ) : (
+             <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-1 flex items-center">
+               {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+               {isManual && (
+                 <button onClick={() => setIsEditing(true)} className="ml-2 text-gray-400 hover:text-blue-500 transition-colors">
+                   <Pencil className="w-4 h-4" />
+                 </button>
+               )}
+             </h2>
+          )}
           <p className="text-gray-500 dark:text-gray-400 font-medium capitalize">{tx.category.replace('_', ' ')}</p>
         </div>
 
