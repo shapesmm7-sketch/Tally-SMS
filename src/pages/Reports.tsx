@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import PDFExport from '../lib/pdfExport';
 
 import { useTranslation } from 'react-i18next';
 import { useAccessControl } from '../hooks/useAccessControl';
@@ -96,11 +97,55 @@ export default function Reports() {
   }, [transactions, timeframe, customDate, providerFilter]);
 
   const generateAndDownloadPDF = async () => {
+    // Extract user friendly time period title
+    let reportPeriodText = "All Time";
+    if (timeframe === 'custom' && customDate) {
+      reportPeriodText = customDate;
+    } else if (timeframe !== 'all') {
+      const selectedFrame = TIMEFRAMES.find(t => t.id === timeframe);
+      if (selectedFrame) reportPeriodText = selectedFrame.label;
+    }
+    
+    const formattedTitle = `MoMo Tracker Reports ${reportPeriodText}`;
+    // Provide a file name without spaces
+    const safeFilenameStr = `momo_tracker_reports_${reportPeriodText.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}`;
+
+    if (Capacitor.isNativePlatform()) {
+      // Use the pure Native Android download
+      try {
+        const mapped = filtered.map(tx => ({
+          date: format(parseISO(tx.date), 'MMM d, yyyy'),
+          type: tx.type === 'income' ? 'Income' : 'Expense',
+          category: tx.category.replace('_', ' '),
+          amount: (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
+        }));
+        
+        const result = await PDFExport.generateAndSavePDF({
+          title: formattedTitle,
+          filename: `${safeFilenameStr}.pdf`,
+          transactions: mapped
+        });
+
+        if (result.success) {
+          setTimeout(() => {
+            if (confirm("Report saved to Downloads. Would you like to open it?")) {
+              PDFExport.openPDF({ uri: result.uri }).catch(e => console.error(e));
+            }
+          }, 500);
+        }
+      } catch (error: any) {
+        console.error('Error saving via MediaStore PDF:', error);
+        alert('Failed to save report: ' + error.message);
+      }
+      return;
+    }
+
+    // Web Fallback: Use jsPDF
     const doc = new jsPDF();
     
     // Add title
     doc.setFontSize(18);
-    doc.text('Financial Report Summary', 14, 22);
+    doc.text(formattedTitle, 14, 22);
     
     // Add subtitle with filters
     doc.setFontSize(11);
@@ -140,33 +185,8 @@ export default function Reports() {
       });
     }
 
-    const fileName = `report_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
-
-    if (Capacitor.isNativePlatform()) {
-      try {
-        const pdfBase64 = doc.output('datauristring').split(',')[1];
-        
-        const result = await Filesystem.writeFile({
-          path: fileName,
-          data: pdfBase64,
-          directory: Directory.Cache,
-        });
-
-        await Share.share({
-          title: 'Financial Report',
-          text: 'Here is your financial report.',
-          files: [result.uri],
-          dialogTitle: 'Share or Save PDF',
-        });
-      } catch (error: any) {
-        if (error.message !== 'Share canceled') {
-          console.error('Error saving or sharing PDF:', error);
-          alert('Failed to save or share PDF. Please try again.');
-        }
-      }
-    } else {
-      doc.save(fileName);
-    }
+    const fileName = `${safeFilenameStr}.pdf`;
+    doc.save(fileName);
   };
 
   const handleDownloadPDF = () => {

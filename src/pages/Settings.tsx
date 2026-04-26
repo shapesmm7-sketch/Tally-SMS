@@ -386,6 +386,23 @@ export default function Settings() {
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
 
+            <button 
+              onClick={() => navigate('/scan-sms')}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              style={{ borderTopWidth: '1px' }}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <Smartphone className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-gray-800 dark:text-white">Scan from Another Phone</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Use camera to extract SMS automatically</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
             {Capacitor.isNativePlatform() && (
               <button 
                 onClick={handleOpenBatterySettings}
@@ -545,6 +562,7 @@ export default function Settings() {
         <div>
           <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">{t('settings.data')}</h3>
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
+            
             <button onClick={handleBackup} className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400">

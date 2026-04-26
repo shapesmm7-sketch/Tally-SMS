@@ -121,6 +121,18 @@ export default function AddTransaction() {
             <Check className="w-5 h-5 mr-2" />
             Save Transaction
           </button>
+
+          <div className="mt-4 flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+               onClick={() => navigate('/scan-sms')}
+          >
+             <div>
+               <p className="font-semibold text-blue-800 dark:text-blue-300">Scan from another phone</p>
+               <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Use your camera to read the SMS</p>
+             </div>
+             <div className="bg-blue-600 text-white p-2 rounded-full shadow-sm flex-shrink-0">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+             </div>
+          </div>
         </div>
       </form>
     </div>

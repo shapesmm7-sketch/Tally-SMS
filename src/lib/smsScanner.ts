@@ -113,7 +113,7 @@ export async function scanAndImportSMS(
               txDate = new Date(msg.date).toISOString();
             }
 
-            await db.transactions.add({
+            const newId = await db.transactions.add({
               amount: parsed.amount || 0,
               type,
               category: categoryName,
@@ -132,13 +132,35 @@ export async function scanAndImportSMS(
               rawMessage: parsed.raw_message || body
             });
             
+            existingTxs.push({
+              id: newId,
+              tid: parsed.transaction_id,
+              category: categoryName,
+              provider: parsed.provider,
+              type: type
+            } as any);
+            
             existingTids.add(parsed.transaction_id);
             newTransactionsCount++;
-          } else if (existingTx.id && parsed.provider && existingTx.provider !== parsed.provider) {
-             // Update the provider for existing transactions if the newly parsed one (which prioritizes sender address) differs.
-             await db.transactions.update(existingTx.id, {
-               provider: parsed.provider
-             });
+          } else if (existingTx && existingTx.id) {
+            let updates: any = {};
+            if (parsed.provider && existingTx.provider !== parsed.provider) {
+              updates.provider = parsed.provider;
+            }
+            if (existingTx.category === 'Payment' && parsed.transaction_type === 'sent') {
+              updates.type = 'expense';
+              updates.category = 'Sent';
+              updates.note = parsed.receiver_name ? `To ${parsed.receiver_name}` : '';
+              updates.senderReceiverName = parsed.receiver_name || undefined;
+              if (parsed.phone_number) updates.phoneNumber = parsed.phone_number;
+              updates.rawMessage = parsed.raw_message || body;
+            }
+            
+            if (Object.keys(updates).length > 0) {
+              await db.transactions.update(existingTx.id, updates);
+              // Also update it in the existingTxs cache so subsequent checks see the updated category
+              if (updates.category) existingTx.category = updates.category;
+            }
           }
         }
       }

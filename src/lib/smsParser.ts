@@ -48,6 +48,18 @@ export function normalizeProviderName(provider: string): string {
 export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   if (!text || !text.trim()) return null;
 
+  let cleanText = text;
+  const rawLines = text.split('\n');
+  const firstValidIndex = rawLines.findIndex(l => {
+    const trimmed = l.trim();
+    return /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(trimmed) ||
+           /^(?:SENT|RECEIVED|CASH IN|CASH OUT|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid)/i.test(trimmed);
+  });
+
+  if (firstValidIndex > 0) {
+    cleanText = rawLines.slice(firstValidIndex).join('\n');
+  }
+
   const result: ParsedSMS = {
     transaction_type: "unknown",
     amount: null,
@@ -62,16 +74,25 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     fee: null,
     provider: null,
     confidence_score: 0.0,
-    raw_message: text
+    raw_message: cleanText
   };
 
-  const lowerText = text.toLowerCase();
+  const lowerText = cleanText.toLowerCase();
   const lowerAddress = (address || '').toLowerCase();
 
   // Explicitly ignore non-transactional messages like data quota warnings
   if (
     /(data quota|consumed.*data|mb remaining|gb remaining|renew.*bundle)/i.test(lowerText) && 
     !/(recharged|payment|paid|received|sent|transferred|reçu|envoyé|payé|pokea|tuma|lipa|recebido|enviado)/i.test(lowerText)
+  ) {
+    return null;
+  }
+
+  // Explicitly ignore preliminary transaction notifications that will be superseded by a final receipt
+  if (
+    /(?:withdraw|cash\s*out|payment|transfer|transaction|d[eé]p[oô]t|retrait|pagamento).*?(?:initiated|started|pending|initi[eé]|en attente|iniciado|pendente)/i.test(lowerText) ||
+    /(?:initiated|started|pending|initi[eé]|en attente|iniciado|pendente).*?(?:withdraw|cash\s*out|payment|transfer|transaction|d[eé]p[oô]t|retrait|pagamento)/i.test(lowerText) ||
+    /(?:secret\s*code|code\s*secret|c[oó]digo\s*secreto)/i.test(lowerText)
   ) {
     return null;
   }
@@ -142,30 +163,37 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     return parseFloat(parsedString) || 0;
   };
 
-  // 3. Amount Extraction
+  // 4. Transaction ID (Extracted Early for Masking)
+  const tidMatch = text.match(/(?:TID|TxID|Txn|Ref|Reference|Transaction ID|ID|Id de transacci[oó]n|R[eé]f[eé]rence|R[eé]f|ID transa[cç][aã]o)\s*[:\-]?\s*([A-Za-z0-9]+)/i);
+  if (tidMatch) result.transaction_id = tidMatch[1].trim();
+
+  // 5. Amount Extraction
   // Look for currency followed by numbers or numbers followed by currency
   const amountRegex = new RegExp(
     `(?:\\b(?:${textCurrencies})\\b|${symbols})\\s*([\\d, \\.]+\\d)|([\\d, \\.]+\\d)\\s*(?:\\b(?:${textCurrencies})\\b|${symbols})`, 
     'i'
   );
-  const fallbackAmountRegex = /(?:amount|cash deposit of|paid|received|sent|transferred|montant|somme|kiasi|valor|cantidad)[:\s]*([\d,.\s]+\d)/i;
+  const fallbackAmountRegex = /(?:amount|cash deposit of|paid|received|sent|transferred|withdrawn|withdraw|montant|somme|kiasi|valor|cantidad)[:\s]*([\d,.\s]+\d)/i;
   
-  const amountMatch = text.match(amountRegex) || text.match(fallbackAmountRegex);
+  // Mask the transaction ID and phone number before looking for amounts 
+  // so we don't accidentally parse a TID or phone number as an amount.
+  let textForAmount = text;
+  if (result.transaction_id) {
+    textForAmount = textForAmount.replace(result.transaction_id, "XXXXX");
+  }
+  
+  const amountMatch = textForAmount.match(amountRegex) || textForAmount.match(fallbackAmountRegex);
   
   if (amountMatch) {
     result.amount = cleanNumber(amountMatch[1] || amountMatch[2]);
   }
 
-  // 4. Name Detection
+  // 6. Name Detection
   const fromMatch = text.match(/from\s+([A-Za-z0-9\s]+?)(?=\.|\s+Bal|\s+TID|\s+ID|\s+Ref|\s+on|$)/i);
   if (fromMatch) result.sender_name = fromMatch[1].trim();
 
   const toMatch = text.match(/to\s+([A-Za-z0-9\s]+?)(?=\.|\s+Bal|\s+TID|\s+ID|\s+Ref|\s+on|$)/i);
   if (toMatch) result.receiver_name = toMatch[1].trim();
-
-  // 5. Transaction ID
-  const tidMatch = text.match(/(?:TID|TxID|Txn|Ref|Reference|Transaction ID|ID)\s*:?\s*([A-Za-z0-9]+)/i);
-  if (tidMatch) result.transaction_id = tidMatch[1].trim();
 
   // 6. Phone Number Extraction
   const phoneRegex = /(?:^|\s)(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?=\s|$|\.)/g;
@@ -270,3 +298,56 @@ export function parseTransactionDate(dateStr?: string | null, timeStr?: string |
   
   return new Date().toISOString();
 }
+
+export function extractMultipleTransactions(text: string): ParsedSMS[] {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  const results: ParsedSMS[] = [];
+  
+  let currentBlock: string[] = [];
+  let foundTIDs = new Set<string>();
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Pattern to detect start of a new message/transaction block
+    const isDate = /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(line);
+    const isKeyword = /^(?:SENT|RECEIVED|CASH IN|CASH OUT|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid)/i.test(line);
+    
+    const blockHasActionWord = currentBlock.some(l => 
+      /^(?:SENT|RECEIVED|CASH IN|CASH OUT|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid)/i.test(l) || 
+      /\b(?:TID|TxId|Txn|Ref|Reference|ID)\b/i.test(l)
+    );
+    
+    if (currentBlock.length > 0 && blockHasActionWord && (isDate || isKeyword)) {
+       const parsed = parseMoMoSMS(currentBlock.join('\n'));
+       if (parsed && parsed.amount && parsed.transaction_type && parsed.transaction_type !== "unknown") {
+         if (!parsed.transaction_id || !foundTIDs.has(parsed.transaction_id)) {
+           results.push(parsed);
+           if (parsed.transaction_id) foundTIDs.add(parsed.transaction_id);
+         }
+       }
+       currentBlock = [];
+    }
+    
+    currentBlock.push(line);
+  }
+  
+  if (currentBlock.length > 0) {
+    const parsed = parseMoMoSMS(currentBlock.join('\n'));
+    if (parsed && parsed.amount && parsed.transaction_type && parsed.transaction_type !== "unknown") {
+      if (!parsed.transaction_id || !foundTIDs.has(parsed.transaction_id)) {
+        results.push(parsed);
+      }
+    }
+  }
+  
+  if (results.length === 0) {
+    const fallback = parseMoMoSMS(text);
+    if (fallback && fallback.amount && fallback.transaction_type !== "unknown") {
+      results.push(fallback);
+    }
+  }
+  
+  return results;
+}
+

@@ -94,7 +94,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
         if (!existingTids.has(parsed.transaction_id)) {
           const txDate = parseTransactionDate(parsed.date, parsed.time);
           
-          await db.transactions.add({
+          const newId = await db.transactions.add({
             amount: parsed.amount || 0,
             type: parsed.transaction_type === 'deposit' ? 'income' : 'expense',
             category: parsed.transaction_type.charAt(0).toUpperCase() + parsed.transaction_type.slice(1),
@@ -112,14 +112,37 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
             provider: parsed.provider || undefined,
             rawMessage: parsed.raw_message
           });
+          
+          existingTxs.push({
+            id: newId,
+            tid: parsed.transaction_id,
+            category: parsed.transaction_type.charAt(0).toUpperCase() + parsed.transaction_type.slice(1),
+            provider: parsed.provider,
+            type: parsed.transaction_type === 'deposit' ? 'income' : 'expense'
+          } as any);
+
           count++;
           existingTids.add(parsed.transaction_id);
         } else {
           const existingTx = existingTxs.find((t: any) => t.tid === parsed.transaction_id);
-          if (existingTx && existingTx.id && parsed.provider && existingTx.provider !== parsed.provider) {
-             await db.transactions.update(existingTx.id, {
-               provider: parsed.provider
-             });
+          if (existingTx && existingTx.id) {
+            let updates: any = {};
+            if (parsed.provider && existingTx.provider !== parsed.provider) {
+              updates.provider = parsed.provider;
+            }
+            if (existingTx.category === 'Payment' && parsed.transaction_type === 'sent') {
+              updates.type = 'expense';
+              updates.category = 'Sent';
+              updates.note = parsed.receiver_name ? `To ${parsed.receiver_name}` : '';
+              updates.senderReceiverName = parsed.receiver_name || undefined;
+              if (parsed.phone_number) updates.phoneNumber = parsed.phone_number;
+              updates.rawMessage = parsed.raw_message || msg.body;
+            }
+            
+            if (Object.keys(updates).length > 0) {
+              await db.transactions.update(existingTx.id, updates);
+              if (updates.category) existingTx.category = updates.category;
+            }
           }
         }
       } else if (parsed && !parsed.transaction_id) {
