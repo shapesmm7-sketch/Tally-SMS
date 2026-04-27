@@ -13,6 +13,7 @@ import { Share } from '@capacitor/share';
 import { useTranslation } from 'react-i18next';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
 import { normalizeProviderName } from '../lib/smsParser';
+import NativeAd from '../components/ads/NativeAd';
 
 type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'custom';
 
@@ -337,54 +338,57 @@ export default function Transactions() {
             {t('reports.no_transactions', 'No transactions found.')}
           </div>
         ) : (
-          Object.keys(groupedTransactions).sort().reverse().map(dateStr => (
-            <div key={dateStr} className="mb-6">
-              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">
-                {format(parseISO(dateStr), 'MMMM d, yyyy')}
-              </h3>
-              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
-                {groupedTransactions[dateStr].map(tx => (
-                  <div 
-                    key={tx.id} 
-                    onClick={() => triggerAction(() => navigate(`/transaction/${tx.id}`))}
-                    className="p-4 flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                        tx.type === 'income' ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
-                      )}>
-                        {tx.type === 'income' ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-800 dark:text-white capitalize">{tx.category.replace('_', ' ')}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 max-w-[200px] mt-0.5">
-                          {tx.rawMessage || tx.note || (tx.senderReceiverName ? `${tx.type === 'income' ? 'From' : 'To'} ${tx.senderReceiverName}` : '')}
-                        </p>
-                        {tx.tid && <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">TID: {tx.tid}</p>}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="flex flex-col items-end">
-                        <p className={cn(
-                          "font-semibold text-sm",
-                          tx.type === 'income' ? "text-green-600 dark:text-green-400" : "text-gray-800 dark:text-gray-200"
+          Object.keys(groupedTransactions).sort().reverse().map((dateStr, index) => (
+            <React.Fragment key={dateStr}>
+              <div className="mb-6">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">
+                  {format(parseISO(dateStr), 'MMMM d, yyyy')}
+                </h3>
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
+                  {groupedTransactions[dateStr].map(tx => (
+                    <div 
+                      key={tx.id} 
+                      onClick={() => triggerAction(() => navigate(`/transaction/${tx.id}`))}
+                      className="p-4 flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                          tx.type === 'income' ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
                         )}>
-                          {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                        </p>
-                        {tx.smsTime && <span className="text-[10px] text-gray-400 dark:text-gray-500">{tx.smsTime}</span>}
+                          {tx.type === 'income' ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-800 dark:text-white capitalize">{tx.category.replace('_', ' ')}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 max-w-[200px] mt-0.5">
+                            {tx.rawMessage || tx.note || (tx.senderReceiverName ? `${tx.type === 'income' ? 'From' : 'To'} ${tx.senderReceiverName}` : '')}
+                          </p>
+                          {tx.tid && <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">TID: {tx.tid}</p>}
+                        </div>
                       </div>
-                      <button 
-                        onClick={(e) => handleDeleteClick(e, tx.id)}
-                        className="p-1.5 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center space-x-3">
+                        <div className="flex flex-col items-end">
+                          <p className={cn(
+                            "font-semibold text-sm",
+                            tx.type === 'income' ? "text-green-600 dark:text-green-400" : "text-gray-800 dark:text-gray-200"
+                          )}>
+                            {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                          </p>
+                          {tx.smsTime && <span className="text-[10px] text-gray-400 dark:text-gray-500">{tx.smsTime}</span>}
+                        </div>
+                        <button 
+                          onClick={(e) => handleDeleteClick(e, tx.id)}
+                          className="p-1.5 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+              {index === 0 && <NativeAd />}
+            </React.Fragment>
           ))
         )}
       </div>

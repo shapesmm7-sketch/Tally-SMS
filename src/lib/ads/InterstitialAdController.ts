@@ -3,8 +3,8 @@ import { AdManager } from './AdManager';
 export class InterstitialAdController {
   private static actionCount = 0;
   private static lastAdTime = Date.now();
-  private static readonly MIN_ACTIONS = 4;
-  private static readonly MIN_TIME_MS = 3 * 60 * 1000; // 3 minutes
+  private static readonly MIN_ACTIONS = 3;
+  private static readonly MIN_TIME_MS = 30 * 1000; // 30 seconds for testing
   private static isPreloaded = false;
 
   static preload() {

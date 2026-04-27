@@ -5,6 +5,8 @@ import Tesseract from 'tesseract.js';
 import Webcam from 'react-webcam';
 import { extractMultipleTransactions, parseTransactionDate } from '../lib/smsParser';
 import { db } from '../lib/db';
+import { useAccessControl } from '../hooks/useAccessControl';
+import LimitModal from '../components/LimitModal';
 
 export default function CameraScanner() {
   const navigate = useNavigate();
@@ -24,6 +26,9 @@ export default function CameraScanner() {
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [workerReady, setWorkerReady] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  
+  const { canProcessLiveScan, recordLiveScanUsage, liveScanLimit } = useAccessControl();
 
   useEffect(() => {
     const checkDuplicates = async () => {
@@ -139,6 +144,11 @@ export default function CameraScanner() {
   };
 
   const startLiveScan = () => {
+    if (!canProcessLiveScan()) {
+      setShowLimitModal(true);
+      return;
+    }
+    
     setError(null);
     setParsedDataList([]);
     setAccumulatedText('');
@@ -201,7 +211,7 @@ export default function CameraScanner() {
           amount: parsedData.amount || 0,
           type,
           category: categoryName,
-          note: `Scanned from another phone`, // Could be improved if we knew which chunk
+          note: `Scanned message from another phone`, // Could be improved if we knew which chunk
           date: txDate,
           createdAt: new Date().toISOString(),
           tid: parsedData.transaction_id,
@@ -219,6 +229,9 @@ export default function CameraScanner() {
 
       if (txsToAdd.length > 0) {
         await db.transactions.bulkAdd(txsToAdd);
+        if (!selectedImage) {
+          recordLiveScanUsage(txsToAdd.length);
+        }
       }
       
       closeScanner();
@@ -300,7 +313,7 @@ export default function CameraScanner() {
 
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex justify-center gap-4 relative z-10 shrink-0 flex-wrap">
               <p className="w-full text-center text-sm text-gray-500 dark:text-gray-400 font-medium mb-2">
-                If your mobile money message is in another phone, open the message and use Live Scan. Point your camera at it and slowly scroll down to capture all details.
+                If your mobile money message is in another phone, open it and point the camera at the message. For Live Scan, slowly scroll down to capture all details. You can also use Take Photo to capture a screen directly, or upload screenshots from your Gallery.
               </p>
               
               <button 
@@ -447,6 +460,14 @@ export default function CameraScanner() {
           </div>
         )}
       </main>
+
+      {/* Limit Reached Modal */}
+      {showLimitModal && (
+        <LimitModal 
+          onClose={() => setShowLimitModal(false)}
+          message={`You've reached your daily limit of ${liveScanLimit} live scans. Upgrade to Premium to enjoy unlimited live scanning. Take Photo and Gallery features remain free forever.`}
+        />
+      )}
     </div>
   );
 }

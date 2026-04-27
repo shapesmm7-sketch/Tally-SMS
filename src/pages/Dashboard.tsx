@@ -11,6 +11,7 @@ import { Capacitor } from '@capacitor/core';
 import { useAccessControl } from '../hooks/useAccessControl';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
 import LimitModal from '../components/LimitModal';
+import NativeAd from '../components/ads/NativeAd';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -164,7 +165,7 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="px-6 -mt-6 mb-8 relative z-10">
+      <div className="px-6 -mt-6 relative z-10">
         <Link 
           to="/add" 
           className="w-full bg-blue-600 dark:bg-blue-700 text-white rounded-2xl p-6 flex flex-col items-center justify-center shadow-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-all text-center border border-white/10"
@@ -176,8 +177,13 @@ export default function Dashboard() {
         </Link>
       </div>
 
+      {/* Ad Placement */}
+      <div className="px-6 mt-4">
+        <NativeAd />
+      </div>
+
       {/* Recent Transactions */}
-      <div className="px-6 pb-6 flex-1">
+      <div className="px-6 pb-6 mt-4 flex-1">
         <div className="flex justify-between items-end mb-4">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-white">{t('dashboard.today_transactions')}</h2>
           <Link to="/transactions" className="text-sm text-blue-600 dark:text-blue-400 font-medium flex items-center">

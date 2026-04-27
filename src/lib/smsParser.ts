@@ -60,6 +60,30 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     cleanText = rawLines.slice(firstValidIndex).join('\n');
   }
 
+  // Move any leading date/time lines to the bottom
+  const cleanLines = cleanText.split('\n');
+  const linesToMove = [];
+  let moveCount = 0;
+  
+  for (let i = 0; i < cleanLines.length; i++) {
+    const l = cleanLines[i].trim();
+    const isDateOrTime = /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(l) || 
+                         /^[0-9]{1,2}:[0-9]{2}(?:\s*(?:AM|PM))?/i.test(l) ||
+                         /^(?:Yesterday|Today)/i.test(l);
+    if (isDateOrTime) {
+      linesToMove.push(cleanLines[i]);
+      moveCount++;
+    } else {
+      break;
+    }
+  }
+
+  if (moveCount > 0) {
+    cleanLines.splice(0, moveCount);
+    cleanLines.push(...linesToMove);
+    cleanText = cleanLines.join('\n');
+  }
+
   const result: ParsedSMS = {
     transaction_type: "unknown",
     amount: null,
