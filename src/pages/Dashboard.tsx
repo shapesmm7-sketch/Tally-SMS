@@ -11,7 +11,6 @@ import { Capacitor } from '@capacitor/core';
 import { useAccessControl } from '../hooks/useAccessControl';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
 import LimitModal from '../components/LimitModal';
-import NativeAd from '../components/ads/NativeAd';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -175,11 +174,6 @@ export default function Dashboard() {
             {t('dashboard.paste_sms')}
           </span>
         </Link>
-      </div>
-
-      {/* Ad Placement */}
-      <div className="px-6 mt-4">
-        <NativeAd />
       </div>
 
       {/* Recent Transactions */}

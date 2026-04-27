@@ -11,6 +11,7 @@ import { Share } from '@capacitor/share';
 import SMSDetection, { requestSmsPermissions, checkSmsPermission } from '../lib/smsDetector';
 import { scanAndImportSMS } from '../lib/smsScanner';
 import { App as CapacitorApp } from '@capacitor/app';
+import { requestCameraPermissionAndNavigate } from '../lib/cameraHelper';
 import LimitModal from '../components/LimitModal';
 
 export default function Settings() {
@@ -387,7 +388,7 @@ export default function Settings() {
             </button>
 
             <button 
-              onClick={() => navigate('/scan-sms')}
+              onClick={() => requestCameraPermissionAndNavigate(navigate)}
               className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               style={{ borderTopWidth: '1px' }}
             >

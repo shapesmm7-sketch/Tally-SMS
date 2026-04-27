@@ -4,7 +4,7 @@ import { ArrowLeft, Check, AlertCircle } from 'lucide-react';
 import { db } from '../lib/db';
 import { cn, formatCurrency } from '../lib/utils';
 import { parseMoMoSMS, ParsedSMS, parseTransactionDate, normalizeProviderName } from '../lib/smsParser';
-import NativeAd from '../components/ads/NativeAd';
+import { requestCameraPermissionAndNavigate } from '../lib/cameraHelper';
 
 export default function AddTransaction() {
   const navigate = useNavigate();
@@ -113,10 +113,6 @@ export default function AddTransaction() {
           </div>
         )}
 
-        <div className="mb-6">
-          <NativeAd />
-        </div>
-
         <div className="mt-auto pt-4 pb-6">
           <button
             type="submit"
@@ -128,7 +124,7 @@ export default function AddTransaction() {
           </button>
 
           <div className="mt-4 flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
-               onClick={() => navigate('/scan-sms')}
+               onClick={() => requestCameraPermissionAndNavigate(navigate)}
           >
              <div>
                <p className="font-semibold text-blue-800 dark:text-blue-300">Scan message from another phone</p>

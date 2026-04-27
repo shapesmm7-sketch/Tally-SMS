@@ -15,7 +15,6 @@ import { useTranslation } from 'react-i18next';
 import { useAccessControl } from '../hooks/useAccessControl';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
 import { normalizeProviderName } from '../lib/smsParser';
-import NativeAd from '../components/ads/NativeAd';
 
 export default function Reports() {
   const { t } = useTranslation();
@@ -388,9 +387,6 @@ export default function Reports() {
             <p className="text-lg font-bold text-gray-800 dark:text-white mt-auto">{formatCurrency(airtimeSold)}</p>
           </div>
         </div>
-
-        {/* Ad Placement */}
-        <NativeAd />
 
         {/* Commission Card */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-emerald-100 dark:border-emerald-900/30 flex items-center transition-colors">

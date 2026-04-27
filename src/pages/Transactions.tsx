@@ -13,7 +13,6 @@ import { Share } from '@capacitor/share';
 import { useTranslation } from 'react-i18next';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
 import { normalizeProviderName } from '../lib/smsParser';
-import NativeAd from '../components/ads/NativeAd';
 
 type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'custom';
 
@@ -387,7 +386,6 @@ export default function Transactions() {
                   ))}
                 </div>
               </div>
-              {index === 0 && <NativeAd />}
             </React.Fragment>
           ))
         )}
