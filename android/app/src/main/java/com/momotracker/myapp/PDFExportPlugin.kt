@@ -16,11 +16,82 @@ import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
+import android.util.Base64
 import org.json.JSONArray
 import java.io.OutputStream
 
 @CapacitorPlugin(name = "PDFExport")
 class PDFExportPlugin : Plugin() {
+
+    @PluginMethod
+    fun saveBase64PDF(call: PluginCall) {
+        val base64Data = call.getString("data")
+        val filename = call.getString("filename", "momo_report_${System.currentTimeMillis()}.pdf") ?: "momo_report_${System.currentTimeMillis()}.pdf"
+
+        if (base64Data == null) {
+            call.reject("No data provided")
+            return
+        }
+
+        try {
+            val pdfBytes = Base64.decode(base64Data, Base64.DEFAULT)
+            val uri = saveBytesToDownloads(pdfBytes, filename)
+            
+            if (uri != null) {
+                activity.runOnUiThread {
+                    Toast.makeText(context, "Report saved to Downloads", Toast.LENGTH_LONG).show()
+                }
+                
+                val ret = JSObject()
+                ret.put("success", true)
+                ret.put("uri", uri.toString())
+                call.resolve(ret)
+            } else {
+                call.reject("Failed to save PDF")
+            }
+        } catch (e: Exception) {
+            call.reject("Error saving PDF: ${e.message}")
+        }
+    }
+
+    private fun saveBytesToDownloads(pdfBytes: ByteArray, filename: String): Uri? {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            }
+        }
+
+        val resolver = context.contentResolver
+        var uri: Uri? = null
+        val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Downloads.EXTERNAL_CONTENT_URI
+        } else {
+            MediaStore.Files.getContentUri("external")
+        }
+
+        try {
+            uri = resolver.insert(collection, contentValues)
+            if (uri != null) {
+                val outputStream: OutputStream? = resolver.openOutputStream(uri)
+                if (outputStream != null) {
+                    outputStream.write(pdfBytes)
+                    outputStream.close()
+                } else {
+                    resolver.delete(uri, null, null)
+                    uri = null
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (uri != null) {
+                resolver.delete(uri, null, null)
+            }
+            return null
+        }
+        return uri
+    }
 
     @PluginMethod
     fun generateAndSavePDF(call: PluginCall) {

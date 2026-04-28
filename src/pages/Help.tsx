@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Smartphone, RefreshCcw, ClipboardCopy, History, FileText, Zap, Mail } from 'lucide-react';
+import { ArrowLeft, BookOpen, Smartphone, RefreshCcw, ClipboardCopy, History, FileText, Zap, Mail, Camera } from 'lucide-react';
 
 export default function Help() {
   const navigate = useNavigate();
@@ -26,6 +26,25 @@ export default function Help() {
             Welcome to MoMo Tracker! This guide explains all the features available to help you track your mobile money transactions effortlessly.
           </p>
         </div>
+
+        {/* Feature: Camera Scanner */}
+        <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+          <h2 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white mb-2">
+            <Camera className="w-5 h-5 mr-2 text-rose-500" />
+            Camera Scanner (Live Scan)
+          </h2>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Scan from another phone:</strong> If the transaction SMS is on a different device, open the Camera Scanner by tapping the (+) float button at the bottom right. Point your camera at the message. For a "Live Scan", slowly scroll down the message so the scanner can capture all details automatically.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Taking Photos & Uploads:</strong> You can also snap a photo directly or upload screenshots from your Gallery to extract transaction data quickly.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Setting the Line Manually:</strong> If the Live Scan misses the network line (like MTN or Airtel), you can manually select the correct telecom Line on the transaction preview before saving it.
+            </p>
+          </div>
+        </section>
 
         {/* Feature: SMS Auto Detection */}
         <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
@@ -72,7 +91,7 @@ export default function Help() {
             Copy and Paste Manually
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            If an SMS wasn't caught or you don't want to grant SMS permission, you can open your messaging app, <strong>copy the message text</strong>, and open MoMo Tracker. Press the "+" button at the top menu, tap the "Paste Message" box, and the app will intelligently extract the amount and details.
+            If an SMS wasn't caught or you don't want to grant SMS permission, you can open your messaging app, <strong>copy the message text</strong>, and open MoMo Tracker. Press the "+" button at the top menu or the floating plus button, tap the "Paste Message" box, and the app will intelligently extract the amount and details.
           </p>
         </section>
 
@@ -80,14 +99,17 @@ export default function Help() {
         <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
           <h2 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white mb-2">
             <History className="w-5 h-5 mr-2 text-indigo-500" />
-            History & <FileText className="inline w-5 h-5 mx-1 text-orange-500" /> Reports
+            History, Edit & <FileText className="inline w-5 h-5 mx-1 text-orange-500" /> Reports
           </h2>
           <div className="space-y-3">
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
               <strong>History:</strong> This tab shows a complete list of all your transactions across time. You can search, filter, and view exactly where your money went.
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              <strong>Reports:</strong> This screen groups your totals (Deposits, Withdrawals, Sent, Received) by timeline (Today, This Week, This Month, etc.). You can also download PDF summaries of your finances.
+              <strong>Editing Transactions:</strong> If you made a mistake (like setting the wrong line or category), find the transaction in the History tab, tap on it to view details, and click the <strong>pencil (Edit) icon</strong>. Make the corrections and hit Save.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Reports:</strong> This screen groups your totals (Deposits, Withdrawals, Sent, etc.) by timeline. You can also download clean <strong>PDF summaries</strong> which now display the exact time alongside the date, helping you see when the transactions were made easily.
             </p>
           </div>
         </section>
@@ -101,9 +123,6 @@ export default function Help() {
           <div className="space-y-3">
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
               <strong>Entering Commission:</strong> You can quickly add manual commission entries by going to the <strong>Reports</strong> tab and clicking the "Add Manual Commission" button. From there, select a date, choose the line/provider, input the figures, and save it.
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              <strong>Editing a Mistake:</strong> If you wrote the wrong commission figures by mistake, you can easily correct them. Simply find the commission transaction in the <strong>History</strong> tab, tap on it to view the details, and click the <strong>pencil icon</strong> next to the amount. Correct the figures and press <strong>Save</strong>. This will update your manual commission without affecting your overall transaction data.
             </p>
           </div>
         </section>
@@ -125,3 +144,4 @@ export default function Help() {
     </div>
   );
 }
+

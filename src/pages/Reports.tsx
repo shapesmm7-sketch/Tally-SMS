@@ -110,37 +110,7 @@ export default function Reports() {
     // Provide a file name without spaces
     const safeFilenameStr = `momo_tracker_reports_${reportPeriodText.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}`;
 
-    if (Capacitor.isNativePlatform()) {
-      // Use the pure Native Android download
-      try {
-        const mapped = filtered.map(tx => ({
-          date: format(parseISO(tx.date), 'MMM d, yyyy'),
-          type: tx.type === 'income' ? 'Income' : 'Expense',
-          category: tx.category.replace('_', ' '),
-          amount: (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
-        }));
-        
-        const result = await PDFExport.generateAndSavePDF({
-          title: formattedTitle,
-          filename: `${safeFilenameStr}.pdf`,
-          transactions: mapped
-        });
-
-        if (result.success) {
-          setTimeout(() => {
-            if (confirm("Report saved to Downloads. Would you like to open it?")) {
-              PDFExport.openPDF({ uri: result.uri }).catch(e => console.error(e));
-            }
-          }, 500);
-        }
-      } catch (error: any) {
-        console.error('Error saving via MediaStore PDF:', error);
-        alert('Failed to save report: ' + error.message);
-      }
-      return;
-    }
-
-    // Web Fallback: Use jsPDF
+    // Use jsPDF for both Web and Android to ensure consistent formatting
     const doc = new jsPDF();
     
     // Add title
@@ -153,31 +123,27 @@ export default function Reports() {
     const filterText = `Period: ${timeframe === 'custom' && customDate ? customDate : timeframe} | Line: ${providerFilter === 'all' ? 'All' : providerFilter}`;
     doc.text(filterText, 14, 30);
 
-    // Add totals summary
-    doc.setFontSize(12);
+    // Add totals summary (compact version like Transactions)
+    doc.setFontSize(10);
     doc.setTextColor(0);
-    doc.text(`Total Volume: ${formatCurrency(totalVolume)}`, 14, 42);
-    doc.text(`Deposits: ${formatCurrency(deposits)}`, 14, 50);
-    doc.text(`Withdrawals: ${formatCurrency(withdrawals)}`, 14, 58);
-    doc.text(`Received: ${formatCurrency(received)}`, 14, 66);
-    doc.text(`Sent/Paid: ${formatCurrency(sent)}`, 14, 74);
-    doc.text(`Airtime Bought: ${formatCurrency(airtimeBought)}`, 14, 82);
-    doc.text(`Airtime Sold: ${formatCurrency(airtimeSold)}`, 14, 90);
-    doc.text(`Total Commission: ${formatCurrency(commission)}`, 14, 98);
+    doc.text(`Total Volume: ${formatCurrency(totalVolume)} | Deposits: ${formatCurrency(deposits)} | Withdrawals: ${formatCurrency(withdrawals)}`, 14, 38);
+    doc.text(`Received: ${formatCurrency(received)} | Sent: ${formatCurrency(sent)} | Airtime Bought: ${formatCurrency(airtimeBought)}`, 14, 44);
+    doc.text(`Airtime Sold: ${formatCurrency(airtimeSold)} | Commission: ${formatCurrency(commission)}`, 14, 50);
 
     // Prepare table data for transactions in this period
     const tableData = filtered.map(tx => [
       format(parseISO(tx.date), 'MMM d, yyyy'),
-      tx.type === 'income' ? 'Income' : 'Expense',
+      tx.smsTime || '-',
       tx.category.replace('_', ' '),
       tx.senderReceiverName || '-',
+      tx.tid || '-',
       (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
     ]);
 
     if (tableData.length > 0) {
       autoTable(doc, {
-        startY: 106,
-        head: [['Date', 'Type', 'Category', 'Name', 'Amount']],
+        startY: 56,
+        head: [['Date', 'Time', 'Category', 'Name', 'TID', 'Amount']],
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [37, 99, 235] }, // blue-600
@@ -186,7 +152,32 @@ export default function Reports() {
     }
 
     const fileName = `${safeFilenameStr}.pdf`;
-    doc.save(fileName);
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const pdfBase64 = doc.output('datauristring').split(',')[1];
+        
+        const result = await PDFExport.saveBase64PDF({
+          data: pdfBase64,
+          filename: fileName
+        });
+
+        if (result && result.success) {
+          setTimeout(() => {
+            if (confirm('Report saved to Downloads. Would you like to open it?')) {
+              PDFExport.openPDF({ uri: result.uri }).catch((e) => console.error(e));
+            }
+          }, 500);
+        }
+      } catch (error: any) {
+        if (error.message !== 'Share canceled') {
+          console.error('Error saving PDF:', error);
+          alert('Failed to save PDF. Please try again.');
+        }
+      }
+    } else {
+      doc.save(fileName);
+    }
   };
 
   const handleDownloadPDF = () => {

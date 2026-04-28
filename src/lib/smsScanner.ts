@@ -107,10 +107,16 @@ export async function scanAndImportSMS(
 
             // Use the parsed SMS date if available, otherwise fallback to message timestamp
             let txDate = new Date().toISOString();
+            let finalTime = parsed.time;
+            
             if (parsed.date) {
               txDate = parseTransactionDate(parsed.date, parsed.time);
             } else if (msg.date) {
-              txDate = new Date(msg.date).toISOString();
+              const d = new Date(msg.date);
+              txDate = d.toISOString();
+              if (!finalTime) {
+                finalTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              }
             }
 
             const newId = await db.transactions.add({
@@ -123,7 +129,7 @@ export async function scanAndImportSMS(
               tid: parsed.transaction_id,
               senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
               smsDate: parsed.date || undefined,
-              smsTime: parsed.time || undefined,
+              smsTime: finalTime || undefined,
               currency: parsed.currency || undefined,
               phoneNumber: parsed.phone_number || undefined,
               balance: parsed.balance || undefined,

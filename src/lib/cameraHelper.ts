@@ -6,16 +6,14 @@ export const requestCameraPermissionAndNavigate = async (navigate: (path: string
       
       // Stop the tracks immediately, we just needed the permission grant
       stream.getTracks().forEach(track => track.stop());
-      
-      // Navigate to the scanner page on success
-      navigate('/scan-sms');
     } catch (err) {
       console.error("Camera access error:", err);
-      alert("Camera access is required. Please allow camera permissions in your browser/device settings.");
+      // Don't alert here. We navigate to the scanner page anyway, 
+      // where react-webcam's onUserMediaError will handle the denied state 
+      // and show a nice localized UI.
     }
-  } else {
-    // Fallback if mediaDevices is not available (e.g. non-HTTPS, or old browser)
-    // We still navigate and let the CameraScanner handle its own error state
-    navigate('/scan-sms');
   }
+  
+  // Navigate to the scanner page on success or failure (to show the error UI)
+  navigate('/scan-sms');
 };

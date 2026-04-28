@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Camera, X, Check, Loader2, ImagePlus, StopCircle, PlayCircle, AlertCircle } from 'lucide-react';
 import Tesseract from 'tesseract.js';
 import Webcam from 'react-webcam';
@@ -7,13 +8,18 @@ import { extractMultipleTransactions, parseTransactionDate } from '../lib/smsPar
 import { db } from '../lib/db';
 import { useAccessControl } from '../hooks/useAccessControl';
 import LimitModal from '../components/LimitModal';
+import { Capacitor } from '@capacitor/core';
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 export default function CameraScanner() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const webcamRef = useRef<Webcam>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const workerRef = useRef<Tesseract.Worker | null>(null);
   const scanIntervalRef = useRef<any>(null);
+  const isProcessingFrameRef = useRef(false);
+  const isLiveScanningRef = useRef(false);
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLiveScanning, setIsLiveScanning] = useState(false);
@@ -65,7 +71,7 @@ export default function CameraScanner() {
         workerRef.current.terminate();
       }
       if (scanIntervalRef.current) {
-        clearInterval(scanIntervalRef.current);
+        clearTimeout(scanIntervalRef.current);
       }
     };
   }, []);
@@ -116,22 +122,28 @@ export default function CameraScanner() {
   };
 
   const processFrameLive = async () => {
-    if (!webcamRef.current || !workerRef.current) return;
+    if (!webcamRef.current || !workerRef.current || !isLiveScanningRef.current) return;
     
-    const imageSrc = webcamRef.current.getScreenshot();
-    if (!imageSrc) return;
-
+    isProcessingFrameRef.current = true;
     try {
-      const result = await workerRef.current.recognize(imageSrc);
-      const newText = result.data.text;
-      
-      setAccumulatedText(prev => {
-        const updatedText = prev + " \n " + newText;
-        checkParsedData(updatedText);
-        return updatedText;
-      });
+      const imageSrc = webcamRef.current.getScreenshot();
+      if (imageSrc) {
+        const result = await workerRef.current.recognize(imageSrc);
+        const newText = result.data.text;
+        
+        setAccumulatedText(prev => {
+          const updatedText = prev + " \n " + newText;
+          checkParsedData(updatedText);
+          return updatedText;
+        });
+      }
     } catch (err) {
       console.error("Live scan frame error:", err);
+    } finally {
+      isProcessingFrameRef.current = false;
+      if (isLiveScanningRef.current) {
+        scanIntervalRef.current = setTimeout(processFrameLive, 1000);
+      }
     }
   };
 
@@ -155,25 +167,42 @@ export default function CameraScanner() {
     setExtractedText('');
     setSelectedImage(null);
     setIsLiveScanning(true);
+    isLiveScanningRef.current = true;
     
-    // Process a frame immediately, then every 1.5 seconds
+    // Process a frame immediately
     processFrameLive();
-    scanIntervalRef.current = setInterval(processFrameLive, 1500);
   };
 
   const stopLiveScan = () => {
     setIsLiveScanning(false);
+    isLiveScanningRef.current = false;
     if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current);
+      clearTimeout(scanIntervalRef.current);
       scanIntervalRef.current = null;
     }
   };
 
-  const captureSingle = useCallback(() => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (imageSrc) {
-        processSingleImage(imageSrc);
+  const captureSingle = useCallback(async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const image = await CapacitorCamera.getPhoto({
+          quality: 90,
+          allowEditing: false, 
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Camera
+        });
+        if (image.dataUrl) {
+          processSingleImage(image.dataUrl);
+        }
+      } catch (e) {
+        console.error("Native Camera error:", e);
+      }
+    } else {
+      if (webcamRef.current) {
+        const imageSrc = webcamRef.current.getScreenshot();
+        if (imageSrc) {
+          processSingleImage(imageSrc);
+        }
       }
     }
   }, [webcamRef]);
@@ -262,7 +291,7 @@ export default function CameraScanner() {
           <button onClick={closeScanner} className="p-2 -ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
             <X className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2 flex-1">Scan SMS</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2 flex-1">{t('camera.title')}</h1>
         </div>
         {isLiveScanning && (
           <div className="flex items-center gap-2 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full animate-pulse">
@@ -272,13 +301,13 @@ export default function CameraScanner() {
         )}
       </header>
 
-      <main className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center">
+      <main className="flex-1 overflow-hidden p-3 flex flex-col items-center justify-center relative">
         {!selectedImage && parsedDataList.length === 0 ? (
-          <div className="w-full max-w-md flex flex-col h-full space-y-4">
-            <div className="bg-black rounded-2xl overflow-hidden shadow-sm relative flex-1 flex flex-col justify-center min-h-[50vh]">
+          <div className="w-full max-w-md flex flex-col h-full space-y-3">
+            <div className="bg-black rounded-2xl overflow-hidden shadow-sm relative flex-1 flex flex-col justify-center min-h-0">
               {cameraPermission === false ? (
                 <div className="text-white p-6 text-center">
-                  <p className="mb-4 text-red-400 font-semibold">Camera Access Denied</p>
+                  <p className="mb-4 text-red-400 font-semibold">{t('camera.camera_denied')}</p>
                   <p className="text-sm text-gray-400 mb-6">Please allow camera permissions in your browser settings to use the live scanner.</p>
                 </div>
               ) : (
@@ -287,8 +316,12 @@ export default function CameraScanner() {
                   audio={false}
                   ref={webcamRef}
                   screenshotFormat="image/jpeg"
-                  screenshotQuality={1}
-                  videoConstraints={{ facingMode }}
+                  screenshotQuality={0.8}
+                  videoConstraints={{ 
+                    facingMode,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                  }}
                   onUserMedia={handleUserMedia}
                   onUserMediaError={handleUserMediaError}
                   className="w-full h-full object-cover absolute inset-0"
@@ -311,15 +344,15 @@ export default function CameraScanner() {
               )}
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex justify-center gap-4 relative z-10 shrink-0 flex-wrap">
-              <p className="w-full text-center text-sm text-gray-500 dark:text-gray-400 font-medium mb-2">
-                If your mobile money message is in another phone, open it and point the camera at the message. For Live Scan, slowly scroll down to capture all details. You can also use Take Photo to capture a screen directly, or upload screenshots from your Gallery.
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-sm border border-gray-100 dark:border-gray-800 flex justify-center gap-3 relative z-10 shrink-0 flex-wrap">
+              <p className="w-full text-center text-[11px] leading-relaxed text-gray-500 dark:text-gray-400 font-medium mb-1">
+                {t('camera.instructions')}
               </p>
               
               <button 
                 onClick={toggleLiveScan}
                 disabled={cameraPermission === false || !workerReady}
-                className={`flex-[2] flex flex-col items-center justify-center space-y-1 ${isLiveScanning ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-2 border-red-200 dark:border-red-800/50' : 'bg-blue-600 hover:bg-blue-700 text-white'} disabled:opacity-50 font-semibold py-3 px-2 rounded-xl shadow-sm transition-colors min-w-[120px]`}
+                className={`flex-[2] flex flex-col items-center justify-center space-y-1 ${isLiveScanning ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-2 border-red-200 dark:border-red-800/50' : 'bg-blue-600 hover:bg-blue-700 text-white'} disabled:opacity-50 font-semibold py-2 px-2 rounded-xl shadow-sm transition-colors min-w-[120px]`}
               >
                 {!workerReady ? (
                   <Loader2 className="w-6 h-6 animate-spin" />
@@ -328,35 +361,35 @@ export default function CameraScanner() {
                 ) : (
                   <PlayCircle className="w-6 h-6" />
                 )}
-                <span className="text-sm">{!workerReady ? 'Loading...' : isLiveScanning ? 'Stop Live Scan' : 'Live Scan'}</span>
+                <span className="text-sm">{!workerReady ? t('common.loading') : isLiveScanning ? t('camera.stop_scan') : t('camera.live_scan')}</span>
               </button>
 
               <div className="flex flex-col gap-2 flex-1 min-w-[100px]">
                 <button 
                   onClick={captureSingle}
-                  disabled={cameraPermission === false || isLiveScanning}
+                  disabled={(!Capacitor.isNativePlatform() && cameraPermission === false) || isLiveScanning}
                   className="flex flex-1 items-center justify-center space-x-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-300 disabled:opacity-50 font-semibold py-2 rounded-lg transition-colors"
                 >
                   <Camera className="w-4 h-4" />
-                  <span className="text-xs">Take Photo</span>
+                  <span className="text-xs">{t('camera.take_photo')}</span>
                 </button>
                 <label className="flex flex-1 items-center justify-center space-x-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-300 disabled:opacity-50 font-semibold py-2 rounded-lg cursor-pointer transition-colors">
                   <ImagePlus className="w-4 h-4" />
-                  <span className="text-xs">Gallery</span>
+                  <span className="text-xs">{t('camera.upload_image')}</span>
                   <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} ref={fileInputRef} disabled={isLiveScanning} />
                 </label>
               </div>
             </div>
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-xl text-sm border border-red-100 dark:border-red-800">
+              <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-3 rounded-xl text-sm border border-red-100 dark:border-red-800 shrink-0">
                 {error}
               </div>
             )}
           </div>
         ) : (
-          <div className="w-full max-w-md space-y-6">
+          <div className="w-full max-w-md flex flex-col h-full space-y-4">
             {selectedImage && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 shrink-0">
                 <div className="aspect-video bg-gray-900 relative">
                   <img src={selectedImage} alt="Scanned SMS" className="w-full h-full object-contain" />
                   {isProcessing && (
@@ -370,8 +403,8 @@ export default function CameraScanner() {
             )}
 
             {error && !isProcessing && (
-              <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-xl border border-red-100 dark:border-red-800">
-                <p className="font-medium mb-1">Failed to parse transaction</p>
+              <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-4 rounded-xl border border-red-100 dark:border-red-800 shrink-0">
+                <p className="font-medium mb-1">{t('camera.no_transactions')}</p>
                 <p className="text-sm opacity-90">{error}</p>
                 <button 
                   onClick={resetScanner}
@@ -383,14 +416,14 @@ export default function CameraScanner() {
             )}
 
             {parsedDataList.length > 0 && !isProcessing && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-black/5 animate-in slide-in-from-bottom-4 fade-in duration-300">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-black/5 animate-in slide-in-from-bottom-4 fade-in duration-300 flex flex-col h-full max-h-[85vh]">
+                <div className="flex items-center justify-between mb-4 shrink-0">
                   <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                    {parsedDataList.length} Transaction{parsedDataList.length > 1 ? 's' : ''} Found!
+                    {parsedDataList.length === 1 ? t('camera.transactions_found_one', {count: 1}) : t('camera.transactions_found_other', {count: parsedDataList.length})}
                   </h3>
                 </div>
 
-                <div className="max-h-[40vh] overflow-y-auto space-y-4 mb-6 pr-2">
+                <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 min-h-0">
                   {parsedDataList.map((parsedData, index) => {
                     const isDuplicate = duplicateStatuses[index];
                     return (
@@ -419,11 +452,29 @@ export default function CameraScanner() {
                           </div>
                         )}
                         {parsedData.transaction_id && (
-                          <div className="text-sm text-gray-600 dark:text-gray-300 flex justify-between mt-1">
+                          <div className="text-sm text-gray-600 dark:text-gray-300 flex justify-between mt-1 items-center">
                             <span className="text-gray-400">TID</span> 
                             <span className="font-mono text-gray-800 dark:text-gray-200">{parsedData.transaction_id}</span>
                           </div>
                         )}
+                        <div className="text-sm text-gray-600 dark:text-gray-300 flex justify-between mt-2 items-center">
+                          <span className="text-gray-400">Line</span> 
+                          <select 
+                            value={parsedData.provider || ''}
+                            onChange={(e) => {
+                              const newProvider = e.target.value || null;
+                              setParsedDataList(prev => prev.map((item, idx) => idx === index ? { ...item, provider: newProvider } : item));
+                            }}
+                            className="text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-500"
+                          >
+                            <option value="">{t('camera.unknown_line')}</option>
+                            <option value="MTN">MTN</option>
+                            <option value="Airtel">Airtel</option>
+                            <option value="Safaricom">Safaricom</option>
+                            <option value="M-Pesa">M-Pesa</option>
+                            <option value="Wave">Wave</option>
+                          </select>
+                        </div>
 
                         {isDuplicate && (
                           <div className="mt-2 text-xs text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
@@ -435,12 +486,12 @@ export default function CameraScanner() {
                   })}
                 </div>
 
-                <div className="flex gap-3 mt-4">
+                <div className="flex gap-3 mt-auto shrink-0">
                   <button 
                     onClick={resetScanner}
                     className="flex-1 py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
-                    Cancel
+                    {t('camera.cancel')}
                   </button>
                   <button 
                     onClick={handleSave}
@@ -452,7 +503,12 @@ export default function CameraScanner() {
                     }`}
                   >
                     <Check className="w-5 h-5" />
-                    {(parsedDataList.length > 0 && duplicateStatuses.every(status => status)) ? 'All Saved' : `Save ${parsedDataList.filter((_, i) => !duplicateStatuses[i]).length > 1 ? 'All ' : ''}`}
+                    {(parsedDataList.length > 0 && duplicateStatuses.every(status => status)) 
+                      ? 'All Saved' 
+                      : (parsedDataList.filter((_, i) => !duplicateStatuses[i]).length === 1 
+                          ? t('camera.save_transactions_one', { count: 1 }) 
+                          : t('camera.save_transactions_other', { count: parsedDataList.filter((_, i) => !duplicateStatuses[i]).length }))
+                    }
                   </button>
                 </div>
               </div>

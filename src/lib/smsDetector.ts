@@ -92,7 +92,18 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
       // Only add if not already in DB
       if (parsed && parsed.transaction_id) {
         if (!existingTids.has(parsed.transaction_id)) {
-          const txDate = parseTransactionDate(parsed.date, parsed.time);
+          let txDate = new Date().toISOString();
+          let finalTime = parsed.time;
+          
+          if (parsed.date) {
+            txDate = parseTransactionDate(parsed.date, parsed.time);
+          } else if (msg.timestamp) {
+            const d = new Date(msg.timestamp);
+            txDate = d.toISOString();
+            if (!finalTime) {
+              finalTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+          }
           
           const newId = await db.transactions.add({
             amount: parsed.amount || 0,
@@ -104,7 +115,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
             tid: parsed.transaction_id,
             senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
             smsDate: parsed.date || undefined,
-            smsTime: parsed.time || undefined,
+            smsTime: finalTime || undefined,
             currency: parsed.currency || undefined,
             phoneNumber: parsed.phone_number || undefined,
             balance: parsed.balance || undefined,

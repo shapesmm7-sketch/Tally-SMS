@@ -9,6 +9,7 @@ export interface ReportTransaction {
 
 export interface PDFExportPlugin {
   generateAndSavePDF(options: { title: string; filename?: string; transactions: ReportTransaction[] }): Promise<{ success: boolean; uri: string }>;
+  saveBase64PDF(options: { data: string; filename?: string }): Promise<{ success: boolean; uri: string }>;
   openPDF(options: { uri: string }): Promise<void>;
 }
 

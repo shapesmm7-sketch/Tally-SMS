@@ -8,11 +8,10 @@ import { format, parseISO, isToday, isYesterday, isThisWeek, isThisMonth, isThis
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import { useTranslation } from 'react-i18next';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
 import { normalizeProviderName } from '../lib/smsParser';
+import PDFExport from '../lib/pdfExport';
 
 type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'custom';
 
@@ -124,8 +123,8 @@ export default function Transactions() {
 
     // Prepare table data
     const tableData = transactions.map(tx => [
-      format(parseISO(tx.date), 'MMM d, yyyy') + (tx.smsTime ? ` ${tx.smsTime}` : ''),
-      tx.type === 'income' ? 'Income' : 'Expense',
+      format(parseISO(tx.date), 'MMM d, yyyy'),
+      tx.smsTime || '-',
       tx.category.replace('_', ' '),
       tx.senderReceiverName || '-',
       tx.tid || '-',
@@ -134,7 +133,7 @@ export default function Transactions() {
 
     autoTable(doc, {
       startY: 56,
-      head: [['Date', 'Type', 'Category', 'Name', 'TID', 'Amount']],
+      head: [['Date', 'Time', 'Category', 'Name', 'TID', 'Amount']],
       body: tableData,
       theme: 'striped',
       headStyles: { fillColor: [37, 99, 235] }, // blue-600
@@ -147,22 +146,22 @@ export default function Transactions() {
       try {
         const pdfBase64 = doc.output('datauristring').split(',')[1];
         
-        const result = await Filesystem.writeFile({
-          path: fileName,
+        const result = await PDFExport.saveBase64PDF({
           data: pdfBase64,
-          directory: Directory.Cache,
+          filename: fileName
         });
 
-        await Share.share({
-          title: 'Transaction Report',
-          text: 'Here is your transaction report.',
-          files: [result.uri],
-          dialogTitle: 'Share or Save PDF',
-        });
+        if (result && result.success) {
+          setTimeout(() => {
+            if (confirm('Report saved to Downloads. Would you like to open it?')) {
+              PDFExport.openPDF({ uri: result.uri }).catch((e) => console.error(e));
+            }
+          }, 500);
+        }
       } catch (error: any) {
         if (error.message !== 'Share canceled') {
-          console.error('Error saving or sharing PDF:', error);
-          alert('Failed to save or share PDF. Please try again.');
+          console.error('Error saving PDF:', error);
+          alert('Failed to save PDF. Please try again.');
         }
       }
     } else {

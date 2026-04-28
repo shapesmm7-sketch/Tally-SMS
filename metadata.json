@@ -1,5 +1,5 @@
 {
   "name": "MoMo Tracker",
   "description": "A mobile-optimized web application to track mobile money transactions automatically via SMS detection.",
-  "requestFramePermissions": ["sms"]
+  "requestFramePermissions": ["camera"]
 }
