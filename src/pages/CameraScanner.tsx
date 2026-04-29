@@ -6,10 +6,12 @@ import Tesseract from 'tesseract.js';
 import Webcam from 'react-webcam';
 import { extractMultipleTransactions, parseTransactionDate } from '../lib/smsParser';
 import { db } from '../lib/db';
+import { cn } from '../lib/utils';
 import { useAccessControl } from '../hooks/useAccessControl';
 import LimitModal from '../components/LimitModal';
 import { Capacitor } from '@capacitor/core';
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import OCRScanner, { syncPendingOCR } from '../lib/ocrScanner';
 
 export default function CameraScanner() {
   const navigate = useNavigate();
@@ -35,6 +37,25 @@ export default function CameraScanner() {
   const [showLimitModal, setShowLimitModal] = useState(false);
   
   const { canProcessLiveScan, recordLiveScanUsage, liveScanLimit } = useAccessControl();
+
+  useEffect(() => {
+    // Polling for OCR results when returning from native scanner 
+    // or while app is active on native platforms
+    let interval: any;
+    if (Capacitor.isNativePlatform()) {
+      interval = setInterval(() => {
+        syncPendingOCR((count) => {
+          if (count > 0) {
+            // If we've successfully synced something, go back to dashboard
+            navigate('/');
+          }
+        });
+      }, 2000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const checkDuplicates = async () => {
@@ -147,7 +168,18 @@ export default function CameraScanner() {
     }
   };
 
-  const toggleLiveScan = () => {
+  const toggleLiveScan = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await OCRScanner.startScan();
+        // The results will be picked up by the syncPendingOCR polling
+      } catch (e) {
+        console.error("Native OCR error:", e);
+        setError("Failed to start native scanner. " + (e instanceof Error ? e.message : String(e)));
+      }
+      return;
+    }
+
     if (isLiveScanning) {
       stopLiveScan();
     } else {
@@ -457,23 +489,31 @@ export default function CameraScanner() {
                             <span className="font-mono text-gray-800 dark:text-gray-200">{parsedData.transaction_id}</span>
                           </div>
                         )}
-                        <div className="text-sm text-gray-600 dark:text-gray-300 flex justify-between mt-2 items-center">
-                          <span className="text-gray-400">Line</span> 
-                          <select 
-                            value={parsedData.provider || ''}
-                            onChange={(e) => {
-                              const newProvider = e.target.value || null;
-                              setParsedDataList(prev => prev.map((item, idx) => idx === index ? { ...item, provider: newProvider } : item));
-                            }}
-                            className="text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-500"
-                          >
-                            <option value="">{t('camera.unknown_line')}</option>
-                            <option value="MTN">MTN</option>
-                            <option value="Airtel">Airtel</option>
-                            <option value="Safaricom">Safaricom</option>
-                            <option value="M-Pesa">M-Pesa</option>
-                            <option value="Wave">Wave</option>
-                          </select>
+                        <div className={`mt-2 p-2 rounded-lg transition-colors ${!parsedData.provider ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' : 'bg-gray-100 dark:bg-gray-700/50'}`}>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className={cn(
+                              "font-medium",
+                              !parsedData.provider ? "text-amber-800 dark:text-amber-400" : "text-gray-500 dark:text-gray-400"
+                            )}>
+                              Line Provider
+                              {!parsedData.provider && (
+                                <span className="block text-[10px] font-normal opacity-80 italic">Not detected, please add manually</span>
+                              )}
+                            </span> 
+                            <input 
+                              type="text"
+                              value={parsedData.provider || ''}
+                              onChange={(e) => {
+                                const newProvider = e.target.value || null;
+                                setParsedDataList(prev => prev.map((item, idx) => idx === index ? { ...item, provider: newProvider } : item));
+                              }}
+                              placeholder={t('camera.unknown_line')}
+                              className={cn(
+                                "text-xs bg-white dark:bg-gray-700 border rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 w-36 shadow-sm transition-all",
+                                !parsedData.provider ? "border-amber-300 dark:border-amber-700 ring-1 ring-amber-200 dark:ring-amber-900" : "border-gray-300 dark:border-gray-600"
+                              )}
+                            />
+                          </div>
                         </div>
 
                         {isDuplicate && (

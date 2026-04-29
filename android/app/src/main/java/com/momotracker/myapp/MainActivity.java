@@ -8,6 +8,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(SMSDetectionPlugin.class);
         registerPlugin(PDFExportPlugin.class);
+        registerPlugin(OCRScannerPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

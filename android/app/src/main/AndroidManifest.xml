@@ -20,6 +20,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".OCRScannerActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+
         <receiver
             android:name=".SMSReceiver"
             android:exported="true"

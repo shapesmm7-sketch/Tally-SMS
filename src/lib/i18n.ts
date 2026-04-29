@@ -5784,7 +5784,9 @@ i18n
     resources,
     fallbackLng: 'en',
     detection: {
-      order: ['navigator'],
+      order: ['localStorage'],
+      caches: ['localStorage'],
+      lookupLocalStorage: 'momo_language',
     },
     interpolation: {
       escapeValue: false,
