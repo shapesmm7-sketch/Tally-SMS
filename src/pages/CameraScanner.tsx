@@ -317,7 +317,7 @@ export default function CameraScanner() {
   const handleUserMediaError = () => setCameraPermission(false);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gray-50 dark:bg-gray-900 pb-20">
+    <div className="flex flex-col h-[100dvh] bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-800 p-4 sticky top-0 z-20 flex items-center justify-between h-[72px]">
         <div className="flex items-center">
           <button onClick={closeScanner} className="p-2 -ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
@@ -337,10 +337,17 @@ export default function CameraScanner() {
         {!selectedImage && parsedDataList.length === 0 ? (
           <div className="w-full max-w-md flex flex-col h-full space-y-3">
             <div className="bg-black rounded-2xl overflow-hidden shadow-sm relative flex-1 flex flex-col justify-center min-h-0">
-              {cameraPermission === false ? (
+              {cameraPermission === false && !Capacitor.isNativePlatform() ? (
                 <div className="text-white p-6 text-center">
                   <p className="mb-4 text-red-400 font-semibold">{t('camera.camera_denied')}</p>
                   <p className="text-sm text-gray-400 mb-6">Please allow camera permissions in your browser settings to use the live scanner.</p>
+                </div>
+              ) : Capacitor.isNativePlatform() ? (
+                <div className="text-white p-6 text-center flex flex-col items-center justify-center h-full gap-4 opacity-70">
+                   <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-2">
+                     <Camera className="w-8 h-8 text-gray-400" />
+                   </div>
+                   <p className="text-gray-300 font-medium text-sm">Click "Live Scan" below to open the scanner.</p>
                 </div>
               ) : (
                 // @ts-ignore: React-webcam types are occasionally overly strict
@@ -362,7 +369,7 @@ export default function CameraScanner() {
               )}
               
               {/* Overlay guides */}
-              {cameraPermission !== false && (
+              {cameraPermission !== false && !Capacitor.isNativePlatform() && (
                 <div className={`absolute inset-0 pointer-events-none border-2 m-6 rounded-xl flex flex-col items-center justify-center transition-colors ${isLiveScanning ? 'border-red-500/70 bg-red-500/10' : 'border-white/20'}`}>
                   {isLiveScanning ? (
                     <div className="text-center bg-black/60 p-4 rounded-xl backdrop-blur-sm mx-4 transform transition-all">
@@ -419,7 +426,7 @@ export default function CameraScanner() {
             )}
           </div>
         ) : (
-          <div className="w-full max-w-md flex flex-col h-full space-y-4">
+          <div className="w-full max-w-md flex flex-col flex-1 min-h-0 space-y-4 w-full max-h-full">
             {selectedImage && (
               <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 shrink-0">
                 <div className="aspect-video bg-gray-900 relative">
@@ -526,7 +533,7 @@ export default function CameraScanner() {
                   })}
                 </div>
 
-                <div className="flex gap-3 mt-auto shrink-0">
+                <div className="flex gap-3 mt-auto shrink-0 p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
                   <button 
                     onClick={resetScanner}
                     className="flex-1 py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
