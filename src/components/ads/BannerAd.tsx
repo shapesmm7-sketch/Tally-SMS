@@ -18,7 +18,7 @@ export default function BannerAd() {
             adId: 'ca-app-pub-3940256099942544/6300978111', // Test Banner ID
             adSize: BannerAdSize.BANNER,
             position: BannerAdPosition.BOTTOM_CENTER,
-            margin: 0,
+            margin: 70, // Push the ad above the bottom navigation bar
             isTesting: true,
           });
           setIsLoaded(true);
