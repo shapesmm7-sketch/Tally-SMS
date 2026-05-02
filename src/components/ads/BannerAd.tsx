@@ -18,7 +18,7 @@ export default function BannerAd() {
             adId: 'ca-app-pub-3940256099942544/6300978111', // Test Banner ID
             adSize: BannerAdSize.BANNER,
             position: BannerAdPosition.BOTTOM_CENTER,
-            margin: 70, // Push the ad above the bottom navigation bar
+            margin: 64, // Push up 64 units to sit above the 64px bottom nav
             isTesting: true,
           });
           setIsLoaded(true);
@@ -46,7 +46,7 @@ export default function BannerAd() {
   if (isPremium) return null;
 
   return (
-    <div className="w-full bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center py-2 shrink-0 z-40 transition-colors" style={{ paddingBottom: Capacitor.isNativePlatform() ? '50px' : undefined }}>
+    <div className="w-full bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center shrink-0 z-40 transition-colors" style={{ height: Capacitor.isNativePlatform() ? '60px' : 'auto', padding: Capacitor.isNativePlatform() ? '0' : '8px 0' }}>
       {!Capacitor.isNativePlatform() && (
         <>
           <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Advertisement</span>

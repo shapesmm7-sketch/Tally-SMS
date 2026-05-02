@@ -32,16 +32,17 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-[var(--background)] shadow-xl overflow-hidden relative transition-colors">
+    <div className="flex flex-col h-[100dvh] max-w-md mx-auto bg-[var(--background)] shadow-xl overflow-hidden relative transition-colors">
       
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto">
           <Outlet />
         </div>
-        {/* Banner Ad fixed at the bottom of the content area, above the nav bar */}
-        {showBannerAd && <BannerAd />}
       </main>
+
+      {/* Banner Ad placeholder placed above the bottom navigation */}
+      {showBannerAd && <BannerAd />}
 
       {/* Bottom Navigation */}
       <nav className="w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around items-center h-16 px-2 z-50 shrink-0 rounded-t-xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] transition-colors">

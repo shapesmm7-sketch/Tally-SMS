@@ -165,7 +165,13 @@ export default function Reports() {
         if (result && result.success) {
           setTimeout(() => {
             if (confirm('Report saved to Downloads. Would you like to open it?')) {
-              PDFExport.openPDF({ uri: result.uri }).catch((e) => console.error(e));
+              PDFExport.openPDF({ uri: result.uri })
+                .catch((e) => console.error(e))
+                .finally(() => {
+                  if (needsAdForPdf) forceAd(() => {});
+                });
+            } else {
+              if (needsAdForPdf) forceAd(() => {});
             }
           }, 500);
         }
@@ -177,6 +183,7 @@ export default function Reports() {
       }
     } else {
       doc.save(fileName);
+      if (needsAdForPdf) forceAd(() => {});
     }
   };
 

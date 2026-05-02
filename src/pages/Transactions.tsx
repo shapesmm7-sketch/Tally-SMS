@@ -10,6 +10,7 @@ import autoTable from 'jspdf-autotable';
 import { Capacitor } from '@capacitor/core';
 import { useTranslation } from 'react-i18next';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
+import { useAccessControl } from '../hooks/useAccessControl';
 import { normalizeProviderName } from '../lib/smsParser';
 import PDFExport from '../lib/pdfExport';
 
@@ -17,6 +18,8 @@ type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'c
 
 export default function Transactions() {
   const { t } = useTranslation();
+  const { isPro } = useAccessControl();
+  const needsAdForPdf = !isPro;
   
   const DATE_FILTERS: { id: DateFilter; label: string }[] = [
     { id: 'all', label: t('reports.all_time') },
@@ -27,7 +30,7 @@ export default function Transactions() {
     { id: 'year', label: t('reports.this_year') },
   ];
   const navigate = useNavigate();
-  const { triggerAction } = useInterstitialAd();
+  const { triggerAction, forceAd } = useInterstitialAd();
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [providerFilter, setProviderFilter] = useState<string>('all');
@@ -102,7 +105,7 @@ export default function Transactions() {
     return acc;
   }, { deposits: 0, withdrawals: 0, airtimeBought: 0, airtimeSold: 0, received: 0, sent: 0, commission: 0 });
 
-  const handleDownloadPDF = async () => {
+  const generateAndDownloadPDF = async () => {
     const doc = new jsPDF();
     
     // Add title
@@ -154,7 +157,13 @@ export default function Transactions() {
         if (result && result.success) {
           setTimeout(() => {
             if (confirm('Report saved to Downloads. Would you like to open it?')) {
-              PDFExport.openPDF({ uri: result.uri }).catch((e) => console.error(e));
+              PDFExport.openPDF({ uri: result.uri })
+                .catch((e) => console.error(e))
+                .finally(() => {
+                  if (needsAdForPdf) forceAd(() => {});
+                });
+            } else {
+              if (needsAdForPdf) forceAd(() => {});
             }
           }, 500);
         }
@@ -166,6 +175,15 @@ export default function Transactions() {
       }
     } else {
       doc.save(fileName);
+      if (needsAdForPdf) forceAd(() => {});
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    if (needsAdForPdf) {
+      forceAd(generateAndDownloadPDF);
+    } else {
+      generateAndDownloadPDF();
     }
   };
 

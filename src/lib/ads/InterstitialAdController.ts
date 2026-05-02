@@ -5,8 +5,8 @@ import { AdMob } from '@capacitor-community/admob';
 export class InterstitialAdController {
   private static actionCount = 0;
   private static lastAdTime = Date.now();
-  private static readonly MIN_ACTIONS = 3;
-  private static readonly MIN_TIME_MS = 30 * 1000; // 30 seconds for testing
+  private static readonly MIN_ACTIONS = 7;
+  private static readonly MIN_TIME_MS = 60 * 1000; // 60 seconds (adjusted to be more reasonable)
   private static isPreloaded = false;
 
   static async preload() {

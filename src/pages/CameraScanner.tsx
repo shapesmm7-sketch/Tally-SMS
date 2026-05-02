@@ -39,22 +39,9 @@ export default function CameraScanner() {
   const { canProcessLiveScan, recordLiveScanUsage, liveScanLimit } = useAccessControl();
 
   useEffect(() => {
-    // Polling for OCR results when returning from native scanner 
-    // or while app is active on native platforms
-    let interval: any;
-    if (Capacitor.isNativePlatform()) {
-      interval = setInterval(() => {
-        syncPendingOCR((count) => {
-          if (count > 0) {
-            // Successfully synced some transactions in the background
-            console.log(`Synced ${count} transaction(s) from native camera`);
-          }
-        });
-      }, 2000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    // We removed the interval that used syncPendingOCR because we want the user
+    // to review the pending OCR messages in the UI (via parsedDataList) 
+    // rather than saving them silently in the background.
   }, [navigate]);
 
   useEffect(() => {
@@ -77,6 +64,13 @@ export default function CameraScanner() {
 
   useEffect(() => {
     const initWorker = async () => {
+      // Skip background compilation of Tesseract WebAssembly on native devices
+      // This prevents a 3 minute freeze when opening the scanner
+      if (Capacitor.isNativePlatform()) {
+        setWorkerReady(true);
+        return;
+      }
+      
       try {
         const worker = await Tesseract.createWorker('eng');
         workerRef.current = worker;
@@ -132,7 +126,18 @@ export default function CameraScanner() {
       
       setExtractedText(text);
       if (!checkParsedData(text)) {
-        setError("Could not fully extract transaction details. Try live scan if the message is too long.");
+        // Fallback for single image parsing failure
+        if (text && text.trim().length > 5) {
+          setParsedDataList([{
+            transaction_type: 'unknown',
+            amount: 0,
+            raw_message: text,
+            date: new Date().toISOString()
+          }]);
+          setError("Could not fully extract details. Please edit manually.");
+        } else {
+          setError("Could not extract any text from the image. Try a clearer photo.");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -172,9 +177,26 @@ export default function CameraScanner() {
     if (Capacitor.isNativePlatform()) {
       try {
         await OCRScanner.startScan();
-        // Final sync when returning from the native camera, then go to dashboard
-        await syncPendingOCR();
-        navigate('/');
+        // Fetch pending OCR detections from the native side
+        const { messages } = await OCRScanner.getPendingOCR();
+        if (messages && messages.length > 0) {
+          const combinedText = messages.map(m => m.body).join(' \n\n ');
+          setExtractedText(combinedText);
+          
+          const parsedList = extractMultipleTransactions(combinedText);
+          if (parsedList && parsedList.length > 0) {
+            setParsedDataList(parsedList);
+          } else {
+            // Fallback if parsing failed so the user can manually edit
+            setParsedDataList(messages.map(m => ({
+              transaction_type: 'unknown',
+              amount: 0,
+              raw_message: m.body,
+              date: new Date(m.timestamp).toISOString()
+            })));
+            setError("Could not fully extract details. Please edit manually.");
+          }
+        }
       } catch (e) {
         console.error("Native OCR error:", e);
         setError("Failed to start native scanner. " + (e instanceof Error ? e.message : String(e)));
@@ -213,6 +235,17 @@ export default function CameraScanner() {
     if (scanIntervalRef.current) {
       clearTimeout(scanIntervalRef.current);
       scanIntervalRef.current = null;
+    }
+    
+    // Fallback if we accumulated text but couldn't parse it into recognized transactions
+    if (parsedDataList.length === 0 && accumulatedText && accumulatedText.trim().length > 5) {
+      setParsedDataList([{
+        transaction_type: 'unknown',
+        amount: 0,
+        raw_message: accumulatedText,
+        date: new Date().toISOString()
+      }]);
+      setError("Could not fully extract details. Please edit manually.");
     }
   };
 
@@ -335,9 +368,9 @@ export default function CameraScanner() {
         )}
       </header>
 
-      <main className="flex-1 overflow-hidden p-3 flex flex-col items-center justify-center relative">
-        {!selectedImage && parsedDataList.length === 0 ? (
-          <div className="w-full max-w-md flex flex-col h-full space-y-3">
+      <main className="flex-1 overflow-hidden p-3 flex flex-col items-center relative min-h-0">
+        {!selectedImage && (parsedDataList.length === 0 || isLiveScanning) ? (
+          <div className="w-full max-w-md flex flex-col h-full space-y-3 justify-center">
             <div className="bg-black rounded-2xl overflow-hidden shadow-sm relative flex-1 flex flex-col justify-center min-h-0">
               {cameraPermission === false && !Capacitor.isNativePlatform() ? (
                 <div className="text-white p-6 text-center">
@@ -377,6 +410,11 @@ export default function CameraScanner() {
                     <div className="text-center bg-black/60 p-4 rounded-xl backdrop-blur-sm mx-4 transform transition-all">
                       <p className="text-white font-medium mb-1">Live Scan Active</p>
                       <p className="text-white/70 text-sm">Slowly scroll the SMS down on the other phone...</p>
+                      {parsedDataList.length > 0 && (
+                        <div className="mt-3 inline-flex items-center text-green-400 font-bold bg-green-500/30 px-4 py-1.5 rounded-full border border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                          {parsedDataList.length} Found!
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <span className="text-white/50 text-sm font-medium bg-black/40 px-3 py-1 rounded-full">Align SMS within frame</span>
@@ -392,17 +430,17 @@ export default function CameraScanner() {
               
               <button 
                 onClick={toggleLiveScan}
-                disabled={cameraPermission === false || !workerReady}
+                disabled={(!Capacitor.isNativePlatform() && cameraPermission === false) || (!Capacitor.isNativePlatform() && !workerReady)}
                 className={`flex-[2] flex flex-col items-center justify-center space-y-1 ${isLiveScanning ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-2 border-red-200 dark:border-red-800/50' : 'bg-blue-600 hover:bg-blue-700 text-white'} disabled:opacity-50 font-semibold py-2 px-2 rounded-xl shadow-sm transition-colors min-w-[120px]`}
               >
-                {!workerReady ? (
+                {(!Capacitor.isNativePlatform() && !workerReady) ? (
                   <Loader2 className="w-6 h-6 animate-spin" />
                 ) : isLiveScanning ? (
                   <StopCircle className="w-6 h-6" />
                 ) : (
                   <PlayCircle className="w-6 h-6" />
                 )}
-                <span className="text-sm">{!workerReady ? t('common.loading') : isLiveScanning ? t('camera.stop_scan') : t('camera.live_scan')}</span>
+                <span className="text-sm">{(!Capacitor.isNativePlatform() && !workerReady) ? (t('common.loading') || 'Processing...') : isLiveScanning ? t('camera.stop_scan') : t('camera.live_scan')}</span>
               </button>
 
               <div className="flex flex-col gap-2 flex-1 min-w-[100px]">
@@ -428,10 +466,13 @@ export default function CameraScanner() {
             )}
           </div>
         ) : (
-          <div className="w-full max-w-md flex flex-col flex-1 min-h-0 space-y-4 w-full max-h-full">
+          <div className="w-full max-w-md flex flex-col flex-1 min-h-0 space-y-4 max-h-full">
             {selectedImage && (
               <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 shrink-0">
-                <div className="aspect-video bg-gray-900 relative">
+                <div className={cn(
+                  "bg-gray-900 relative transition-all duration-300",
+                  parsedDataList.length > 0 ? "h-24" : "aspect-video"
+                )}>
                   <img src={selectedImage} alt="Scanned SMS" className="w-full h-full object-contain" />
                   {isProcessing && (
                     <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white p-4">
@@ -457,14 +498,14 @@ export default function CameraScanner() {
             )}
 
             {parsedDataList.length > 0 && !isProcessing && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-black/5 animate-in slide-in-from-bottom-4 fade-in duration-300 flex flex-col h-full max-h-[85vh]">
-                <div className="flex items-center justify-between mb-4 shrink-0">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-black/5 animate-in slide-in-from-bottom-4 fade-in duration-300 flex flex-col flex-1 min-h-0 overflow-hidden">
+                <div className="flex items-center justify-between p-5 pb-4 shrink-0">
                   <h3 className="font-bold text-gray-900 dark:text-white text-lg">
                     {parsedDataList.length === 1 ? t('camera.transactions_found_one', {count: 1}) : t('camera.transactions_found_other', {count: parsedDataList.length})}
                   </h3>
                 </div>
 
-                <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 min-h-0">
+                <div className="flex-1 overflow-y-auto space-y-4 px-5 pb-4 min-h-0">
                   {parsedDataList.map((parsedData, index) => {
                     const isDuplicate = duplicateStatuses[index];
                     return (
