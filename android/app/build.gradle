@@ -71,6 +71,9 @@ dependencies {
 
     // ML Kit Text Recognition
     implementation 'com.google.android.gms:play-services-mlkit-text-recognition:19.0.0'
+
+    // Resolves Cannot access class 'com.google.common.util.concurrent.ListenableFuture'
+    implementation("com.google.guava:guava:31.1-android")
 }
 
 apply from: 'capacitor.build.gradle'
