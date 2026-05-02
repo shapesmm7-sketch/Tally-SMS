@@ -161,7 +161,7 @@ export default function Settings() {
         setSmsError('Please grant the SMS and Phone permissions, then return here.');
       } catch (e: any) {
         console.error('Error opening app settings:', e);
-        setSmsError(`Failed to open settings: ${e.message || String(e)}. Please go to your phone Settings > Apps > MoMo Tracker > Permissions manually.`);
+        setSmsError(`Failed to open settings: ${e.message || String(e)}. Please go to your phone Settings > Apps > Momo Tracker > Permissions manually.`);
       } finally {
         setIsRequesting(false);
       }
@@ -232,8 +232,8 @@ export default function Settings() {
           });
           
           await Share.share({
-            title: 'MoMo Tracker Backup',
-            text: 'Save or send your MoMo Tracker backup file.',
+            title: 'Momo Tracker Backup',
+            text: 'Save or send your Momo Tracker backup file.',
             url: result.uri,
             dialogTitle: 'Export Backup',
           });
@@ -284,10 +284,10 @@ export default function Settings() {
   const handleShareApp = async () => {
     try {
       await Share.share({
-        title: 'MoMo Tracker',
-        text: 'Check out MoMo Tracker, the best app to track your mobile money transactions automatically!',
+        title: 'Momo Tracker',
+        text: 'Check out Momo Tracker, the best app to track your mobile money transactions automatically!',
         url: 'https://play.google.com/store/apps/details?id=com.momotracker.myapp', // Update with actual URL if different
-        dialogTitle: 'Share MoMo Tracker',
+        dialogTitle: 'Share Momo Tracker',
       });
     } catch (error: any) {
       if (error.message !== 'Share canceled') {
@@ -652,7 +652,7 @@ export default function Settings() {
         </div>
 
         <div className="text-center mt-8">
-          <p className="text-xs text-gray-400">MoMo Tracker Web v1.0.0</p>
+          <p className="text-xs text-gray-400">Momo Tracker Web v1.0.0</p>
         </div>
       </div>
 

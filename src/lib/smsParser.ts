@@ -104,10 +104,17 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const lowerText = cleanText.toLowerCase();
   const lowerAddress = (address || '').toLowerCase();
 
+  // Explicitly ignore promotional, marketing, and lottery messages
+  if (
+    /(you have won|to unlock|offer only|extra data|bonus|promotional|promo|win up to|sweepstakes|lucky winner|dear customer, claim|free gift|reward|special offer)/i.test(lowerText)
+  ) {
+    return null;
+  }
+
   // Explicitly ignore non-transactional messages like data quota warnings
   if (
-    /(data quota|consumed.*data|mb remaining|gb remaining|renew.*bundle)/i.test(lowerText) && 
-    !/(recharged|payment|paid|received|sent|transferred|reçu|envoyé|payé|pokea|tuma|lipa|recebido|enviado)/i.test(lowerText)
+    /(data quota|consumed.*data|mb remaining|gb remaining|remain.*(?:mb|gb)|renew.*bundle|recharge today)/i.test(lowerText) && 
+    !/(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|was successful|successful)/i.test(lowerText)
   ) {
     return null;
   }

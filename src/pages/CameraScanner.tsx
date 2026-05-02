@@ -46,8 +46,8 @@ export default function CameraScanner() {
       interval = setInterval(() => {
         syncPendingOCR((count) => {
           if (count > 0) {
-            // If we've successfully synced something, go back to dashboard
-            navigate('/');
+            // Successfully synced some transactions in the background
+            console.log(`Synced ${count} transaction(s) from native camera`);
           }
         });
       }, 2000);
@@ -172,7 +172,9 @@ export default function CameraScanner() {
     if (Capacitor.isNativePlatform()) {
       try {
         await OCRScanner.startScan();
-        // The results will be picked up by the syncPendingOCR polling
+        // Final sync when returning from the native camera, then go to dashboard
+        await syncPendingOCR();
+        navigate('/');
       } catch (e) {
         console.error("Native OCR error:", e);
         setError("Failed to start native scanner. " + (e instanceof Error ? e.message : String(e)));

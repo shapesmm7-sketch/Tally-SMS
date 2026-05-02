@@ -106,7 +106,7 @@ export default function Reports() {
       if (selectedFrame) reportPeriodText = selectedFrame.label;
     }
     
-    const formattedTitle = `MoMo Tracker Reports ${reportPeriodText}`;
+    const formattedTitle = `Momo Tracker Reports ${reportPeriodText}`;
     // Provide a file name without spaces
     const safeFilenameStr = `momo_tracker_reports_${reportPeriodText.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}`;
 

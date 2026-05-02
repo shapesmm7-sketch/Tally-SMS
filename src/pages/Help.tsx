@@ -23,7 +23,7 @@ export default function Help() {
       <div className="p-4 space-y-4 pb-12">
         <div className="bg-blue-50 dark:bg-blue-900/30 rounded-2xl p-5 mb-6">
           <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-            Welcome to MoMo Tracker! This guide explains all the features available to help you track your mobile money transactions effortlessly.
+            Welcome to Momo Tracker! This guide explains all the features available to help you track your mobile money transactions effortlessly.
           </p>
         </div>
 
@@ -53,7 +53,7 @@ export default function Help() {
             SMS Auto Detection
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            This is the core feature of MoMo Tracker. When enabled, the app continuously runs in the background and automatically catches any incoming mobile money SMS (like deposits, withdrawals, or payments) and logs them into your dashboard without you doing anything. 
+            This is the core feature of Momo Tracker. When enabled, the app continuously runs in the background and automatically catches any incoming mobile money SMS (like deposits, withdrawals, or payments) and logs them into your dashboard without you doing anything. 
           </p>
         </section>
 
@@ -64,7 +64,7 @@ export default function Help() {
             Battery Optimization
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            Android phones sometimes kill background apps to save battery. For <strong>SMS Auto Detection</strong> to be reliable, you must turn off battery optimization for MoMo Tracker. You can find the "Fix Now" button under the Core Features in Settings. Once disabled, MoMo Tracker can consistently detect messages while your screen is off.
+            Android phones sometimes kill background apps to save battery. For <strong>SMS Auto Detection</strong> to be reliable, you must turn off battery optimization for Momo Tracker. You can find the "Fix Now" button under the Core Features in Settings. Once disabled, Momo Tracker can consistently detect messages while your screen is off.
           </p>
         </section>
 
@@ -75,7 +75,7 @@ export default function Help() {
             Manual Scan Inbox
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">
-            If you just installed the app, you can use "Manual Scan Inbox" to search through your phone's old messages and bring previous transactions into MoMo Tracker.
+            If you just installed the app, you can use "Manual Scan Inbox" to search through your phone's old messages and bring previous transactions into Momo Tracker.
           </p>
           <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-100 dark:border-amber-900/30">
             <p className="text-sm font-medium text-amber-800 dark:text-amber-400">
@@ -91,7 +91,7 @@ export default function Help() {
             Copy and Paste Manually
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            If an SMS wasn't caught or you don't want to grant SMS permission, you can open your messaging app, <strong>copy the message text</strong>, and open MoMo Tracker. Press the "+" button at the top menu or the floating plus button, tap the "Paste Message" box, and the app will intelligently extract the amount and details.
+            If an SMS wasn't caught or you don't want to grant SMS permission, you can open your messaging app, <strong>copy the message text</strong>, and open Momo Tracker. Press the "+" button at the top menu or the floating plus button, tap the "Paste Message" box, and the app will intelligently extract the amount and details.
           </p>
         </section>
 

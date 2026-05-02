@@ -1,4 +1,6 @@
 import { AdManager } from './AdManager';
+import { Capacitor } from '@capacitor/core';
+import { AdMob } from '@capacitor-community/admob';
 
 export class InterstitialAdController {
   private static actionCount = 0;
@@ -7,11 +9,22 @@ export class InterstitialAdController {
   private static readonly MIN_TIME_MS = 30 * 1000; // 30 seconds for testing
   private static isPreloaded = false;
 
-  static preload() {
+  static async preload() {
     if (!AdManager.canShowAds()) return;
-    console.log('InterstitialAdController: Preloading ad...');
-    // In production: AdMob.prepareInterstitial({ adId: 'ca-app-pub-3940256099942544/1033173712' })
-    this.isPreloaded = true;
+    
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await AdMob.prepareInterstitial({
+          adId: 'ca-app-pub-3940256099942544/1033173712',
+        });
+        this.isPreloaded = true;
+      } catch (err) {
+        console.error('Failed to preload native interstitial', err);
+      }
+    } else {
+      console.log('InterstitialAdController: Preloading ad (web)...');
+      this.isPreloaded = true;
+    }
   }
 
   static recordAction(): boolean {
@@ -26,6 +39,16 @@ export class InterstitialAdController {
       return true; // Should show ad
     }
     return false;
+  }
+
+  static async showAd(): Promise<void> {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await AdMob.showInterstitial();
+      } catch (err) {
+        console.error('Failed to show native interstitial', err);
+      }
+    }
   }
 
   static onAdShown() {

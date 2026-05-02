@@ -1,4 +1,4 @@
-# MoMo Tracker Android Build Instructions
+# Momo Tracker Android Build Instructions
 
 This project is ready to be built as an Android application using **Capacitor** and **Codemagic**.
 

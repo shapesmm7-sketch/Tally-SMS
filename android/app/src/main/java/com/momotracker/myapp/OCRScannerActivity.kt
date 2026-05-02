@@ -155,11 +155,10 @@ class OCRScannerActivity : AppCompatActivity() {
                 resultTextView.text = "Detected: ${if (tid != null) "TID $tid" else "Transaction"}"
                 resultTextView.visibility = View.VISIBLE
                 
-                // Requirement 11: Automatically exit camera screen after detection 
-                // Once data is saved (we called saveDetection above)
                 resultTextView.postDelayed({
-                    finish()
-                }, 1500)
+                    resultTextView.visibility = View.GONE
+                    resultTextView.text = ""
+                }, 2500)
             }
         }
     }

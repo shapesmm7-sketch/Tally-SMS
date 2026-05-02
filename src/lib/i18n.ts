@@ -47,7 +47,7 @@ const resources = {
         "manual_scan": "Manual Scan Inbox",
         "manual_scan_desc": "Scan existing SMS for transactions",
         "sms_explanation_title": "SMS Access Required",
-        "sms_explanation_body": "MoMo Tracker needs access to your SMS messages to automatically detect and log your Mobile Money transactions. We only scan messages from your Mobile Money provider to help you track your spending. Your data stays private on your device.",
+        "sms_explanation_body": "Momo Tracker needs access to your SMS messages to automatically detect and log your Mobile Money transactions. We only scan messages from your Mobile Money provider to help you track your spending. Your data stays private on your device.",
         "sms_explanation_btn": "Continue",
         "dark_mode": "Dark Mode",
         "dark_mode_desc": "Toggle app appearance",
@@ -208,7 +208,7 @@ const resources = {
         "country_currency": "Pays et devise",
         "dark_mode_desc": "Changer l'apparence de l'application",
         "manual_scan": "Boîte de réception de numérisation manuelle",
-        "sms_explanation_body": "MoMo Tracker a besoin d'accéder à vos messages SMS pour détecter et enregistrer automatiquement vos transactions Mobile Money. Nous analysons uniquement les messages de votre fournisseur Mobile Money pour vous aider à suivre vos dépenses. Vos données restent privées sur votre appareil.",
+        "sms_explanation_body": "Momo Tracker a besoin d'accéder à vos messages SMS pour détecter et enregistrer automatiquement vos transactions Mobile Money. Nous analysons uniquement les messages de votre fournisseur Mobile Money pour vous aider à suivre vos dépenses. Vos données restent privées sur votre appareil.",
         "data": "Données",
         "dark_mode": "Mode sombre",
         "backup": "Sauvegarde des données",
@@ -361,7 +361,7 @@ const resources = {
         "dark_mode_desc": "Alternar apariencia de la aplicación",
         "sms_detection": "Detección automática de SMS",
         "sms_explanation_title": "Se requiere acceso a SMS",
-        "sms_explanation_body": "MoMo Tracker necesita acceso a sus mensajes SMS para detectar y registrar automáticamente sus transacciones de dinero móvil. Solo escaneamos mensajes de su proveedor de dinero móvil para ayudarlo a realizar un seguimiento de sus gastos. Sus datos permanecen privados en su dispositivo.",
+        "sms_explanation_body": "Momo Tracker necesita acceso a sus mensajes SMS para detectar y registrar automáticamente sus transacciones de dinero móvil. Solo escaneamos mensajes de su proveedor de dinero móvil para ayudarlo a realizar un seguimiento de sus gastos. Sus datos permanecen privados en su dispositivo.",
         "sms_desc": "Registrar automáticamente SMS de dinero móvil",
         "manual_scan_desc": "Escanear SMS existentes para transacciones"
       },
@@ -531,7 +531,7 @@ const resources = {
         "dark_mode_desc": "App-Erscheinungsbild umschalten",
         "sms_desc": "Mobile Money-SMS automatisch protokollieren",
         "manual_scan_desc": "Scannen Sie vorhandene SMS nach Transaktionen",
-        "sms_explanation_body": "MoMo Tracker benötigt Zugriff auf Ihre SMS-Nachrichten, um Ihre Mobile Money-Transaktionen automatisch zu erkennen und zu protokollieren. Wir scannen nur Nachrichten von Ihrem Mobile Money-Anbieter, um Ihnen dabei zu helfen, Ihre Ausgaben zu verfolgen. Ihre Daten bleiben auf Ihrem Gerät privat.",
+        "sms_explanation_body": "Momo Tracker benötigt Zugriff auf Ihre SMS-Nachrichten, um Ihre Mobile Money-Transaktionen automatisch zu erkennen und zu protokollieren. Wir scannen nur Nachrichten von Ihrem Mobile Money-Anbieter, um Ihnen dabei zu helfen, Ihre Ausgaben zu verfolgen. Ihre Daten bleiben auf Ihrem Gerät privat.",
         "sms_detection": "Automatische SMS-Erkennung"
       },
       "common": {
@@ -719,7 +719,7 @@ const resources = {
         "country_currency": "País e moeda",
         "clear_data": "Limpar todos os dados",
         "country_desc": "Defina sua moeda local",
-        "sms_explanation_body": "O MoMo Tracker precisa de acesso às suas mensagens SMS para detectar e registrar automaticamente suas transações de Mobile Money. Verificamos apenas mensagens do seu provedor de Mobile Money para ajudá-lo a controlar seus gastos. Seus dados permanecem privados no seu dispositivo.",
+        "sms_explanation_body": "O Momo Tracker precisa de acesso às suas mensagens SMS para detectar e registrar automaticamente suas transações de Mobile Money. Verificamos apenas mensagens do seu provedor de Mobile Money para ajudá-lo a controlar seus gastos. Seus dados permanecem privados no seu dispositivo.",
         "manual_scan_desc": "Digitalize SMS existentes para transações",
         "sms_desc": "Registrar automaticamente SMS do Mobile Money"
       },
@@ -858,7 +858,7 @@ const resources = {
         "logout_lock": "Ondoka / Funga Programu",
         "manual_scan": "Kikasha cha Kuchanganua Mwongozo",
         "help_guide": "Msaada & Mwongozo",
-        "sms_explanation_body": "MoMo Tracker inahitaji ufikiaji wa jumbe zako za SMS ili kutambua kiotomatiki na kuweka kumbukumbu za miamala yako ya Mobile Money. Tunachanganua tu ujumbe kutoka kwa mtoa huduma wako wa Mobile Money ili kukusaidia kufuatilia matumizi yako. Data yako itasalia ya faragha kwenye kifaa chako.",
+        "sms_explanation_body": "Momo Tracker inahitaji ufikiaji wa jumbe zako za SMS ili kutambua kiotomatiki na kuweka kumbukumbu za miamala yako ya Mobile Money. Tunachanganua tu ujumbe kutoka kwa mtoa huduma wako wa Mobile Money ili kukusaidia kufuatilia matumizi yako. Data yako itasalia ya faragha kwenye kifaa chako.",
         "backup": "Data Backup",
         "dark_mode_desc": "Geuza mwonekano wa programu",
         "select_language": "Chagua lugha yako",
@@ -1059,7 +1059,7 @@ const resources = {
         "rate_us": "قيمنا",
         "manual_scan_desc": "مسح الرسائل القصيرة الموجودة للمعاملات",
         "manual_scan": "المسح اليدوي لصندوق الوارد",
-        "sms_explanation_body": "يحتاج MoMo Tracker إلى الوصول إلى رسائل SMS الخاصة بك لاكتشاف وتسجيل معاملات Mobile Money الخاصة بك تلقائيًا. نحن نقوم فقط بفحص الرسائل الواردة من مزود خدمة Mobile Money الخاص بك لمساعدتك في تتبع إنفاقك. تظل بياناتك خاصة على جهازك.",
+        "sms_explanation_body": "يحتاج Momo Tracker إلى الوصول إلى رسائل SMS الخاصة بك لاكتشاف وتسجيل معاملات Mobile Money الخاصة بك تلقائيًا. نحن نقوم فقط بفحص الرسائل الواردة من مزود خدمة Mobile Money الخاص بك لمساعدتك في تتبع إنفاقك. تظل بياناتك خاصة على جهازك.",
         "help_guide": "مساعدة ودليل",
         "logout_lock": "تسجيل الخروج / قفل التطبيق",
         "country_desc": "قم بتعيين العملة المحلية الخاصة بك",
@@ -1308,7 +1308,7 @@ const resources = {
         "logout_lock": "注销/锁定应用程序",
         "manual_scan_desc": "扫描现有短信以获取交易信息",
         "sms_desc": "自动记录移动货币短信",
-        "sms_explanation_body": "MoMo Tracker 需要访问您的短信才能自动检测并记录您的移动货币交易。我们仅扫描来自您的移动货币提供商的消息，以帮助您跟踪您的支出。您的数据在您的设备上保持私密。",
+        "sms_explanation_body": "Momo Tracker 需要访问您的短信才能自动检测并记录您的移动货币交易。我们仅扫描来自您的移动货币提供商的消息，以帮助您跟踪您的支出。您的数据在您的设备上保持私密。",
         "sms_detection": "短信自动检测",
         "dark_mode": "深色模式",
         "manual_scan": "手动扫描收件箱",
@@ -1453,7 +1453,7 @@ const resources = {
         "dark_mode_desc": "Přepnout vzhled aplikace",
         "country_currency": "Země a měna",
         "backup": "Zálohování dat",
-        "sms_explanation_body": "MoMo Tracker potřebuje přístup k vašim SMS zprávám, aby automaticky detekoval a zaznamenával vaše transakce Mobile Money. Skenujeme pouze zprávy od vašeho poskytovatele Mobile Money, abychom vám pomohli sledovat vaše výdaje. Vaše data zůstanou ve vašem zařízení soukromá.",
+        "sms_explanation_body": "Momo Tracker potřebuje přístup k vašim SMS zprávám, aby automaticky detekoval a zaznamenával vaše transakce Mobile Money. Skenujeme pouze zprávy od vašeho poskytovatele Mobile Money, abychom vám pomohli sledovat vaše výdaje. Vaše data zůstanou ve vašem zařízení soukromá.",
         "manual_scan_desc": "Prohledejte existující SMS pro transakce",
         "sms_desc": "Automaticky přihlásit Mobile Money SMS"
       },
@@ -1599,7 +1599,7 @@ const resources = {
         "dark_mode_desc": "Skift app udseende",
         "manual_scan": "Manuel scanningsindbakke",
         "sms_explanation_title": "SMS-adgang påkrævet",
-        "sms_explanation_body": "MoMo Tracker har brug for adgang til dine SMS-beskeder for automatisk at registrere og logge dine Mobile Money-transaktioner. Vi scanner kun beskeder fra din Mobile Money-udbyder for at hjælpe dig med at spore dit forbrug. Dine data forbliver private på din enhed.",
+        "sms_explanation_body": "Momo Tracker har brug for adgang til dine SMS-beskeder for automatisk at registrere og logge dine Mobile Money-transaktioner. Vi scanner kun beskeder fra din Mobile Money-udbyder for at hjælpe dig med at spore dit forbrug. Dine data forbliver private på din enhed.",
         "sms_desc": "Log automatisk Mobile Money SMS",
         "manual_scan_desc": "Scan eksisterende SMS for transaktioner",
         "rate_us": "Bedøm os",
@@ -1791,7 +1791,7 @@ const resources = {
         "dark_mode_desc": "Schakel het uiterlijk van de app in",
         "backup": "Back-upgegevens",
         "help_guide": "Hulp en gids",
-        "sms_explanation_body": "MoMo Tracker heeft toegang tot uw sms-berichten nodig om uw mobielgeldtransacties automatisch te detecteren en te registreren. We scannen alleen berichten van uw Mobiel Geld-aanbieder om u te helpen uw uitgaven bij te houden. Uw gegevens blijven privé op uw apparaat.",
+        "sms_explanation_body": "Momo Tracker heeft toegang tot uw sms-berichten nodig om uw mobielgeldtransacties automatisch te detecteren en te registreren. We scannen alleen berichten van uw Mobiel Geld-aanbieder om u te helpen uw uitgaven bij te houden. Uw gegevens blijven privé op uw apparaat.",
         "manual_scan": "Handmatig scannen inbox",
         "country_desc": "Stel uw lokale valuta in",
         "sms_explanation_title": "SMS-toegang vereist"
@@ -1935,7 +1935,7 @@ const resources = {
         "dark_mode_desc": "Vaihda sovelluksen ulkoasua",
         "change_pin": "Vaihda PIN",
         "sms_explanation_title": "Tekstiviestin käyttö vaaditaan",
-        "sms_explanation_body": "MoMo Tracker tarvitsee pääsyn tekstiviesteihisi tunnistaakseen ja kirjatakseen automaattisesti Mobile Money -tapahtumasi. Skannaamme vain Mobile Money -palveluntarjoajaltasi tulevat viestit, jotta voit seurata kulutustasi. Tietosi pysyvät yksityisinä laitteellasi.",
+        "sms_explanation_body": "Momo Tracker tarvitsee pääsyn tekstiviesteihisi tunnistaakseen ja kirjatakseen automaattisesti Mobile Money -tapahtumasi. Skannaamme vain Mobile Money -palveluntarjoajaltasi tulevat viestit, jotta voit seurata kulutustasi. Tietosi pysyvät yksityisinä laitteellasi.",
         "sms_desc": "Kirjaa automaattisesti Mobile Money SMS"
       },
       "reports": {
@@ -2130,7 +2130,7 @@ const resources = {
         "logout_lock": "Αποσύνδεση / Κλείδωμα εφαρμογής",
         "select_language": "Επιλέξτε τη γλώσσα σας",
         "country_desc": "Ορίστε το τοπικό σας νόμισμα",
-        "sms_explanation_body": "Το MoMo Tracker χρειάζεται πρόσβαση στα μηνύματά σας SMS για να εντοπίζει και να καταγράφει αυτόματα τις συναλλαγές σας με Mobile Money. Σαρώνουμε μόνο μηνύματα από τον πάροχο Mobile Money για να σας βοηθήσουμε να παρακολουθείτε τις δαπάνες σας. Τα δεδομένα σας παραμένουν ιδιωτικά στη συσκευή σας."
+        "sms_explanation_body": "Το Momo Tracker χρειάζεται πρόσβαση στα μηνύματά σας SMS για να εντοπίζει και να καταγράφει αυτόματα τις συναλλαγές σας με Mobile Money. Σαρώνουμε μόνο μηνύματα από τον πάροχο Mobile Money για να σας βοηθήσουμε να παρακολουθείτε τις δαπάνες σας. Τα δεδομένα σας παραμένουν ιδιωτικά στη συσκευή σας."
       },
       "history": {
         "withdrawals": "Αναλήψεις",
@@ -2247,7 +2247,7 @@ const resources = {
         "title": "הגדרות",
         "dark_mode": "מצב כהה",
         "country_desc": "הגדר את המטבע המקומי שלך",
-        "sms_explanation_body": "MoMo Tracker זקוק לגישה להודעות ה-SMS שלך כדי לזהות ולרישום אוטומטית את עסקאות הכסף הנייד שלך. אנו סורקים רק הודעות מספק הכסף הנייד שלך כדי לעזור לך לעקוב אחר ההוצאות שלך. הנתונים שלך נשארים פרטיים במכשיר שלך.",
+        "sms_explanation_body": "Momo Tracker זקוק לגישה להודעות ה-SMS שלך כדי לזהות ולרישום אוטומטית את עסקאות הכסף הנייד שלך. אנו סורקים רק הודעות מספק הכסף הנייד שלך כדי לעזור לך לעקוב אחר ההוצאות שלך. הנתונים שלך נשארים פרטיים במכשיר שלך.",
         "sms_explanation_title": "נדרשת גישה ל-SMS",
         "dark_mode_desc": "החלף את הופעת האפליקציה",
         "sms_desc": "התחבר אוטומטית ל-SMS עם כסף נייד",
@@ -2547,7 +2547,7 @@ const resources = {
         "sms_detection": "SMS automatikus felismerés",
         "dark_mode_desc": "Az alkalmazás megjelenésének váltása",
         "rate_us": "Értékeljen minket",
-        "sms_explanation_body": "A MoMo Trackernek hozzá kell férnie az SMS-üzeneteihez, hogy automatikusan észlelje és naplózza mobilpénzes tranzakcióit. Csak a mobilpénz-szolgáltatótól kapott üzeneteket szkenneljük, hogy segítsünk követni kiadásait. Adatai privátak maradnak az eszközön."
+        "sms_explanation_body": "A Momo Trackernek hozzá kell férnie az SMS-üzeneteihez, hogy automatikusan észlelje és naplózza mobilpénzes tranzakcióit. Csak a mobilpénz-szolgáltatótól kapott üzeneteket szkenneljük, hogy segítsünk követni kiadásait. Adatai privátak maradnak az eszközön."
       },
       "dashboard": {
         "history": "Történelem",
@@ -2937,7 +2937,7 @@ const resources = {
         "sms_detection": "Rilevamento automatico degli SMS",
         "help_guide": "Aiuto e guida",
         "sms_explanation_title": "Accesso SMS richiesto",
-        "sms_explanation_body": "MoMo Tracker ha bisogno di accedere ai tuoi messaggi SMS per rilevare e registrare automaticamente le tue transazioni Mobile Money. Eseguiamo la scansione solo dei messaggi provenienti dal tuo fornitore di Mobile Money per aiutarti a tenere traccia delle tue spese. I tuoi dati rimangono privati ​​sul tuo dispositivo.",
+        "sms_explanation_body": "Momo Tracker ha bisogno di accedere ai tuoi messaggi SMS per rilevare e registrare automaticamente le tue transazioni Mobile Money. Eseguiamo la scansione solo dei messaggi provenienti dal tuo fornitore di Mobile Money per aiutarti a tenere traccia delle tue spese. I tuoi dati rimangono privati ​​sul tuo dispositivo.",
         "country_currency": "Paese e valuta",
         "manual_scan_desc": "Scansiona gli SMS esistenti per le transazioni"
       },
@@ -3117,7 +3117,7 @@ const resources = {
         "country_desc": "現地通貨を設定する",
         "manual_scan": "受信箱を手動でスキャンする",
         "country_currency": "国と通貨",
-        "sms_explanation_body": "MoMo Tracker は、モバイル マネー取引を自動的に検出して記録するために、SMS メッセージにアクセスする必要があります。当社は、支出の追跡を支援するために、モバイル マネー プロバイダーからのメッセージのみをスキャンします。データはデバイス上でプライベートに保たれます。",
+        "sms_explanation_body": "Momo Tracker は、モバイル マネー取引を自動的に検出して記録するために、SMS メッセージにアクセスする必要があります。当社は、支出の追跡を支援するために、モバイル マネー プロバイダーからのメッセージのみをスキャンします。データはデバイス上でプライベートに保たれます。",
         "sms_desc": "モバイルマネーのSMSを自動的に記録する",
         "help_guide": "ヘルプとガイド"
       }
@@ -3251,7 +3251,7 @@ const resources = {
         "logout_lock": "로그아웃/앱 잠금",
         "manual_scan_desc": "거래를 위해 기존 SMS를 스캔하세요.",
         "sms_desc": "모바일머니 SMS 자동로그인",
-        "sms_explanation_body": "MoMo Tracker는 모바일 머니 거래를 자동으로 감지하고 기록하려면 SMS 메시지에 액세스해야 합니다. 우리는 귀하의 지출을 추적하는 데 도움을 주기 위해 귀하의 모바일 머니 제공업체가 보낸 메시지만 스캔합니다. 귀하의 데이터는 귀하의 장치에 비공개로 유지됩니다."
+        "sms_explanation_body": "Momo Tracker는 모바일 머니 거래를 자동으로 감지하고 기록하려면 SMS 메시지에 액세스해야 합니다. 우리는 귀하의 지출을 추적하는 데 도움을 주기 위해 귀하의 모바일 머니 제공업체가 보낸 메시지만 스캔합니다. 귀하의 데이터는 귀하의 장치에 비공개로 유지됩니다."
       },
       "reports": {
         "title": "보고서",
@@ -3395,7 +3395,7 @@ const resources = {
         "country_currency": "Negara & Mata Wang",
         "country_desc": "Tetapkan mata wang tempatan anda",
         "help_guide": "Bantuan & Panduan",
-        "sms_explanation_body": "MoMo Tracker memerlukan akses kepada mesej SMS anda untuk mengesan dan log transaksi Wang Mudah Alih anda secara automatik. Kami hanya mengimbas mesej daripada pembekal Wang Mudah Alih anda untuk membantu anda menjejaki perbelanjaan anda. Data anda kekal peribadi pada peranti anda.",
+        "sms_explanation_body": "Momo Tracker memerlukan akses kepada mesej SMS anda untuk mengesan dan log transaksi Wang Mudah Alih anda secara automatik. Kami hanya mengimbas mesej daripada pembekal Wang Mudah Alih anda untuk membantu anda menjejaki perbelanjaan anda. Data anda kekal peribadi pada peranti anda.",
         "backup": "Data Sandaran",
         "data": "Data"
       },
@@ -3637,7 +3637,7 @@ const resources = {
         "about": "Om",
         "language": "Språk",
         "manual_scan_desc": "Skann eksisterende SMS for transaksjoner",
-        "sms_explanation_body": "MoMo Tracker trenger tilgang til SMS-meldingene dine for automatisk å oppdage og logge mobilpengetransaksjonene dine. Vi skanner kun meldinger fra mobilpengerleverandøren din for å hjelpe deg med å spore forbruket ditt. Dataene dine forblir private på enheten din.",
+        "sms_explanation_body": "Momo Tracker trenger tilgang til SMS-meldingene dine for automatisk å oppdage og logge mobilpengetransaksjonene dine. Vi skanner kun meldinger fra mobilpengerleverandøren din for å hjelpe deg med å spore forbruket ditt. Dataene dine forblir private på enheten din.",
         "clear_data": "Fjern alle data",
         "logout_lock": "Logg ut / lås app",
         "sms_explanation_title": "SMS-tilgang kreves",
@@ -3899,7 +3899,7 @@ const resources = {
         "manual_scan": "اسکن دستی صندوق ورودی",
         "sms_detection": "تشخیص خودکار پیامک",
         "sms_explanation_title": "دسترسی به پیامک الزامی است",
-        "sms_explanation_body": "MoMo Tracker برای شناسایی و ثبت تراکنش‌های Mobile Money شما به پیام‌های SMS شما نیاز دارد. ما فقط پیام‌های ارائه‌دهنده پول موبایل شما را اسکن می‌کنیم تا به شما کمک کنیم هزینه‌های خود را پیگیری کنید. داده های شما در دستگاه شما خصوصی می ماند."
+        "sms_explanation_body": "Momo Tracker برای شناسایی و ثبت تراکنش‌های Mobile Money شما به پیام‌های SMS شما نیاز دارد. ما فقط پیام‌های ارائه‌دهنده پول موبایل شما را اسکن می‌کنیم تا به شما کمک کنیم هزینه‌های خود را پیگیری کنید. داده های شما در دستگاه شما خصوصی می ماند."
       }
     }
   },
@@ -3976,7 +3976,7 @@ const resources = {
         "country_currency": "Kraj i waluta",
         "help_guide": "Pomoc i przewodnik",
         "manual_scan": "Ręczne skanowanie skrzynki odbiorczej",
-        "sms_explanation_body": "MoMo Tracker potrzebuje dostępu do Twoich wiadomości SMS, aby automatycznie wykrywać i rejestrować transakcje Mobile Money. Skanujemy tylko wiadomości od Twojego dostawcy Mobile Money, aby pomóc Ci śledzić swoje wydatki. Twoje dane pozostają prywatne na Twoim urządzeniu.",
+        "sms_explanation_body": "Momo Tracker potrzebuje dostępu do Twoich wiadomości SMS, aby automatycznie wykrywać i rejestrować transakcje Mobile Money. Skanujemy tylko wiadomości od Twojego dostawcy Mobile Money, aby pomóc Ci śledzić swoje wydatki. Twoje dane pozostają prywatne na Twoim urządzeniu.",
         "sms_explanation_title": "Wymagany dostęp SMS",
         "logout_lock": "Wyloguj się/zablokuj aplikację"
       },
@@ -4185,7 +4185,7 @@ const resources = {
         "backup": "Date de rezervă",
         "share_app": "Partajați aplicația",
         "dark_mode_desc": "Comutați aspectul aplicației",
-        "sms_explanation_body": "MoMo Tracker are nevoie de acces la mesajele dvs. SMS pentru a detecta și înregistra automat tranzacțiile dvs. MoMo Money. Scanăm doar mesajele de la furnizorul dvs. de bani mobili pentru a vă ajuta să vă urmăriți cheltuielile. Datele dvs. rămân private pe dispozitiv.",
+        "sms_explanation_body": "Momo Tracker are nevoie de acces la mesajele dvs. SMS pentru a detecta și înregistra automat tranzacțiile dvs. MoMo Money. Scanăm doar mesajele de la furnizorul dvs. de bani mobili pentru a vă ajuta să vă urmăriți cheltuielile. Datele dvs. rămân private pe dispozitiv.",
         "rate_us": "Evaluează-ne",
         "clear_data": "Ștergeți toate datele"
       },
@@ -4282,7 +4282,7 @@ const resources = {
         "logout_lock": "Выйти/заблокировать приложение",
         "sms_detection": "Автоопределение СМС",
         "manual_scan_desc": "Сканировать существующие SMS на предмет транзакций",
-        "sms_explanation_body": "MoMo Tracker необходим доступ к вашим SMS-сообщениям, чтобы автоматически обнаруживать и регистрировать ваши транзакции с мобильных денег. Мы сканируем только сообщения от вашего провайдера мобильных денег, чтобы помочь вам отслеживать свои расходы. Ваши данные остаются конфиденциальными на вашем устройстве."
+        "sms_explanation_body": "Momo Tracker необходим доступ к вашим SMS-сообщениям, чтобы автоматически обнаруживать и регистрировать ваши транзакции с мобильных денег. Мы сканируем только сообщения от вашего провайдера мобильных денег, чтобы помочь вам отслеживать свои расходы. Ваши данные остаются конфиденциальными на вашем устройстве."
       },
       "dashboard": {
         "welcome": "Добро пожаловать",
@@ -4426,7 +4426,7 @@ const resources = {
         "logout_lock": "Logga ut/lås appen",
         "sms_desc": "Logga automatiskt Mobile Money SMS",
         "manual_scan_desc": "Skanna befintliga SMS för transaktioner",
-        "sms_explanation_body": "MoMo Tracker behöver åtkomst till dina SMS-meddelanden för att automatiskt upptäcka och logga dina mobilpengartransaktioner. Vi skannar endast meddelanden från din mobilpengarleverantör för att hjälpa dig spåra dina utgifter. Din data förblir privat på din enhet.",
+        "sms_explanation_body": "Momo Tracker behöver åtkomst till dina SMS-meddelanden för att automatiskt upptäcka och logga dina mobilpengartransaktioner. Vi skannar endast meddelanden från din mobilpengarleverantör för att hjälpa dig spåra dina utgifter. Din data förblir privat på din enhet.",
         "sms_detection": "SMS Auto-detektion",
         "manual_scan": "Inkorgen för manuell skanning",
         "help_guide": "Hjälp & guide",
@@ -4588,7 +4588,7 @@ const resources = {
         "share_app": "Ibahagi ang App",
         "change_pin": "Baguhin ang PIN",
         "backup": "Backup na Data",
-        "sms_explanation_body": "Kailangan ng MoMo Tracker ng access sa iyong mga SMS message para awtomatikong makita at mai-log ang iyong mga transaksyon sa Mobile Money. Ini-scan lang namin ang mga mensahe mula sa iyong Mobile Money provider upang matulungan kang subaybayan ang iyong paggastos. Nananatiling pribado ang iyong data sa iyong device."
+        "sms_explanation_body": "Kailangan ng Momo Tracker ng access sa iyong mga SMS message para awtomatikong makita at mai-log ang iyong mga transaksyon sa Mobile Money. Ini-scan lang namin ang mga mensahe mula sa iyong Mobile Money provider upang matulungan kang subaybayan ang iyong paggastos. Nananatiling pribado ang iyong data sa iyong device."
       },
       "history": {
         "received": "Natanggap",
@@ -5068,7 +5068,7 @@ const resources = {
         "backup": "ข้อมูลสำรอง",
         "manual_scan": "กล่องจดหมายสแกนด้วยตนเอง",
         "sms_detection": "การตรวจจับ SMS อัตโนมัติ",
-        "sms_explanation_body": "MoMo Tracker ต้องการเข้าถึงข้อความ SMS ของคุณเพื่อตรวจจับและบันทึกธุรกรรมเงินมือถือของคุณโดยอัตโนมัติ เราสแกนเฉพาะข้อความจากผู้ให้บริการเงินมือถือของคุณเพื่อช่วยคุณติดตามการใช้จ่ายของคุณ ข้อมูลของคุณยังคงเป็นส่วนตัวบนอุปกรณ์ของคุณ",
+        "sms_explanation_body": "Momo Tracker ต้องการเข้าถึงข้อความ SMS ของคุณเพื่อตรวจจับและบันทึกธุรกรรมเงินมือถือของคุณโดยอัตโนมัติ เราสแกนเฉพาะข้อความจากผู้ให้บริการเงินมือถือของคุณเพื่อช่วยคุณติดตามการใช้จ่ายของคุณ ข้อมูลของคุณยังคงเป็นส่วนตัวบนอุปกรณ์ของคุณ",
         "manual_scan_desc": "สแกน SMS ที่มีอยู่สำหรับการทำธุรกรรม",
         "change_pin": "เปลี่ยนรหัส PIN"
       },
@@ -5267,7 +5267,7 @@ const resources = {
         "logout_lock": "Oturumu Kapat / Uygulamayı Kilitle",
         "sms_desc": "Mobil Para SMS'ini otomatik olarak kaydet",
         "manual_scan_desc": "İşlemler için mevcut SMS'i tarayın",
-        "sms_explanation_body": "MoMo Tracker'ın Mobil Para işlemlerinizi otomatik olarak algılayıp günlüğe kaydetmesi için SMS mesajlarınıza erişmesi gerekiyor. Harcamalarınızı takip etmenize yardımcı olmak için yalnızca Mobil Para sağlayıcınızdan gelen mesajları tarıyoruz. Verileriniz cihazınızda gizli kalır.",
+        "sms_explanation_body": "Momo Tracker'ın Mobil Para işlemlerinizi otomatik olarak algılayıp günlüğe kaydetmesi için SMS mesajlarınıza erişmesi gerekiyor. Harcamalarınızı takip etmenize yardımcı olmak için yalnızca Mobil Para sağlayıcınızdan gelen mesajları tarıyoruz. Verileriniz cihazınızda gizli kalır.",
         "sms_detection": "SMS Otomatik Algılama",
         "help_guide": "Yardım ve Rehber"
       },
@@ -5355,7 +5355,7 @@ const resources = {
         "help_guide": "Довідка та посібник",
         "logout_lock": "Вийти / заблокувати додаток",
         "country_currency": "Країна та валюта",
-        "sms_explanation_body": "MoMo Tracker потребує доступу до ваших SMS-повідомлень, щоб автоматично виявляти та реєструвати ваші транзакції Mobile Money. Ми скануємо лише повідомлення від вашого постачальника мобільних грошей, щоб допомогти вам відстежувати свої витрати. Ваші дані залишаються конфіденційними на вашому пристрої."
+        "sms_explanation_body": "Momo Tracker потребує доступу до ваших SMS-повідомлень, щоб автоматично виявляти та реєструвати ваші транзакції Mobile Money. Ми скануємо лише повідомлення від вашого постачальника мобільних грошей, щоб допомогти вам відстежувати свої витрати. Ваші дані залишаються конфіденційними на вашому пристрої."
       },
       "dashboard": {
         "history": "історія",
@@ -5691,7 +5691,7 @@ const resources = {
         "sms_detection": "Tự động phát hiện SMS",
         "dark_mode_desc": "Chuyển đổi giao diện ứng dụng",
         "preferences": "Tùy chọn",
-        "sms_explanation_body": "MoMo Tracker cần quyền truy cập vào tin nhắn SMS của bạn để tự động phát hiện và ghi lại các giao dịch Mobile Money của bạn. Chúng tôi chỉ quét tin nhắn từ nhà cung cấp Mobile Money của bạn để giúp bạn theo dõi chi tiêu của mình. Dữ liệu của bạn vẫn ở chế độ riêng tư trên thiết bị của bạn.",
+        "sms_explanation_body": "Momo Tracker cần quyền truy cập vào tin nhắn SMS của bạn để tự động phát hiện và ghi lại các giao dịch Mobile Money của bạn. Chúng tôi chỉ quét tin nhắn từ nhà cung cấp Mobile Money của bạn để giúp bạn theo dõi chi tiêu của mình. Dữ liệu của bạn vẫn ở chế độ riêng tư trên thiết bị của bạn.",
         "sms_explanation_title": "Yêu cầu truy cập SMS",
         "clear_data": "Xóa tất cả dữ liệu",
         "manual_scan_desc": "Quét SMS hiện có để tìm giao dịch",

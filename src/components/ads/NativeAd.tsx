@@ -26,7 +26,7 @@ export default function NativeAd() {
             <span className="text-gray-400 dark:text-gray-500 text-xs">Icon</span>
           </div>
           <div>
-            <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-1">MoMo Tracker Premium</h4>
+            <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-1">Momo Tracker Premium</h4>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Unlock unlimited SMS auto-detection and remove all ads today!</p>
             <button className="bg-blue-600 dark:bg-blue-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors">
               Learn More
