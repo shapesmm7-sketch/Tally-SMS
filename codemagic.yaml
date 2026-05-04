@@ -19,22 +19,19 @@ workflows:
           
           # Check for icon images to use for assets
           if [ -f "icon.png" ]; then
-            cp icon.png assets/icon-only.png
-            cp icon.png assets/icon-foreground.png
-            cp icon.png assets/icon-background.png
-            cp icon.png assets/splash.png
-            cp icon.png assets/splash-dark.png
+            cp icon.png assets/logo.png
+            cp icon.png assets/logo-dark.png
           elif [ -f "logo.png" ]; then
-            cp logo.png assets/icon-only.png
-            cp logo.png assets/icon-foreground.png
-            cp logo.png assets/icon-background.png
-            cp logo.png assets/splash.png
-            cp logo.png assets/splash-dark.png
+            cp logo.png assets/logo.png
+            cp logo.png assets/logo-dark.png
           fi
           
           # Generate icons and splash screens for Android
-          # This assumes logo.png (as icon-only.png) is 1024x1024
+          # This uses logo.png to generate both icon and splash screen safely
           npx -y @capacitor/assets generate --android
+
+          # Clean up duplicate PNG files in anydpi folder to avoid Android resource merger errors
+          rm -f android/app/src/main/res/mipmap-anydpi-v26/*.png
       - name: Sync Capacitor Android project
         script: npx cap sync android
       - name: Build Android release
