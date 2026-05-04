@@ -156,22 +156,13 @@ export default function Transactions() {
 
         if (result && result.success) {
           setTimeout(() => {
-            if (confirm('Report saved to Downloads. Would you like to open it?')) {
-              PDFExport.openPDF({ uri: result.uri })
-                .catch((e) => console.error(e))
-                .finally(() => {
-                  if (needsAdForPdf) forceAd(() => {});
-                });
-            } else {
-              if (needsAdForPdf) forceAd(() => {});
-            }
+            alert(`History saved to your Documents folder as ${fileName}`);
+            if (needsAdForPdf) forceAd(() => {});
           }, 500);
         }
       } catch (error: any) {
-        if (error.message !== 'Share canceled') {
-          console.error('Error saving PDF:', error);
-          alert('Failed to save PDF. Please try again.');
-        }
+        console.error('Error saving PDF:', error);
+        alert('Failed to save PDF. Please check your storage permissions and try again.');
       }
     } else {
       doc.save(fileName);
