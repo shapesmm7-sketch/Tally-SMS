@@ -29,7 +29,6 @@ export default function Settings() {
   const [batteryOptimizationDisabled, setBatteryOptimizationDisabled] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<{ count: number; error?: string } | null>(null);
-  const [needsManualSettings, setNeedsManualSettings] = useState(false);
 
   const checkBatteryOptimization = async () => {
     // Battery optimization check not available through cordova-plugin-sms
@@ -84,7 +83,6 @@ export default function Settings() {
     // Turning on requires explanation and permission
     if (Capacitor.isNativePlatform()) {
       setSmsError(null);
-      setNeedsManualSettings(false);
       setShowSmsModal(true);
     } else {
       alert('SMS Auto-Detection is only available on Android devices.');
@@ -117,8 +115,7 @@ export default function Settings() {
         setScanResult({ count: 0, error });
         if (error.toLowerCase().includes('permission denied')) {
           setShowSmsModal(true);
-          setNeedsManualSettings(true);
-          setSmsError('SMS permission is required to scan your inbox. Please enable it in your phone settings.');
+          setSmsError('SMS permission is required to scan your inbox. Please allow the permission in the next screen.');
         } else {
           alert(`Scan failed: ${error}`);
         }
@@ -127,30 +124,6 @@ export default function Settings() {
   };
 
   const requestSmsPermission = async () => {
-    if (needsManualSettings) {
-      try {
-        setIsRequesting(true);
-        setSmsError('Checking permission status...');
-        
-        const alreadyGranted = await checkSmsPermission();
-        if (alreadyGranted) {
-          setSmsEnabled(true);
-          localStorage.setItem('momo_sms_enabled', 'true');
-          setShowSmsModal(false);
-          setSmsError(null);
-          return;
-        }
-
-        await openSettingsFallback();
-        setSmsError('Please go to your phone Settings > Apps > Permissions manually to grant SMS access.');
-      } catch (e: any) {
-        console.error('Manual permissions check:', e);
-      } finally {
-        setIsRequesting(false);
-      }
-      return;
-    }
-
     setSmsError(null);
     setIsRequesting(true);
 
@@ -162,8 +135,7 @@ export default function Settings() {
         localStorage.setItem('momo_sms_enabled', 'true');
         setShowSmsModal(false);
       } else {
-        setSmsError('SMS permission is required to detect transactions. Please enable it in your phone settings.');
-        setNeedsManualSettings(true);
+        setSmsError('Permission was not granted. Please click Continue to try again.');
       }
     } catch (error) {
       console.error('SMS Permission Error:', error);
@@ -662,32 +634,9 @@ export default function Settings() {
                     <span>{t('common.loading') || 'Processing...'}</span>
                   </div>
                 ) : (
-                  needsManualSettings ? 'Open App Settings' : t('settings.sms_explanation_btn')
+                  t('settings.sms_explanation_btn')
                 )}
               </button>
-              {needsManualSettings && (
-                <div className="mt-3 flex flex-col items-center">
-                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-3">
-                    After enabling permissions, return to the app and try again.
-                  </p>
-                  <button 
-                    onClick={async () => {
-                      const granted = await checkSmsPermission();
-                      if (granted) {
-                        setSmsEnabled(true);
-                        localStorage.setItem('momo_sms_enabled', 'true');
-                        setShowSmsModal(false);
-                      } else {
-                        alert('Permission still not detected. Please make sure "SMS" is allowed in Settings.');
-                      }
-                    }}
-                    className="flex items-center space-x-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 p-2"
-                  >
-                    <RefreshCcw className="w-4 h-4" />
-                    <span>Check Again</span>
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>

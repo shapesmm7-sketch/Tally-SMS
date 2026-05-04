@@ -15,7 +15,7 @@ export default function BannerAd() {
       const showNativeBanner = async () => {
         try {
           await AdMob.showBanner({
-            adId: BannerAdController.getAdUnitId(true),
+            adId: BannerAdController.getAdUnitId(),
             adSize: BannerAdSize.BANNER,
             position: BannerAdPosition.BOTTOM_CENTER,
             margin: 64, // Push up 64 units to sit above the 64px bottom nav

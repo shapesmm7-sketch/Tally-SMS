@@ -18,35 +18,66 @@ export interface SMSDetectionPlugin {
 
 const SMSDetection = registerPlugin<SMSDetectionPlugin>('SMSDetection');
 
+function getSmsPlugin() {
+  return (window as any).SMS || (window as any).sms || (window as any).cordova?.plugins?.sms;
+}
+
 export async function checkSmsPermission(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return true;
+  
+  // Try native custom plugin first
   try {
-    return (await SMSDetection.checkSmsPermissionNative()).granted;
+    const res = await SMSDetection.checkSmsPermissionNative();
+    if (res.granted) return true;
   } catch (error) {
-    console.error("Error with native check, falling back to plugin", error);
-    try {
-      const status = await SMSDetection.checkPermissions();
-      return status.sms === 'granted';
-    } catch {
-      return false;
-    }
+    console.log("Custom plugin checkSmsPermissionNative not available", error);
   }
+
+  // Fallback to standard checkPermissions
+  try {
+    const status = await SMSDetection.checkPermissions();
+    if (status.sms === 'granted') return true;
+  } catch (error) {
+    console.log("Custom plugin checkPermissions not available", error);
+  }
+
+  // Fallback to cordova plugin if available
+  const sms = getSmsPlugin();
+  if (sms && typeof sms.hasPermission === 'function') {
+    return new Promise((resolve) => {
+      sms.hasPermission((has: boolean) => resolve(has), () => resolve(false));
+    });
+  }
+
+  return false;
 }
 
 export async function requestSmsPermissions(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return true;
-  try {
-    let status = await SMSDetection.checkPermissions();
-    if (status.sms === 'granted') return true;
+  
+  // Check if already granted
+  if (await checkSmsPermission()) return true;
 
-    if (status.sms === 'denied' || status.sms === 'prompt' || status.sms === 'prompt-with-rationale') {
-      status = await SMSDetection.requestPermissions();
-    }
-    return status.sms === 'granted';
+  // Try custom plugin request
+  try {
+    const status = await SMSDetection.requestPermissions();
+    if (status.sms === 'granted') return true;
   } catch (error) {
-    console.error("Error requesting permissions:", error);
-    return false;
+    console.log("Custom plugin requestPermissions not available", error);
   }
+
+  // Fallback to cordova plugin request
+  const sms = getSmsPlugin();
+  if (sms && typeof sms.requestPermission === 'function') {
+    return new Promise((resolve) => {
+      sms.requestPermission(() => resolve(true), (err: any) => {
+        console.error("Cordova SMS permission request failed", err);
+        resolve(false);
+      });
+    });
+  }
+
+  return false;
 }
 
 export async function openSettingsFallback(): Promise<void> {

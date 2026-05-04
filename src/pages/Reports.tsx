@@ -100,55 +100,118 @@ export default function Reports() {
     // Extract user friendly time period title
     let reportPeriodText = "All Time";
     if (timeframe === 'custom' && customDate) {
-      reportPeriodText = customDate;
+      reportPeriodText = format(parseISO(customDate), 'MMM d, yyyy');
     } else if (timeframe !== 'all') {
       const selectedFrame = TIMEFRAMES.find(t => t.id === timeframe);
       if (selectedFrame) reportPeriodText = selectedFrame.label;
     }
     
-    const formattedTitle = `Tally SMS Reports ${reportPeriodText}`;
-    // Provide a file name without spaces
-    const safeFilenameStr = `momo_tracker_reports_${reportPeriodText.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}`;
+    const formattedTitle = `Momo Tracker Report`;
+    const safeFilenameStr = `momo_tracker_${reportPeriodText.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${format(new Date(), 'yyyyMMdd')}`;
 
-    // Use jsPDF for both Web and Android to ensure consistent formatting
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
     
-    // Add title
-    doc.setFontSize(18);
-    doc.text(formattedTitle, 14, 22);
+    // Add App Name / Logo placeholder
+    doc.setFontSize(22);
+    doc.setTextColor(37, 99, 235); // blue-600
+    doc.setFont("helvetica", "bold");
+    doc.text("Momo Tracker", 14, 20);
     
-    // Add subtitle with filters
-    doc.setFontSize(11);
+    // Add Report Type & Date
+    doc.setFontSize(12);
     doc.setTextColor(100);
-    const filterText = `Period: ${timeframe === 'custom' && customDate ? customDate : timeframe} | Line: ${providerFilter === 'all' ? 'All' : providerFilter}`;
-    doc.text(filterText, 14, 30);
+    doc.setFont("helvetica", "normal");
+    doc.text("Financial Transaction Report", 14, 28);
+    doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, pageWidth - 14, 28, { align: 'right' });
+    
+    // Divider
+    doc.setDrawColor(229, 231, 235);
+    doc.line(14, 34, pageWidth - 14, 34);
 
-    // Add totals summary (compact version like Transactions)
+    // Filter Info
     doc.setFontSize(10);
-    doc.setTextColor(0);
-    doc.text(`Total Volume: ${formatCurrency(totalVolume)} | Deposits: ${formatCurrency(deposits)} | Withdrawals: ${formatCurrency(withdrawals)}`, 14, 38);
-    doc.text(`Received: ${formatCurrency(received)} | Sent: ${formatCurrency(sent)} | Airtime Bought: ${formatCurrency(airtimeBought)}`, 14, 44);
-    doc.text(`Airtime Sold: ${formatCurrency(airtimeSold)} | Commission: ${formatCurrency(commission)}`, 14, 50);
+    doc.setTextColor(50);
+    doc.text(`Report Period: ${reportPeriodText}`, 14, 42);
+    doc.text(`Provider: ${providerFilter === 'all' ? 'All Networks' : providerFilter}`, 14, 48);
 
-    // Prepare table data for transactions in this period
+    // Summary Statistics Header
+    doc.setFontSize(14);
+    doc.setTextColor(31, 41, 55);
+    doc.setFont("helvetica", "bold");
+    doc.text("Executive Summary", 14, 60);
+
+    // Summary Table
+    autoTable(doc, {
+      startY: 65,
+      head: [['Metric', 'Value']],
+      body: [
+        ['Total Volume', formatCurrency(totalVolume)],
+        ['Total Deposits', formatCurrency(deposits)],
+        ['Total Withdrawals', formatCurrency(withdrawals)],
+        ['Money Received', formatCurrency(received)],
+        ['Money Sent/Paid', formatCurrency(sent)],
+        ['Airtime Bought', formatCurrency(airtimeBought)],
+        ['Airtime Sold', formatCurrency(airtimeSold)],
+        ['Commission Earned', formatCurrency(commission)],
+        ['Net Cash Flow', formatCurrency(received + deposits - sent - withdrawals - airtimeBought)]
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: [75, 85, 99] },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 100 },
+        1: { halign: 'right' }
+      },
+      styles: { fontSize: 10, cellPadding: 3 }
+    });
+
+    // Transactions Table Header
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.setTextColor(31, 41, 55);
+    doc.setFont("helvetica", "bold");
+    doc.text("Transaction Detail", 14, finalY);
+
+    // Transaction Details Table
     const tableData = filtered.map(tx => [
       format(parseISO(tx.date), 'MMM d, yyyy'),
-      tx.smsTime || '-',
       tx.category.replace('_', ' '),
-      tx.senderReceiverName || '-',
+      tx.senderReceiverName || tx.note || '-',
       tx.tid || '-',
       (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
     ]);
 
     if (tableData.length > 0) {
       autoTable(doc, {
-        startY: 56,
-        head: [['Date', 'Time', 'Category', 'Name', 'TID', 'Amount']],
+        startY: finalY + 5,
+        head: [['Date', 'Category', 'Entity/Note', 'TID', 'Amount']],
         body: tableData,
         theme: 'striped',
-        headStyles: { fillColor: [37, 99, 235] }, // blue-600
-        styles: { fontSize: 9 },
+        headStyles: { fillColor: [37, 99, 235] },
+        styles: { fontSize: 8 },
+        columnStyles: {
+          4: { halign: 'right', fontStyle: 'bold' }
+        },
+        margin: { bottom: 20 }
       });
+    } else {
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text("No transactions found for this period.", 14, finalY + 15);
+    }
+
+    // Footer with Page Numbers
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(
+        `Page ${i} of ${pageCount} | Generated by Momo Tracker`,
+        pageWidth / 2,
+        doc.internal.pageSize.height - 10,
+        { align: 'center' }
+      );
     }
 
     const fileName = `${safeFilenameStr}.pdf`;

@@ -7,6 +7,7 @@ import { formatCurrency, cn } from '../lib/utils';
 import { ArrowUpRight, ArrowDownRight, Wallet, CreditCard, ArrowRight, MessageSquareText, RefreshCw, Crown, AlertTriangle, X, Info } from 'lucide-react';
 import { format, parseISO, isToday } from 'date-fns';
 import { scanAndImportSMS } from '../lib/smsScanner';
+import { requestSmsPermissions, checkSmsPermission, openSettingsFallback } from '../lib/smsDetector';
 import { Capacitor } from '@capacitor/core';
 import { useAccessControl } from '../hooks/useAccessControl';
 import { useInterstitialAd } from '../hooks/useInterstitialAd';
@@ -79,13 +80,16 @@ export default function Dashboard() {
         setTimeout(() => {
           setIsScanning(false);
           setScanMessage('');
-        }, 4000); // Increased slightly so they can read the longer message
+        }, 4000); 
       },
       (err) => {
         setScanError(err);
         setIsScanning(false);
         if (err.includes('limit reached')) {
             setShowLimitModal(true);
+        } else if (err.toLowerCase().includes('permission denied')) {
+            setShowSmsModal(true);
+            setSmsError('SMS permission is required to scan your inbox. Please allow the permission in the next screen.');
         }
       }
     );
@@ -103,7 +107,7 @@ export default function Dashboard() {
         startSmsScan();
       } else {
         setIsRequesting(false);
-        setSmsError('SMS permission denied. Please allow it to continue.');
+        setSmsError('Permission was not granted. Please click Continue to try again.');
       }
     } catch (err: any) {
       console.error('SMS Permission Exception:', err);

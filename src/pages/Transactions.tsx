@@ -18,8 +18,8 @@ type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month' | 'year' | 'c
 
 export default function Transactions() {
   const { t } = useTranslation();
-  const { isPro } = useAccessControl();
-  const needsAdForPdf = !isPro;
+  const { isPremium, isTrial } = useAccessControl();
+  const needsAdForPdf = !isPremium;
   
   const DATE_FILTERS: { id: DateFilter; label: string }[] = [
     { id: 'all', label: t('reports.all_time') },
