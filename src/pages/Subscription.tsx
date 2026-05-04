@@ -58,21 +58,24 @@ export default function Subscription() {
           }
         })
         .catch(err => console.error('Failed to fetch exchange rates', err));
+    } else {
+      setExchangeRate(1);
     }
   }, [currency]);
 
-  // Use the native localized price ONLY if the user is keeping the default USD selection
-  // and the store has actually fetched the live strings from Google Play.
-  // Otherwise, respect their manually selected currency dropdown via exchange rate format.
+  // We should only use dynamic native prices if we are strictly in USD mode 
+  // AND the user hasn't explicitly set a preference for a different currency.
+  // Actually, to ensure consistency between converted prices and USD prices,
+  // we'll prefer the hardcoded calculations unless they match the store exactly.
   const hasDynamicNativePrices = !!(localizedPrices.monthly && localizedPrices.monthly !== '$6.80');
 
   const getDisplayPrice = (planId: keyof typeof localizedPrices, amount: number) => {
-    // Check if the user specifically forced a custom currency
-    if (currency === 'USD' && hasDynamicNativePrices) {
-       return localizedPrices[planId];
-    }
+    // If the user is in USD but the store has a different price, it might be due to 
+    // regional pricing or old data. If they manually picked a currency, we should
+    // prioritize the calculated amount to maintain consistency with the rest of the app's totals.
     
-    // Otherwise strictly honor the custom currency they picked and format mathematically
+    // Fallback logic: if in USD, we use the hardcoded amount (1:1) formatted by current currency settings.
+    // This ensures that "USD 6.80" is shown consistently if that's the new price.
     return formatCurrency(amount * exchangeRate);
   };
 
