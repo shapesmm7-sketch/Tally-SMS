@@ -182,7 +182,14 @@ export default function Settings() {
         const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
         
         try {
-          // Save to Documents directory instead of Cache
+          // Request permissions explicitly for storage
+          const permission = await Filesystem.requestPermissions();
+          
+          if (permission.publicStorage !== 'granted') {
+            alert('Storage permission is required to save the backup file directly to your device.');
+            return;
+          }
+
           const result = await Filesystem.writeFile({
             path: exportFileDefaultName,
             data: dataStr,
@@ -190,10 +197,10 @@ export default function Settings() {
             encoding: Encoding.UTF8
           });
           
-          alert(`Backup saved successfully to your Documents folder as ${exportFileDefaultName}`);
+          alert(`Backup saved successfully! You can find it in your phone's Documents folder as: ${exportFileDefaultName}`);
         } catch (fileErr) {
           console.error('Filesystem error:', fileErr);
-          alert('Failed to save backup file. Please check storage permissions.');
+          alert('Failed to save backup file directly to storage. Please check if the app has storage permissions in your device settings.');
         }
       } else {
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
