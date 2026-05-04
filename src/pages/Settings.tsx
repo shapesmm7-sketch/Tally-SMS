@@ -8,7 +8,7 @@ import { useAccessControl } from '../hooks/useAccessControl';
 import { useTheme } from '../context/ThemeContext';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
-import { requestSmsPermissions, checkSmsPermission } from '../lib/smsDetector';
+import { requestSmsPermissions, checkSmsPermission, openSettingsFallback } from '../lib/smsDetector';
 import { scanAndImportSMS } from '../lib/smsScanner';
 import { App as CapacitorApp } from '@capacitor/app';
 import LimitModal from '../components/LimitModal';
@@ -141,6 +141,7 @@ export default function Settings() {
           return;
         }
 
+        await openSettingsFallback();
         setSmsError('Please go to your phone Settings > Apps > Permissions manually to grant SMS access.');
       } catch (e: any) {
         console.error('Manual permissions check:', e);

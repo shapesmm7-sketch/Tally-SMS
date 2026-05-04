@@ -91,59 +91,23 @@ export default function Dashboard() {
     );
   };
 
-  const requestSmsPermission = () => {
+  const requestSmsPermission = async () => {
     setSmsError(null);
-    const smsPlugin = window.SMS || (window as any).sms || (window as any).cordova?.plugins?.sms;
-    
-    if (!smsPlugin) {
-      setSmsError('SMS plugin not found. Please ensure the app is built correctly and running on a real Android device.');
-      return;
-    }
-
     setIsRequesting(true);
-
-    // Set a safety timeout
-    const timeout = setTimeout(() => {
-      setIsRequesting(false);
-      setSmsError('Permission request timed out. Please try again.');
-    }, 10000);
-
-    const handleSuccess = () => {
-      clearTimeout(timeout);
-      setIsRequesting(false);
-      setShowSmsModal(false);
-      startSmsScan();
-    };
-
-    const handleError = (err: any) => {
-      clearTimeout(timeout);
-      setIsRequesting(false);
-      console.error('SMS Permission Error:', err);
-      setSmsError('SMS permission denied.');
-    };
-
+    
     try {
-      if (typeof smsPlugin.requestPermission === 'function') {
-        smsPlugin.requestPermission(handleSuccess, handleError);
-      } else if (typeof smsPlugin.hasPermission === 'function') {
-        smsPlugin.hasPermission((hasPerm: boolean) => {
-          if (hasPerm) {
-            handleSuccess();
-          } else {
-            if (typeof smsPlugin.listSMS === 'function') {
-              smsPlugin.listSMS({ box: 'inbox', indexFrom: 0, maxCount: 1 }, handleSuccess, handleError);
-            } else {
-              handleError('Permission not granted and request method unavailable.');
-            }
-          }
-        }, handleError);
+      const granted = await requestSmsPermissions();
+      if (granted) {
+        setIsRequesting(false);
+        setShowSmsModal(false);
+        startSmsScan();
       } else {
-        handleSuccess();
+        setIsRequesting(false);
+        setSmsError('SMS permission denied. Please allow it to continue.');
       }
-    } catch (error) {
-      clearTimeout(timeout);
+    } catch (err: any) {
+      console.error('SMS Permission Exception:', err);
       setIsRequesting(false);
-      console.error('SMS Permission Exception:', error);
       setSmsError('An unexpected error occurred while requesting permission.');
     }
   };

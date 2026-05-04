@@ -1,40 +1,63 @@
-import { Capacitor } from '@capacitor/core';
+import { registerPlugin, Capacitor, PermissionState } from '@capacitor/core';
 import { db } from './db';
 import { parseMoMoSMS, parseTransactionDate } from './smsParser';
 
-function getSmsPlugin() {
-  return (window as any).SMS || (window as any).sms || (window as any).cordova?.plugins?.sms;
+export interface PermissionStatus {
+  sms: PermissionState;
 }
+
+export interface SMSDetectionPlugin {
+  getPendingSMS(): Promise<{ messages: Array<{ sender: string; body: string; timestamp: number }> }>;
+  isBatteryOptimizationDisabled(): Promise<{ disabled: boolean }>;
+  openBatteryOptimizationSettings(): Promise<void>;
+  openAppSettings(): Promise<void>;
+  checkPermissions(): Promise<PermissionStatus>;
+  requestPermissions(): Promise<PermissionStatus>;
+  checkSmsPermissionNative(): Promise<{ granted: boolean }>;
+}
+
+const SMSDetection = registerPlugin<SMSDetectionPlugin>('SMSDetection');
 
 export async function checkSmsPermission(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return true;
-  return new Promise((resolve) => {
-    const sms = getSmsPlugin();
-    if (!sms || typeof sms.hasPermission !== 'function') {
-      resolve(false);
-      return;
+  try {
+    return (await SMSDetection.checkSmsPermissionNative()).granted;
+  } catch (error) {
+    console.error("Error with native check, falling back to plugin", error);
+    try {
+      const status = await SMSDetection.checkPermissions();
+      return status.sms === 'granted';
+    } catch {
+      return false;
     }
-    sms.hasPermission(
-      (hasPermission: boolean) => resolve(hasPermission),
-      () => resolve(false)
-    );
-  });
+  }
 }
 
 export async function requestSmsPermissions(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return true;
-  return new Promise((resolve) => {
-    const sms = getSmsPlugin();
-    if (!sms || typeof sms.requestPermission !== 'function') {
-      resolve(false);
-      return;
+  try {
+    let status = await SMSDetection.checkPermissions();
+    if (status.sms === 'granted') return true;
+
+    if (status.sms === 'denied' || status.sms === 'prompt' || status.sms === 'prompt-with-rationale') {
+      status = await SMSDetection.requestPermissions();
     }
-    sms.requestPermission(
-      () => resolve(true),
-      () => resolve(false)
-    );
-  });
+    return status.sms === 'granted';
+  } catch (error) {
+    console.error("Error requesting permissions:", error);
+    return false;
+  }
 }
+
+export async function openSettingsFallback(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await SMSDetection.openAppSettings();
+  } catch (e) {
+    console.error("Failed to open app settings via custom plugin", e);
+  }
+}
+
 
 /**
  * Sync pending SMS messages.
