@@ -25,14 +25,14 @@ export default function PrivacyPolicy() {
             <Shield className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Privacy Policy for Momo Tracker</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Privacy Policy for Tally SMS</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">Effective Date: {today}</p>
           </div>
         </div>
 
         <div className="prose prose-sm text-gray-600 dark:text-gray-300 space-y-6">
           <p>
-            Momo Tracker ("we", "our", or "us") respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our mobile application.
+            Tally SMS ("we", "our", or "us") respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our mobile application.
           </p>
 
           <section>
@@ -110,13 +110,13 @@ export default function PrivacyPolicy() {
 
           <section>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">7. No Affiliation with MTN MoMo</h3>
-            <p><strong>Momo Tracker is an independent application and is NOT affiliated, associated, authorized, endorsed by, or in any way officially connected with MTN Group Limited, MTN MoMo, or any of its subsidiaries or its affiliates.</strong></p>
-            <p className="mt-2">The official MTN MoMo application can be found on the Google Play Store. The name "MTN MoMo" as well as related names, marks, emblems and images are registered trademarks of their respective owners. We do not collect, process, or transmit data to MTN Group Limited. Momo Tracker operates independently as a personal utility for users to track their own SMS messages.</p>
+            <p><strong>Tally SMS is an independent application and is NOT affiliated, associated, authorized, endorsed by, or in any way officially connected with MTN Group Limited, MTN MoMo, or any of its subsidiaries or its affiliates.</strong></p>
+            <p className="mt-2">The official MTN MoMo application can be found on the Google Play Store. The name "MTN MoMo" as well as related names, marks, emblems and images are registered trademarks of their respective owners. We do not collect, process, or transmit data to MTN Group Limited. Tally SMS operates independently as a personal utility for users to track their own SMS messages.</p>
           </section>
 
           <section>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">8. Children’s Privacy</h3>
-            <p>Momo Tracker is not intended for children under 13. We do not knowingly collect data from children.</p>
+            <p>Tally SMS is not intended for children under 13. We do not knowingly collect data from children.</p>
           </section>
 
           <section>

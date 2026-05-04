@@ -122,10 +122,10 @@ export class BillingManager {
 
   static getLocalizedPrices(): Record<string, string> {
     const defaultPrices = {
-      daily: '$0.25',
-      weekly: '$0.70',
-      monthly: '$2.00',
-      yearly: '$19.00'
+      daily: '$0.37',
+      weekly: '$1.80',
+      monthly: '$6.80',
+      yearly: '$49.00'
     };
 
     if (!Capacitor.isNativePlatform()) {

@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.momotracker.myapp',
-  appName: 'Momo Tracker',
+  appName: 'Tally SMS',
   webDir: 'dist',
   plugins: {
     SplashScreen: {

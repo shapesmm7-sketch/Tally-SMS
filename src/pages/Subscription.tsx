@@ -17,10 +17,10 @@ export default function Subscription() {
 
   const currency = localStorage.getItem('momo_currency') || 'USD';
   const [localizedPrices, setLocalizedPrices] = useState<Record<string, string>>({
-    daily: '$0.25',
-    weekly: '$0.70',
-    monthly: '$2.00',
-    yearly: '$19.00'
+    daily: '$0.37',
+    weekly: '$1.80',
+    monthly: '$6.80',
+    yearly: '$49.00'
   });
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function Subscription() {
     const interval = setInterval(() => {
        const prices = BillingManager.getLocalizedPrices();
        // Only update if they look like they've changed dynamically from the store
-       if (prices.monthly !== '$2.00') {
+       if (prices.monthly !== '$6.80') {
           setLocalizedPrices(prices);
           clearInterval(interval);
        }
@@ -64,7 +64,7 @@ export default function Subscription() {
   // Use the native localized price ONLY if the user is keeping the default USD selection
   // and the store has actually fetched the live strings from Google Play.
   // Otherwise, respect their manually selected currency dropdown via exchange rate format.
-  const hasDynamicNativePrices = !!(localizedPrices.monthly && localizedPrices.monthly !== '$2.00');
+  const hasDynamicNativePrices = !!(localizedPrices.monthly && localizedPrices.monthly !== '$6.80');
 
   const getDisplayPrice = (planId: keyof typeof localizedPrices, amount: number) => {
     // Check if the user specifically forced a custom currency
@@ -77,10 +77,10 @@ export default function Subscription() {
   };
 
   const plans = [
-    { id: 'daily', name: t('subscription.daily_pass', 'Daily Pass'), amount: 0.25, period: t('subscription.period_day', '24 hours'), desc: t('subscription.one_time', 'One-time payment') },
-    { id: 'weekly', name: t('subscription.weekly_plan', 'Weekly Plan'), amount: 0.70, period: t('subscription.period_week', 'per week'), desc: t('subscription.auto_renewing', 'Auto-renewing') },
-    { id: 'monthly', name: t('subscription.monthly_plan', 'Monthly Plan'), amount: 2.00, period: t('subscription.period_month', 'per month'), desc: t('subscription.most_popular', 'Auto-renewing, most popular') },
-    { id: 'yearly', name: t('subscription.yearly_plan', 'Yearly Plan'), amount: 19.00, period: t('subscription.period_year', 'per year'), desc: t('subscription.best_value', 'Auto-renewing, best value') },
+    { id: 'daily', name: t('subscription.daily_pass', 'Daily Pass'), amount: 0.37, period: t('subscription.period_day', '24 hours'), desc: t('subscription.one_time', 'One-time payment') },
+    { id: 'weekly', name: t('subscription.weekly_plan', 'Weekly Plan'), amount: 1.80, period: t('subscription.period_week', 'per week'), desc: t('subscription.auto_renewing', 'Auto-renewing') },
+    { id: 'monthly', name: t('subscription.monthly_plan', 'Monthly Plan'), amount: 6.80, period: t('subscription.period_month', 'per month'), desc: t('subscription.most_popular', 'Auto-renewing, most popular') },
+    { id: 'yearly', name: t('subscription.yearly_plan', 'Yearly Plan'), amount: 49.00, period: t('subscription.period_year', 'per year'), desc: t('subscription.best_value', 'Auto-renewing, best value') },
   ] as const;
 
   const handleRestore = async () => {

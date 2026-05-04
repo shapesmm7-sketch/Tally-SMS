@@ -11,7 +11,6 @@ import { Share } from '@capacitor/share';
 import SMSDetection, { requestSmsPermissions, checkSmsPermission } from '../lib/smsDetector';
 import { scanAndImportSMS } from '../lib/smsScanner';
 import { App as CapacitorApp } from '@capacitor/app';
-import { requestCameraPermissionAndNavigate } from '../lib/cameraHelper';
 import LimitModal from '../components/LimitModal';
 
 export default function Settings() {
@@ -161,7 +160,7 @@ export default function Settings() {
         setSmsError('Please grant the SMS and Phone permissions, then return here.');
       } catch (e: any) {
         console.error('Error opening app settings:', e);
-        setSmsError(`Failed to open settings: ${e.message || String(e)}. Please go to your phone Settings > Apps > Momo Tracker > Permissions manually.`);
+        setSmsError(`Failed to open settings: ${e.message || String(e)}. Please go to your phone Settings > Apps > Tally SMS > Permissions manually.`);
       } finally {
         setIsRequesting(false);
       }
@@ -232,8 +231,8 @@ export default function Settings() {
           });
           
           await Share.share({
-            title: 'Momo Tracker Backup',
-            text: 'Save or send your Momo Tracker backup file.',
+            title: 'Tally SMS Backup',
+            text: 'Save or send your Tally SMS backup file.',
             url: result.uri,
             dialogTitle: 'Export Backup',
           });
@@ -284,10 +283,10 @@ export default function Settings() {
   const handleShareApp = async () => {
     try {
       await Share.share({
-        title: 'Momo Tracker',
-        text: 'Check out Momo Tracker, the best app to track your mobile money transactions automatically!',
+        title: 'Tally SMS',
+        text: 'Check out Tally SMS, the best app to track your mobile money transactions automatically!',
         url: 'https://play.google.com/store/apps/details?id=com.momotracker.myapp', // Update with actual URL if different
-        dialogTitle: 'Share Momo Tracker',
+        dialogTitle: 'Share Tally SMS',
       });
     } catch (error: any) {
       if (error.message !== 'Share canceled') {
@@ -382,23 +381,6 @@ export default function Settings() {
                 <div className="text-left">
                   <span className="font-medium text-gray-800 dark:text-white">{t('settings.manual_scan', 'Manual Scan Inbox')}</span>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{t('settings.manual_scan_desc', 'Scan existing SMS for transactions')}</p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </button>
-
-            <button 
-              onClick={() => requestCameraPermissionAndNavigate(navigate)}
-              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              style={{ borderTopWidth: '1px' }}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <Smartphone className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-800 dark:text-white">Scan from Another Phone</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Use camera to extract SMS automatically</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -652,7 +634,7 @@ export default function Settings() {
         </div>
 
         <div className="text-center mt-8">
-          <p className="text-xs text-gray-400">Momo Tracker Web v1.0.0</p>
+          <p className="text-xs text-gray-400">Tally SMS Web v1.0.0</p>
         </div>
       </div>
 

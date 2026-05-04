@@ -40,7 +40,7 @@ export default function LimitModal({ onClose, message }: LimitModalProps) {
               }}
               className="w-full bg-blue-600 dark:bg-blue-700 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
             >
-              Unlock for Today ($0.25)
+              Unlock for Today ($0.37)
             </button>
             <button 
               onClick={() => {

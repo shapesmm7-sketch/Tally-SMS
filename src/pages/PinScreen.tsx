@@ -194,7 +194,7 @@ export default function PinScreen({ onUnlock }: PinScreenProps) {
         <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
           <Lock className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">Momo Tracker</h1>
+        <h1 className="text-2xl font-bold mb-2">Tally SMS</h1>
         <p className="text-blue-100 dark:text-blue-200 text-center px-8">
           {mode === 'setup' 
             ? (!setupPin ? 'Create a 4-digit PIN' : 'Confirm your PIN')

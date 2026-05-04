@@ -15,11 +15,11 @@ export default function BannerAd() {
       const showNativeBanner = async () => {
         try {
           await AdMob.showBanner({
-            adId: 'ca-app-pub-3940256099942544/6300978111', // Test Banner ID
+            adId: BannerAdController.getAdUnitId(true),
             adSize: BannerAdSize.BANNER,
             position: BannerAdPosition.BOTTOM_CENTER,
             margin: 64, // Push up 64 units to sit above the 64px bottom nav
-            isTesting: true,
+            isTesting: false,
           });
           setIsLoaded(true);
         } catch (e) {

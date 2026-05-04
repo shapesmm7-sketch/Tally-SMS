@@ -20,19 +20,19 @@ export default function TermsAndConditions() {
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Terms and Conditions for Momo Tracker</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Terms and Conditions for Tally SMS</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">Effective Date: 11-04-2026</p>
           </div>
         </div>
 
         <div className="prose prose-sm text-gray-600 dark:text-gray-300 space-y-6">
           <p>
-            Welcome to Momo Tracker ("we", "our", or "us"). These Terms and Conditions govern your use of the Momo Tracker mobile application. By using the app, you agree to these terms. If you do not agree, please do not use the app.
+            Welcome to Tally SMS ("we", "our", or "us"). These Terms and Conditions govern your use of the Tally SMS mobile application. By using the app, you agree to these terms. If you do not agree, please do not use the app.
           </p>
 
           <section>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">1. Use of the App</h3>
-            <p>Momo Tracker is designed to help users track and manage mobile money transactions by:</p>
+            <p>Tally SMS is designed to help users track and manage mobile money transactions by:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Copying and pasting mobile money messages</li>
               <li>Automatically detecting transaction details from messages</li>
@@ -43,7 +43,7 @@ export default function TermsAndConditions() {
 
           <section>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">2. User Responsibilities</h3>
-            <p>By using Momo Tracker, you agree that:</p>
+            <p>By using Tally SMS, you agree that:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>You are responsible for the accuracy of the data you input</li>
               <li>You will not use the app for illegal, fraudulent, or harmful activities</li>
@@ -73,13 +73,13 @@ export default function TermsAndConditions() {
 
           <section>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">5. No Affiliation with MTN MoMo</h3>
-            <p><strong>Momo Tracker is an independent application and is NOT affiliated, associated, authorized, endorsed by, or in any way officially connected with MTN Group Limited, MTN MoMo, or any of its subsidiaries or its affiliates.</strong></p>
-            <p className="mt-2">The official MTN MoMo application can be found on the Google Play Store. The name "MTN MoMo" as well as related names, marks, emblems and images are registered trademarks of their respective owners. Momo Tracker solely provides a personal utility for users to track their own SMS messages.</p>
+            <p><strong>Tally SMS is an independent application and is NOT affiliated, associated, authorized, endorsed by, or in any way officially connected with MTN Group Limited, MTN MoMo, or any of its subsidiaries or its affiliates.</strong></p>
+            <p className="mt-2">The official MTN MoMo application can be found on the Google Play Store. The name "MTN MoMo" as well as related names, marks, emblems and images are registered trademarks of their respective owners. Tally SMS solely provides a personal utility for users to track their own SMS messages.</p>
           </section>
 
           <section>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">6. No Financial Service</h3>
-            <p>Momo Tracker is not a financial institution and does not:</p>
+            <p>Tally SMS is not a financial institution and does not:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Provide financial, banking, or payment services</li>
               <li>Process or store real money transactions</li>
@@ -122,7 +122,7 @@ export default function TermsAndConditions() {
 
           <section>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">11. Intellectual Property</h3>
-            <p>All rights, design, and content of Momo Tracker are owned by us. You may not copy, modify, or distribute any part of the app without permission.</p>
+            <p>All rights, design, and content of Tally SMS are owned by us. You may not copy, modify, or distribute any part of the app without permission.</p>
           </section>
 
           <section>
@@ -138,7 +138,7 @@ export default function TermsAndConditions() {
 
           <div className="pt-8 border-t border-gray-100 dark:border-gray-800 text-center">
             <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
-              By using Momo Tracker, you acknowledge that you have read, understood, and agreed to these Terms and Conditions.
+              By using Tally SMS, you acknowledge that you have read, understood, and agreed to these Terms and Conditions.
             </p>
           </div>
         </div>

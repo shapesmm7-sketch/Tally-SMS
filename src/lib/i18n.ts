@@ -5,25 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
   "en": {
     "translation": {
-      "camera": {
-        "title": "Scan SMS",
-        "instructions": "Point the camera at a mobile money SMS on another phone. For Live Scan, slowly scroll down to capture all details. You can also use Take Photo to capture a screen directly, or upload screenshots from Gallery.",
-        "live_scan": "Live Scan",
-        "take_photo": "Take Photo",
-        "upload_image": "Upload Image",
-        "transactions_found_one": "{{count}} Transaction Found!",
-        "transactions_found_other": "{{count}} Transactions Found!",
-        "processing": "Processing image...",
-        "no_transactions": "No valid transactions detected in this file.",
-        "cancel": "Cancel",
-        "save_transactions_one": "Save {{count}} Transaction",
-        "save_transactions_other": "Save {{count}} Transactions",
-        "save_success": "Saved successfully!",
-        "camera_denied": "Camera Access Denied",
-        "upload_gallery": "Upload from Gallery",
-        "unknown_line": "Unknown",
-        "stop_scan": "Stop Scan"
-      },
+      
       "dashboard": {
         "title": "Dashboard",
         "welcome": "Welcome back",
@@ -47,7 +29,7 @@ const resources = {
         "manual_scan": "Manual Scan Inbox",
         "manual_scan_desc": "Scan existing SMS for transactions",
         "sms_explanation_title": "SMS Access Required",
-        "sms_explanation_body": "Momo Tracker needs access to your SMS messages to automatically detect and log your Mobile Money transactions. We only scan messages from your Mobile Money provider to help you track your spending. Your data stays private on your device.",
+        "sms_explanation_body": "Tally SMS needs access to your SMS messages to automatically detect and log your Mobile Money transactions. We only scan messages from your Mobile Money provider to help you track your spending. Your data stays private on your device.",
         "sms_explanation_btn": "Continue",
         "dark_mode": "Dark Mode",
         "dark_mode_desc": "Toggle app appearance",
@@ -208,7 +190,7 @@ const resources = {
         "country_currency": "Pays et devise",
         "dark_mode_desc": "Changer l'apparence de l'application",
         "manual_scan": "Boîte de réception de numérisation manuelle",
-        "sms_explanation_body": "Momo Tracker a besoin d'accéder à vos messages SMS pour détecter et enregistrer automatiquement vos transactions Mobile Money. Nous analysons uniquement les messages de votre fournisseur Mobile Money pour vous aider à suivre vos dépenses. Vos données restent privées sur votre appareil.",
+        "sms_explanation_body": "Tally SMS a besoin d'accéder à vos messages SMS pour détecter et enregistrer automatiquement vos transactions Mobile Money. Nous analysons uniquement les messages de votre fournisseur Mobile Money pour vous aider à suivre vos dépenses. Vos données restent privées sur votre appareil.",
         "data": "Données",
         "dark_mode": "Mode sombre",
         "backup": "Sauvegarde des données",
@@ -256,25 +238,7 @@ const resources = {
         "period_day": "24 heures",
         "benefit_2": "Numérisation manuelle illimitée"
       },
-      "camera": {
-        "upload_image": "Télécharger une image",
-        "live_scan": "Analyse en direct",
-        "transactions_found_one": "{{count}} Transaction trouvée !",
-        "transactions_found_other": "{{count}} Transactions trouvées !",
-        "save_transactions_other": "Enregistrer {{count}} transactions",
-        "cancel": "Annuler",
-        "stop_scan": "Arrêter l'analyse",
-        "take_photo": "Prendre une photo",
-        "title": "Scanner des SMS",
-        "upload_gallery": "Télécharger depuis la galerie",
-        "unknown_line": "Inconnu",
-        "processing": "Traitement de l'image...",
-        "no_transactions": "Aucune transaction valide détectée dans ce fichier.",
-        "save_success": "Enregistré avec succès !",
-        "camera_denied": "Accès à la caméra refusé",
-        "save_transactions_one": "Enregistrer {{count}} transaction",
-        "instructions": "Pointez l'appareil photo vers un SMS d'argent mobile sur un autre téléphone. Pour Live Scan, faites défiler lentement vers le bas pour capturer tous les détails. Vous pouvez également utiliser Take Photo pour capturer un écran directement ou télécharger des captures d'écran depuis la Galerie."
-      },
+      
       "common": {
         "upgrade_now": "Mettre à niveau maintenant",
         "premium_desc": "Supprimez les publicités, débloquez la détection automatique illimitée des SMS et l'analyse manuelle.",
@@ -317,25 +281,7 @@ const resources = {
   },
   "es": {
     "translation": {
-      "camera": {
-        "save_transactions_other": "Guarde {{count}} transacciones",
-        "stop_scan": "Detener escaneo",
-        "upload_gallery": "Subir desde la galería",
-        "cancel": "Cancelar",
-        "upload_image": "Subir imagen",
-        "instructions": "Apunte la cámara hacia un SMS de dinero móvil en otro teléfono. Para Live Scan, desplácese lentamente hacia abajo para capturar todos los detalles. También puedes usar Tomar foto para capturar una pantalla directamente o cargar capturas de pantalla desde la Galería.",
-        "take_photo": "tomar foto",
-        "live_scan": "Escaneo en vivo",
-        "camera_denied": "Acceso a la cámara denegado",
-        "save_transactions_one": "Guardar {{count}} transacción",
-        "save_success": "¡Guardado exitosamente!",
-        "unknown_line": "Desconocido",
-        "transactions_found_one": "{{count}} ¡Transacción encontrada!",
-        "title": "Escanear SMS",
-        "transactions_found_other": "{{count}} Transacciones encontradas!",
-        "no_transactions": "No se detectaron transacciones válidas en este archivo.",
-        "processing": "Procesando imagen..."
-      },
+      
       "settings": {
         "share_app": "Compartir aplicación",
         "about": "Acerca de",
@@ -361,7 +307,7 @@ const resources = {
         "dark_mode_desc": "Alternar apariencia de la aplicación",
         "sms_detection": "Detección automática de SMS",
         "sms_explanation_title": "Se requiere acceso a SMS",
-        "sms_explanation_body": "Momo Tracker necesita acceso a sus mensajes SMS para detectar y registrar automáticamente sus transacciones de dinero móvil. Solo escaneamos mensajes de su proveedor de dinero móvil para ayudarlo a realizar un seguimiento de sus gastos. Sus datos permanecen privados en su dispositivo.",
+        "sms_explanation_body": "Tally SMS necesita acceso a sus mensajes SMS para detectar y registrar automáticamente sus transacciones de dinero móvil. Solo escaneamos mensajes de su proveedor de dinero móvil para ayudarlo a realizar un seguimiento de sus gastos. Sus datos permanecen privados en su dispositivo.",
         "sms_desc": "Registrar automáticamente SMS de dinero móvil",
         "manual_scan_desc": "Escanear SMS existentes para transacciones"
       },
@@ -473,25 +419,7 @@ const resources = {
   },
   "de": {
     "translation": {
-      "camera": {
-        "instructions": "Richten Sie die Kamera auf eine Mobile-Money-SMS auf einem anderen Telefon. Scrollen Sie beim Live-Scan langsam nach unten, um alle Details zu erfassen. Sie können „Foto aufnehmen“ auch verwenden, um einen Bildschirm direkt aufzunehmen oder Screenshots aus der Galerie hochzuladen.",
-        "save_transactions_other": "Speichern Sie {{count}} Transaktionen",
-        "camera_denied": "Kamerazugriff verweigert",
-        "processing": "Bild wird verarbeitet...",
-        "upload_gallery": "Aus der Galerie hochladen",
-        "save_success": "Erfolgreich gespeichert!",
-        "title": "SMS scannen",
-        "transactions_found_other": "{{count}} Transaktionen gefunden!",
-        "save_transactions_one": "Speichern Sie {{count}} Transaktion",
-        "take_photo": "Machen Sie ein Foto",
-        "live_scan": "Live-Scan",
-        "transactions_found_one": "{{count}} Transaktion gefunden!",
-        "cancel": "Stornieren",
-        "stop_scan": "Stoppen Sie den Scan",
-        "unknown_line": "Unbekannt",
-        "upload_image": "Bild hochladen",
-        "no_transactions": "In dieser Datei wurden keine gültigen Transaktionen gefunden."
-      },
+      
       "dashboard": {
         "welcome": "Willkommen zurück",
         "history": "Geschichte",
@@ -531,7 +459,7 @@ const resources = {
         "dark_mode_desc": "App-Erscheinungsbild umschalten",
         "sms_desc": "Mobile Money-SMS automatisch protokollieren",
         "manual_scan_desc": "Scannen Sie vorhandene SMS nach Transaktionen",
-        "sms_explanation_body": "Momo Tracker benötigt Zugriff auf Ihre SMS-Nachrichten, um Ihre Mobile Money-Transaktionen automatisch zu erkennen und zu protokollieren. Wir scannen nur Nachrichten von Ihrem Mobile Money-Anbieter, um Ihnen dabei zu helfen, Ihre Ausgaben zu verfolgen. Ihre Daten bleiben auf Ihrem Gerät privat.",
+        "sms_explanation_body": "Tally SMS benötigt Zugriff auf Ihre SMS-Nachrichten, um Ihre Mobile Money-Transaktionen automatisch zu erkennen und zu protokollieren. Wir scannen nur Nachrichten von Ihrem Mobile Money-Anbieter, um Ihnen dabei zu helfen, Ihre Ausgaben zu verfolgen. Ihre Daten bleiben auf Ihrem Gerät privat.",
         "sms_detection": "Automatische SMS-Erkennung"
       },
       "common": {
@@ -629,25 +557,7 @@ const resources = {
   },
   "pt": {
     "translation": {
-      "camera": {
-        "upload_gallery": "Carregar da Galeria",
-        "save_transactions_other": "Salve {{count}} transações",
-        "unknown_line": "Desconhecido",
-        "save_success": "Salvo com sucesso!",
-        "title": "Digitalizar SMS",
-        "stop_scan": "Parar verificação",
-        "save_transactions_one": "Salvar {{count}} transação",
-        "no_transactions": "Nenhuma transação válida detectada neste arquivo.",
-        "take_photo": "Tirar foto",
-        "transactions_found_one": "{{count}} transação encontrada!",
-        "live_scan": "Verificação ao vivo",
-        "upload_image": "Carregar imagem",
-        "instructions": "Aponte a câmera para um SMS de dinheiro móvel em outro telefone. Para Live Scan, role lentamente para baixo para capturar todos os detalhes. Você também pode usar Tirar foto para capturar uma tela diretamente ou fazer upload de capturas de tela da Galeria.",
-        "transactions_found_other": "{{count}} transações encontradas!",
-        "processing": "Processando imagem...",
-        "cancel": "Cancelar",
-        "camera_denied": "Acesso à câmera negado"
-      },
+      
       "dashboard": {
         "title": "Painel",
         "history": "História",
@@ -719,7 +629,7 @@ const resources = {
         "country_currency": "País e moeda",
         "clear_data": "Limpar todos os dados",
         "country_desc": "Defina sua moeda local",
-        "sms_explanation_body": "O Momo Tracker precisa de acesso às suas mensagens SMS para detectar e registrar automaticamente suas transações de Mobile Money. Verificamos apenas mensagens do seu provedor de Mobile Money para ajudá-lo a controlar seus gastos. Seus dados permanecem privados no seu dispositivo.",
+        "sms_explanation_body": "O Tally SMS precisa de acesso às suas mensagens SMS para detectar e registrar automaticamente suas transações de Mobile Money. Verificamos apenas mensagens do seu provedor de Mobile Money para ajudá-lo a controlar seus gastos. Seus dados permanecem privados no seu dispositivo.",
         "manual_scan_desc": "Digitalize SMS existentes para transações",
         "sms_desc": "Registrar automaticamente SMS do Mobile Money"
       },
@@ -785,25 +695,7 @@ const resources = {
   },
   "sw": {
     "translation": {
-      "camera": {
-        "transactions_found_one": "{{count}} Muamala Umepatikana!",
-        "live_scan": "Uchanganuzi wa Moja kwa Moja",
-        "unknown_line": "Haijulikani",
-        "no_transactions": "Hakuna miamala halali iliyogunduliwa katika faili hii.",
-        "save_success": "Imehifadhiwa!",
-        "upload_image": "Pakia Picha",
-        "camera_denied": "Ufikiaji wa Kamera Umekataliwa",
-        "take_photo": "Piga Picha",
-        "transactions_found_other": "{{count}} Miamala Imepatikana!",
-        "title": "Changanua SMS",
-        "cancel": "Ghairi",
-        "save_transactions_other": "Hifadhi Miamala {{count}}",
-        "instructions": "Elekeza kamera kwenye SMS ya pesa ya rununu kwenye simu nyingine. Kwa Uchanganuzi Papo Hapo, sogeza chini polepole ili upate maelezo yote. Unaweza pia kutumia Piga Picha kupiga skrini moja kwa moja, au kupakia picha za skrini kutoka kwenye Ghala.",
-        "stop_scan": "Acha Kuchanganua",
-        "upload_gallery": "Pakia kutoka kwenye Matunzio",
-        "save_transactions_one": "Hifadhi {{count}} Muamala",
-        "processing": "Inachakata picha..."
-      },
+      
       "common": {
         "upgrade_now": "Boresha Sasa",
         "nav": {
@@ -858,7 +750,7 @@ const resources = {
         "logout_lock": "Ondoka / Funga Programu",
         "manual_scan": "Kikasha cha Kuchanganua Mwongozo",
         "help_guide": "Msaada & Mwongozo",
-        "sms_explanation_body": "Momo Tracker inahitaji ufikiaji wa jumbe zako za SMS ili kutambua kiotomatiki na kuweka kumbukumbu za miamala yako ya Mobile Money. Tunachanganua tu ujumbe kutoka kwa mtoa huduma wako wa Mobile Money ili kukusaidia kufuatilia matumizi yako. Data yako itasalia ya faragha kwenye kifaa chako.",
+        "sms_explanation_body": "Tally SMS inahitaji ufikiaji wa jumbe zako za SMS ili kutambua kiotomatiki na kuweka kumbukumbu za miamala yako ya Mobile Money. Tunachanganua tu ujumbe kutoka kwa mtoa huduma wako wa Mobile Money ili kukusaidia kufuatilia matumizi yako. Data yako itasalia ya faragha kwenye kifaa chako.",
         "backup": "Data Backup",
         "dark_mode_desc": "Geuza mwonekano wa programu",
         "select_language": "Chagua lugha yako",
@@ -941,25 +833,7 @@ const resources = {
   },
   "ar": {
     "translation": {
-      "camera": {
-        "take_photo": "التقط صورة",
-        "transactions_found_other": "تم العثور على {{count}} من المعاملات!",
-        "save_transactions_other": "حفظ {{count}} المعاملات",
-        "no_transactions": "لم يتم الكشف عن معاملات صالحة في هذا الملف.",
-        "stop_scan": "إيقاف المسح",
-        "processing": "جارٍ معالجة الصورة...",
-        "title": "مسح الرسائل القصيرة",
-        "live_scan": "المسح المباشر",
-        "save_transactions_one": "احفظ {{count}} معاملة",
-        "camera_denied": "تم رفض الوصول إلى الكاميرا",
-        "save_success": "تم الحفظ بنجاح!",
-        "transactions_found_one": "تم العثور على معاملة {{count}}!",
-        "upload_gallery": "تحميل من المعرض",
-        "cancel": "يلغي",
-        "upload_image": "تحميل الصورة",
-        "unknown_line": "مجهول",
-        "instructions": "قم بتوجيه الكاميرا نحو رسالة نصية قصيرة تتعلق بأموال الهاتف المحمول على هاتف آخر. بالنسبة للمسح المباشر، قم بالتمرير ببطء لأسفل لالتقاط كافة التفاصيل. يمكنك أيضًا استخدام \"التقاط صورة\" لالتقاط الشاشة مباشرة، أو تحميل لقطات الشاشة من المعرض."
-      },
+      
       "history": {
         "delete": "يمسح",
         "title": "تاريخ",
@@ -1059,7 +933,7 @@ const resources = {
         "rate_us": "قيمنا",
         "manual_scan_desc": "مسح الرسائل القصيرة الموجودة للمعاملات",
         "manual_scan": "المسح اليدوي لصندوق الوارد",
-        "sms_explanation_body": "يحتاج Momo Tracker إلى الوصول إلى رسائل SMS الخاصة بك لاكتشاف وتسجيل معاملات Mobile Money الخاصة بك تلقائيًا. نحن نقوم فقط بفحص الرسائل الواردة من مزود خدمة Mobile Money الخاص بك لمساعدتك في تتبع إنفاقك. تظل بياناتك خاصة على جهازك.",
+        "sms_explanation_body": "يحتاج Tally SMS إلى الوصول إلى رسائل SMS الخاصة بك لاكتشاف وتسجيل معاملات Mobile Money الخاصة بك تلقائيًا. نحن نقوم فقط بفحص الرسائل الواردة من مزود خدمة Mobile Money الخاص بك لمساعدتك في تتبع إنفاقك. تظل بياناتك خاصة على جهازك.",
         "help_guide": "مساعدة ودليل",
         "logout_lock": "تسجيل الخروج / قفل التطبيق",
         "country_desc": "قم بتعيين العملة المحلية الخاصة بك",
@@ -1097,25 +971,7 @@ const resources = {
   },
   "bn": {
     "translation": {
-      "camera": {
-        "live_scan": "লাইভ স্ক্যান",
-        "title": "এসএমএস স্ক্যান করুন",
-        "no_transactions": "এই ফাইলে কোনো বৈধ লেনদেন শনাক্ত করা হয়নি।",
-        "save_success": "সফলভাবে সংরক্ষিত!",
-        "processing": "ছবি প্রসেস করা হচ্ছে...",
-        "upload_image": "ছবি আপলোড করুন",
-        "stop_scan": "স্ক্যান বন্ধ করুন",
-        "unknown_line": "অজানা",
-        "take_photo": "ছবি তুলুন",
-        "transactions_found_other": "{{count}} লেনদেন পাওয়া গেছে!",
-        "upload_gallery": "গ্যালারি থেকে আপলোড করুন",
-        "transactions_found_one": "{{count}} লেনদেন পাওয়া গেছে!",
-        "camera_denied": "ক্যামেরা অ্যাক্সেস অস্বীকৃত",
-        "save_transactions_other": "{{count}}টি লেনদেন সংরক্ষণ করুন",
-        "instructions": "অন্য ফোনে একটি মোবাইল মানি এসএমএসের দিকে ক্যামেরা নির্দেশ করুন। লাইভ স্ক্যানের জন্য, সমস্ত বিবরণ ক্যাপচার করতে ধীরে ধীরে নিচে স্ক্রোল করুন। আপনি সরাসরি একটি স্ক্রিন ক্যাপচার করতে বা গ্যালারি থেকে স্ক্রিনশট আপলোড করতে ফটো টেক ব্যবহার করতে পারেন।",
-        "cancel": "বাতিল করুন",
-        "save_transactions_one": "{{count}} লেনদেন সংরক্ষণ করুন"
-      },
+      
       "reports": {
         "total_deposits": "মোট আমানত",
         "today": "আজ",
@@ -1253,25 +1109,7 @@ const resources = {
   },
   "zh": {
     "translation": {
-      "camera": {
-        "save_transactions_one": "保存 {{count}} 笔交易",
-        "save_success": "保存成功！",
-        "take_photo": "拍照",
-        "upload_image": "上传图片",
-        "title": "扫描短信",
-        "stop_scan": "停止扫描",
-        "no_transactions": "此文件中未检测到有效交易。",
-        "transactions_found_one": "发现 {{count}} 笔交易！",
-        "transactions_found_other": "发现 {{count}} 笔交易！",
-        "save_transactions_other": "保存 {{count}} 笔交易",
-        "processing": "处理图像...",
-        "live_scan": "实时扫描",
-        "cancel": "取消",
-        "instructions": "将相机对准另一部手机上的移动货币短信。对于实时扫描，慢慢向下滚动以捕获所有细节。您还可以使用“拍照”直接截取屏幕，或从图库上传屏幕截图。",
-        "camera_denied": "相机访问被拒绝",
-        "upload_gallery": "从图库上传",
-        "unknown_line": "未知"
-      },
+      
       "common": {
         "upgrade_now": "立即升级",
         "nav": {
@@ -1308,7 +1146,7 @@ const resources = {
         "logout_lock": "注销/锁定应用程序",
         "manual_scan_desc": "扫描现有短信以获取交易信息",
         "sms_desc": "自动记录移动货币短信",
-        "sms_explanation_body": "Momo Tracker 需要访问您的短信才能自动检测并记录您的移动货币交易。我们仅扫描来自您的移动货币提供商的消息，以帮助您跟踪您的支出。您的数据在您的设备上保持私密。",
+        "sms_explanation_body": "Tally SMS 需要访问您的短信才能自动检测并记录您的移动货币交易。我们仅扫描来自您的移动货币提供商的消息，以帮助您跟踪您的支出。您的数据在您的设备上保持私密。",
         "sms_detection": "短信自动检测",
         "dark_mode": "深色模式",
         "manual_scan": "手动扫描收件箱",
@@ -1409,25 +1247,7 @@ const resources = {
   },
   "cs": {
     "translation": {
-      "camera": {
-        "transactions_found_one": "{{count}} transakce nalezena!",
-        "no_transactions": "V tomto souboru nebyly zjištěny žádné platné transakce.",
-        "save_transactions_other": "Ušetřete {{count}} transakcí",
-        "upload_image": "Nahrát obrázek",
-        "live_scan": "Živé skenování",
-        "transactions_found_other": "Počet nalezených transakcí: {{count}}",
-        "save_success": "Úspěšně uloženo!",
-        "save_transactions_one": "Uložit {{count}} transakci",
-        "take_photo": "Vyfotit",
-        "cancel": "Zrušit",
-        "processing": "Zpracování obrázku...",
-        "unknown_line": "Neznámý",
-        "upload_gallery": "Nahrát z Galerie",
-        "camera_denied": "Přístup ke kameře odepřen",
-        "stop_scan": "Zastavit skenování",
-        "instructions": "Namiřte fotoaparát na mobilní SMS na jiném telefonu. U živého skenování se pomalu posouvejte dolů, abyste zachytili všechny podrobnosti. Můžete také použít Pořídit fotografii k přímému zachycení obrazovky nebo nahrát snímky obrazovky z Galerie.",
-        "title": "Naskenujte SMS"
-      },
+      
       "settings": {
         "dark_mode": "Tmavý režim",
         "terms": "Smluvní podmínky",
@@ -1453,7 +1273,7 @@ const resources = {
         "dark_mode_desc": "Přepnout vzhled aplikace",
         "country_currency": "Země a měna",
         "backup": "Zálohování dat",
-        "sms_explanation_body": "Momo Tracker potřebuje přístup k vašim SMS zprávám, aby automaticky detekoval a zaznamenával vaše transakce Mobile Money. Skenujeme pouze zprávy od vašeho poskytovatele Mobile Money, abychom vám pomohli sledovat vaše výdaje. Vaše data zůstanou ve vašem zařízení soukromá.",
+        "sms_explanation_body": "Tally SMS potřebuje přístup k vašim SMS zprávám, aby automaticky detekoval a zaznamenával vaše transakce Mobile Money. Skenujeme pouze zprávy od vašeho poskytovatele Mobile Money, abychom vám pomohli sledovat vaše výdaje. Vaše data zůstanou ve vašem zařízení soukromá.",
         "manual_scan_desc": "Prohledejte existující SMS pro transakce",
         "sms_desc": "Automaticky přihlásit Mobile Money SMS"
       },
@@ -1565,25 +1385,7 @@ const resources = {
   },
   "da": {
     "translation": {
-      "camera": {
-        "instructions": "Ret kameraet mod en mobilpenge-sms på en anden telefon. For Live Scan skal du langsomt rulle ned for at fange alle detaljer. Du kan også bruge Tag billede til at tage en skærm direkte eller uploade skærmbilleder fra Galleri.",
-        "processing": "Behandler billede...",
-        "stop_scan": "Stop scanning",
-        "transactions_found_one": "{{count}} transaktion fundet!",
-        "live_scan": "Live scanning",
-        "save_success": "Gemt med succes!",
-        "take_photo": "Tag billede",
-        "camera_denied": "Kameraadgang nægtet",
-        "no_transactions": "Ingen gyldige transaktioner fundet i denne fil.",
-        "upload_image": "Upload billede",
-        "title": "Scan SMS",
-        "transactions_found_other": "{{count}} transaktioner fundet!",
-        "unknown_line": "Ukendt",
-        "save_transactions_other": "Gem {{count}} transaktioner",
-        "upload_gallery": "Upload fra Galleri",
-        "cancel": "Ophæve",
-        "save_transactions_one": "Gem {{count}} transaktion"
-      },
+      
       "settings": {
         "about": "Om",
         "security": "Sikkerhed",
@@ -1599,7 +1401,7 @@ const resources = {
         "dark_mode_desc": "Skift app udseende",
         "manual_scan": "Manuel scanningsindbakke",
         "sms_explanation_title": "SMS-adgang påkrævet",
-        "sms_explanation_body": "Momo Tracker har brug for adgang til dine SMS-beskeder for automatisk at registrere og logge dine Mobile Money-transaktioner. Vi scanner kun beskeder fra din Mobile Money-udbyder for at hjælpe dig med at spore dit forbrug. Dine data forbliver private på din enhed.",
+        "sms_explanation_body": "Tally SMS har brug for adgang til dine SMS-beskeder for automatisk at registrere og logge dine Mobile Money-transaktioner. Vi scanner kun beskeder fra din Mobile Money-udbyder for at hjælpe dig med at spore dit forbrug. Dine data forbliver private på din enhed.",
         "sms_desc": "Log automatisk Mobile Money SMS",
         "manual_scan_desc": "Scan eksisterende SMS for transaktioner",
         "rate_us": "Bedøm os",
@@ -1721,25 +1523,7 @@ const resources = {
   },
   "nl": {
     "translation": {
-      "camera": {
-        "upload_gallery": "Uploaden vanuit Galerij",
-        "cancel": "Annuleren",
-        "unknown_line": "Onbekend",
-        "instructions": "Richt de camera op een mobiel geld-sms op een andere telefoon. Voor Live Scan scrollt u langzaam naar beneden om alle details vast te leggen. U kunt Take Photo ook gebruiken om rechtstreeks een scherm vast te leggen, of schermafbeeldingen uploaden vanuit Galerij.",
-        "processing": "Afbeelding verwerken...",
-        "camera_denied": "Cameratoegang geweigerd",
-        "no_transactions": "Er zijn geen geldige transacties gedetecteerd in dit bestand.",
-        "live_scan": "Livescan",
-        "transactions_found_one": "{{count}} Transactie gevonden!",
-        "save_transactions_other": "Bewaar {{count}} transacties",
-        "take_photo": "Maak een foto",
-        "upload_image": "Afbeelding uploaden",
-        "transactions_found_other": "{{count}} Transacties gevonden!",
-        "save_success": "Succesvol opgeslagen!",
-        "save_transactions_one": "Bewaar {{count}} transactie",
-        "stop_scan": "Stop met scannen",
-        "title": "Sms scannen"
-      },
+      
       "common": {
         "upgrade": "Upgrade naar Premium",
         "nav": {
@@ -1791,7 +1575,7 @@ const resources = {
         "dark_mode_desc": "Schakel het uiterlijk van de app in",
         "backup": "Back-upgegevens",
         "help_guide": "Hulp en gids",
-        "sms_explanation_body": "Momo Tracker heeft toegang tot uw sms-berichten nodig om uw mobielgeldtransacties automatisch te detecteren en te registreren. We scannen alleen berichten van uw Mobiel Geld-aanbieder om u te helpen uw uitgaven bij te houden. Uw gegevens blijven privé op uw apparaat.",
+        "sms_explanation_body": "Tally SMS heeft toegang tot uw sms-berichten nodig om uw mobielgeldtransacties automatisch te detecteren en te registreren. We scannen alleen berichten van uw Mobiel Geld-aanbieder om u te helpen uw uitgaven bij te houden. Uw gegevens blijven privé op uw apparaat.",
         "manual_scan": "Handmatig scannen inbox",
         "country_desc": "Stel uw lokale valuta in",
         "sms_explanation_title": "SMS-toegang vereist"
@@ -1877,25 +1661,7 @@ const resources = {
   },
   "fi": {
     "translation": {
-      "camera": {
-        "upload_gallery": "Lataa galleriasta",
-        "instructions": "Osoita kameralla matkapuhelimen tekstiviestiä toisessa puhelimessa. Kun haluat käyttää Live Scania, vieritä hitaasti alas ja tallenna kaikki yksityiskohdat. Voit myös ottaa valokuvan kuvankaappaamiseen suoraan tai ladata kuvakaappauksia Galleriasta.",
-        "save_transactions_other": "Tallenna {{count}} tapahtumaa",
-        "stop_scan": "Lopeta skannaus",
-        "title": "Skannaa SMS",
-        "save_success": "Tallennettu onnistuneesti!",
-        "save_transactions_one": "Tallenna {{count}} tapahtuma",
-        "camera_denied": "Kameran käyttö estetty",
-        "no_transactions": "Tässä tiedostossa ei havaittu kelvollisia tapahtumia.",
-        "transactions_found_one": "{{count}} Tapahtuma löydetty!",
-        "transactions_found_other": "{{count}} tapahtumaa löydetty!",
-        "cancel": "Peruuttaa",
-        "unknown_line": "Tuntematon",
-        "processing": "Käsitellään kuvaa...",
-        "take_photo": "Ota valokuva",
-        "upload_image": "Lataa kuva",
-        "live_scan": "Live Scan"
-      },
+      
       "dashboard": {
         "welcome": "Tervetuloa takaisin",
         "history": "Historia",
@@ -1935,7 +1701,7 @@ const resources = {
         "dark_mode_desc": "Vaihda sovelluksen ulkoasua",
         "change_pin": "Vaihda PIN",
         "sms_explanation_title": "Tekstiviestin käyttö vaaditaan",
-        "sms_explanation_body": "Momo Tracker tarvitsee pääsyn tekstiviesteihisi tunnistaakseen ja kirjatakseen automaattisesti Mobile Money -tapahtumasi. Skannaamme vain Mobile Money -palveluntarjoajaltasi tulevat viestit, jotta voit seurata kulutustasi. Tietosi pysyvät yksityisinä laitteellasi.",
+        "sms_explanation_body": "Tally SMS tarvitsee pääsyn tekstiviesteihisi tunnistaakseen ja kirjatakseen automaattisesti Mobile Money -tapahtumasi. Skannaamme vain Mobile Money -palveluntarjoajaltasi tulevat viestit, jotta voit seurata kulutustasi. Tietosi pysyvät yksityisinä laitteellasi.",
         "sms_desc": "Kirjaa automaattisesti Mobile Money SMS"
       },
       "reports": {
@@ -2033,25 +1799,7 @@ const resources = {
   },
   "el": {
     "translation": {
-      "camera": {
-        "transactions_found_other": "Βρέθηκαν {{count}} Συναλλαγές!",
-        "upload_image": "Μεταφόρτωση εικόνας",
-        "camera_denied": "Δεν επιτρέπεται η πρόσβαση στην κάμερα",
-        "cancel": "Ματαίωση",
-        "take_photo": "Τραβήξτε φωτογραφία",
-        "no_transactions": "Δεν εντοπίστηκαν έγκυρες συναλλαγές σε αυτό το αρχείο.",
-        "save_success": "Αποθηκεύτηκε με επιτυχία!",
-        "save_transactions_one": "Αποθήκευση {{count}} συναλλαγής",
-        "stop_scan": "Διακοπή σάρωσης",
-        "transactions_found_one": "Βρέθηκε {{count}} συναλλαγή!",
-        "live_scan": "Ζωντανή σάρωση",
-        "save_transactions_other": "Αποθήκευση {{count}} συναλλαγών",
-        "instructions": "Στρέψτε την κάμερα σε ένα SMS με χρήματα από κινητό σε άλλο τηλέφωνο. Για Ζωντανή σάρωση, μετακινηθείτε αργά προς τα κάτω για να καταγράψετε όλες τις λεπτομέρειες. Μπορείτε επίσης να χρησιμοποιήσετε τη Λήψη φωτογραφίας για να τραβήξετε απευθείας μια οθόνη ή να ανεβάσετε στιγμιότυπα οθόνης από τη Συλλογή.",
-        "upload_gallery": "Μεταφόρτωση από Gallery",
-        "processing": "Επεξεργασία εικόνας...",
-        "unknown_line": "Αγνωστος",
-        "title": "Σάρωση SMS"
-      },
+      
       "dashboard": {
         "title": "Ταμπλό",
         "history": "Ιστορία",
@@ -2130,7 +1878,7 @@ const resources = {
         "logout_lock": "Αποσύνδεση / Κλείδωμα εφαρμογής",
         "select_language": "Επιλέξτε τη γλώσσα σας",
         "country_desc": "Ορίστε το τοπικό σας νόμισμα",
-        "sms_explanation_body": "Το Momo Tracker χρειάζεται πρόσβαση στα μηνύματά σας SMS για να εντοπίζει και να καταγράφει αυτόματα τις συναλλαγές σας με Mobile Money. Σαρώνουμε μόνο μηνύματα από τον πάροχο Mobile Money για να σας βοηθήσουμε να παρακολουθείτε τις δαπάνες σας. Τα δεδομένα σας παραμένουν ιδιωτικά στη συσκευή σας."
+        "sms_explanation_body": "Το Tally SMS χρειάζεται πρόσβαση στα μηνύματά σας SMS για να εντοπίζει και να καταγράφει αυτόματα τις συναλλαγές σας με Mobile Money. Σαρώνουμε μόνο μηνύματα από τον πάροχο Mobile Money για να σας βοηθήσουμε να παρακολουθείτε τις δαπάνες σας. Τα δεδομένα σας παραμένουν ιδιωτικά στη συσκευή σας."
       },
       "history": {
         "withdrawals": "Αναλήψεις",
@@ -2189,25 +1937,7 @@ const resources = {
   },
   "he": {
     "translation": {
-      "camera": {
-        "unknown_line": "לֹא יְדוּעַ",
-        "no_transactions": "לא זוהו עסקאות חוקיות בקובץ זה.",
-        "save_transactions_one": "שמור {{count}} עסקה",
-        "stop_scan": "עצור סריקה",
-        "upload_image": "העלה תמונה",
-        "upload_gallery": "העלה מהגלריה",
-        "cancel": "לְבַטֵל",
-        "transactions_found_other": "נמצאו {{count}} עסקאות!",
-        "take_photo": "צלם תמונה",
-        "save_transactions_other": "שמור {{count}} עסקאות",
-        "camera_denied": "הגישה למצלמה נדחתה",
-        "processing": "מעבד תמונה...",
-        "title": "סרוק SMS",
-        "save_success": "נשמר בהצלחה!",
-        "live_scan": "סריקה חיה",
-        "transactions_found_one": "נמצאה עסקה {{count}}!",
-        "instructions": "כוון את המצלמה ל-SMS עם כסף נייד בטלפון אחר. עבור סריקה חיה, גלול לאט למטה כדי ללכוד את כל הפרטים. אתה יכול גם להשתמש בצלם תמונה כדי לצלם מסך ישירות, או להעלות צילומי מסך מהגלריה."
-      },
+      
       "dashboard": {
         "welcome": "ברוך שובך",
         "title": "לוּחַ מַחווָנִים",
@@ -2247,7 +1977,7 @@ const resources = {
         "title": "הגדרות",
         "dark_mode": "מצב כהה",
         "country_desc": "הגדר את המטבע המקומי שלך",
-        "sms_explanation_body": "Momo Tracker זקוק לגישה להודעות ה-SMS שלך כדי לזהות ולרישום אוטומטית את עסקאות הכסף הנייד שלך. אנו סורקים רק הודעות מספק הכסף הנייד שלך כדי לעזור לך לעקוב אחר ההוצאות שלך. הנתונים שלך נשארים פרטיים במכשיר שלך.",
+        "sms_explanation_body": "Tally SMS זקוק לגישה להודעות ה-SMS שלך כדי לזהות ולרישום אוטומטית את עסקאות הכסף הנייד שלך. אנו סורקים רק הודעות מספק הכסף הנייד שלך כדי לעזור לך לעקוב אחר ההוצאות שלך. הנתונים שלך נשארים פרטיים במכשיר שלך.",
         "sms_explanation_title": "נדרשת גישה ל-SMS",
         "dark_mode_desc": "החלף את הופעת האפליקציה",
         "sms_desc": "התחבר אוטומטית ל-SMS עם כסף נייד",
@@ -2345,25 +2075,7 @@ const resources = {
   },
   "hi": {
     "translation": {
-      "camera": {
-        "save_success": "सफलतापूर्वक बचाया!",
-        "live_scan": "लाइव स्कैन",
-        "upload_gallery": "गैलरी से अपलोड करें",
-        "camera_denied": "कैमरा एक्सेस अस्वीकृत",
-        "title": "एसएमएस स्कैन करें",
-        "no_transactions": "इस फ़ाइल में कोई वैध लेनदेन नहीं पाया गया।",
-        "transactions_found_other": "{{गिनती}} लेन-देन मिला!",
-        "cancel": "रद्द करना",
-        "save_transactions_other": "लेन-देन सहेजें",
-        "take_photo": "फोटो लो",
-        "upload_image": "तस्विर अपलोड करना",
-        "stop_scan": "स्कैन बंद करो",
-        "save_transactions_one": "लेन-देन सहेजें",
-        "unknown_line": "अज्ञात",
-        "processing": "छवि संसाधित हो रही है...",
-        "transactions_found_one": "{{गिनती}} लेन-देन मिला!",
-        "instructions": "कैमरे को दूसरे फोन पर मोबाइल मनी एसएमएस की ओर इंगित करें। लाइव स्कैन के लिए, सभी विवरण प्राप्त करने के लिए धीरे-धीरे नीचे स्क्रॉल करें। आप किसी स्क्रीन को सीधे कैप्चर करने या गैलरी से स्क्रीनशॉट अपलोड करने के लिए टेक फोटो का भी उपयोग कर सकते हैं।"
-      },
+      
       "reports": {
         "title": "रिपोर्टों",
         "this_month": "इस महीने",
@@ -2501,25 +2213,7 @@ const resources = {
   },
   "hu": {
     "translation": {
-      "camera": {
-        "save_transactions_other": "Mentse el {{count}} tranzakciót",
-        "upload_image": "Kép feltöltése",
-        "upload_gallery": "Feltöltés a Galériából",
-        "live_scan": "Élő szkennelés",
-        "cancel": "Mégsem",
-        "take_photo": "Fotó készítése",
-        "unknown_line": "Ismeretlen",
-        "transactions_found_other": "{{count}} tranzakciót találtunk!",
-        "processing": "Kép feldolgozása...",
-        "no_transactions": "Nem található érvényes tranzakció ebben a fájlban.",
-        "instructions": "Irányítsa a kamerát egy mobilpénzes SMS-re egy másik telefonon. Az Élő kereséshez lassan görgessen lefelé az összes részlet rögzítéséhez. A Fotó készítése funkcióval közvetlenül is rögzíthet képernyőt, vagy feltölthet képernyőképeket a Galériából.",
-        "transactions_found_one": "{{count}} Tranzakciót találtunk!",
-        "stop_scan": "Szkennelés leállítása",
-        "title": "SMS beolvasása",
-        "save_success": "Sikeres mentés!",
-        "camera_denied": "Kamera hozzáférés megtagadva",
-        "save_transactions_one": "Mentse {{count}} tranzakciót"
-      },
+      
       "settings": {
         "data": "Adat",
         "help_guide": "Súgó és útmutató",
@@ -2547,7 +2241,7 @@ const resources = {
         "sms_detection": "SMS automatikus felismerés",
         "dark_mode_desc": "Az alkalmazás megjelenésének váltása",
         "rate_us": "Értékeljen minket",
-        "sms_explanation_body": "A Momo Trackernek hozzá kell férnie az SMS-üzeneteihez, hogy automatikusan észlelje és naplózza mobilpénzes tranzakcióit. Csak a mobilpénz-szolgáltatótól kapott üzeneteket szkenneljük, hogy segítsünk követni kiadásait. Adatai privátak maradnak az eszközön."
+        "sms_explanation_body": "A Tally SMSnek hozzá kell férnie az SMS-üzeneteihez, hogy automatikusan észlelje és naplózza mobilpénzes tranzakcióit. Csak a mobilpénz-szolgáltatótól kapott üzeneteket szkenneljük, hogy segítsünk követni kiadásait. Adatai privátak maradnak az eszközön."
       },
       "dashboard": {
         "history": "Történelem",
@@ -2657,25 +2351,7 @@ const resources = {
   },
   "id": {
     "translation": {
-      "camera": {
-        "stop_scan": "Hentikan Pemindaian",
-        "instructions": "Arahkan kamera ke SMS uang seluler di ponsel lain. Untuk Live Scan, gulir perlahan ke bawah untuk menangkap semua detail. Anda juga dapat menggunakan Ambil Foto untuk menangkap layar secara langsung, atau mengunggah tangkapan layar dari Galeri.",
-        "save_success": "Berhasil disimpan!",
-        "processing": "Memproses gambar...",
-        "take_photo": "Ambil Foto",
-        "save_transactions_one": "Hemat {{count}} Transaksi",
-        "no_transactions": "Tidak ada transaksi valid yang terdeteksi dalam file ini.",
-        "upload_image": "Unggah Gambar",
-        "upload_gallery": "Unggah dari Galeri",
-        "live_scan": "Pemindaian Langsung",
-        "camera_denied": "Akses Kamera Ditolak",
-        "unknown_line": "Tidak dikenal",
-        "save_transactions_other": "Simpan {{count}} Transaksi",
-        "transactions_found_other": "{{count}} Transaksi Ditemukan!",
-        "title": "Pindai SMS",
-        "transactions_found_one": "{{count}} Transaksi Ditemukan!",
-        "cancel": "Membatalkan"
-      },
+      
       "history": {
         "cancel": "Membatalkan",
         "filter_income": "Penghasilan",
@@ -2772,7 +2448,7 @@ const resources = {
         "country_desc": "Tetapkan mata uang lokal Anda",
         "logout_lock": "Keluar / Kunci Aplikasi",
         "sms_desc": "Secara otomatis mencatat SMS Uang Seluler",
-        "sms_explanation_body": "Momo Tracker memerlukan akses ke pesan SMS Anda untuk secara otomatis mendeteksi dan mencatat transaksi Uang Seluler Anda. Kami hanya memindai pesan dari penyedia Uang Seluler Anda untuk membantu Anda melacak pengeluaran Anda. Data Anda tetap bersifat pribadi di perangkat Anda.",
+        "sms_explanation_body": "Tally SMS memerlukan akses ke pesan SMS Anda untuk secara otomatis mendeteksi dan mencatat transaksi Uang Seluler Anda. Kami hanya memindai pesan dari penyedia Uang Seluler Anda untuk membantu Anda melacak pengeluaran Anda. Data Anda tetap bersifat pribadi di perangkat Anda.",
         "manual_scan_desc": "Scan SMS yang ada untuk transaksi"
       },
       "subscription": {
@@ -2813,25 +2489,7 @@ const resources = {
   },
   "it": {
     "translation": {
-      "camera": {
-        "title": "Scansione SMS",
-        "transactions_found_one": "{{count}} transazione trovata!",
-        "live_scan": "Scansione in tempo reale",
-        "upload_image": "Carica immagine",
-        "cancel": "Cancellare",
-        "transactions_found_other": "{{count}} transazioni trovate!",
-        "instructions": "Punta la fotocamera verso un SMS di Mobile Money su un altro telefono. Per Live Scan, scorri lentamente verso il basso per acquisire tutti i dettagli. Puoi anche utilizzare Scatta foto per acquisire direttamente una schermata o caricare screenshot dalla Galleria.",
-        "no_transactions": "Nessuna transazione valida rilevata in questo file.",
-        "save_transactions_one": "Salva {{count}} transazione",
-        "upload_gallery": "Carica dalla Galleria",
-        "save_success": "Salvato con successo!",
-        "camera_denied": "Accesso alla telecamera negato",
-        "stop_scan": "Interrompi scansione",
-        "take_photo": "Scatta foto",
-        "save_transactions_other": "Salva {{count}} transazioni",
-        "unknown_line": "Sconosciuto",
-        "processing": "Elaborazione immagine..."
-      },
+      
       "dashboard": {
         "welcome": "Bentornato",
         "scanning": "Sincronizzazione...",
@@ -2937,7 +2595,7 @@ const resources = {
         "sms_detection": "Rilevamento automatico degli SMS",
         "help_guide": "Aiuto e guida",
         "sms_explanation_title": "Accesso SMS richiesto",
-        "sms_explanation_body": "Momo Tracker ha bisogno di accedere ai tuoi messaggi SMS per rilevare e registrare automaticamente le tue transazioni Mobile Money. Eseguiamo la scansione solo dei messaggi provenienti dal tuo fornitore di Mobile Money per aiutarti a tenere traccia delle tue spese. I tuoi dati rimangono privati ​​sul tuo dispositivo.",
+        "sms_explanation_body": "Tally SMS ha bisogno di accedere ai tuoi messaggi SMS per rilevare e registrare automaticamente le tue transazioni Mobile Money. Eseguiamo la scansione solo dei messaggi provenienti dal tuo fornitore di Mobile Money per aiutarti a tenere traccia delle tue spese. I tuoi dati rimangono privati ​​sul tuo dispositivo.",
         "country_currency": "Paese e valuta",
         "manual_scan_desc": "Scansiona gli SMS esistenti per le transazioni"
       },
@@ -2969,25 +2627,7 @@ const resources = {
   },
   "ja": {
     "translation": {
-      "camera": {
-        "transactions_found_other": "{{count}} 件のトランザクションが見つかりました!",
-        "upload_gallery": "ギャラリーからアップロード",
-        "save_transactions_one": "{{count}} 件のトランザクションを保存",
-        "live_scan": "ライブスキャン",
-        "camera_denied": "カメラへのアクセスが拒否されました",
-        "no_transactions": "このファイルには有効なトランザクションが検出されませんでした。",
-        "upload_image": "画像をアップロードする",
-        "unknown_line": "未知",
-        "save_success": "無事に保存されました！",
-        "cancel": "キャンセル",
-        "title": "SMSをスキャンする",
-        "save_transactions_other": "{{count}} 件のトランザクションを保存",
-        "transactions_found_one": "{{count}} 件の取引が見つかりました!",
-        "instructions": "別の携帯電話のモバイル マネー SMS にカメラを向けます。ライブ スキャンの場合は、ゆっくりと下にスクロールしてすべての詳細をキャプチャします。 [写真を撮る] を使用して画面を直接キャプチャしたり、ギャラリーからスクリーンショットをアップロードしたりすることもできます。",
-        "stop_scan": "スキャンの停止",
-        "take_photo": "写真を撮る",
-        "processing": "画像を処理中..."
-      },
+      
       "dashboard": {
         "title": "ダッシュボード",
         "history": "歴史",
@@ -3117,7 +2757,7 @@ const resources = {
         "country_desc": "現地通貨を設定する",
         "manual_scan": "受信箱を手動でスキャンする",
         "country_currency": "国と通貨",
-        "sms_explanation_body": "Momo Tracker は、モバイル マネー取引を自動的に検出して記録するために、SMS メッセージにアクセスする必要があります。当社は、支出の追跡を支援するために、モバイル マネー プロバイダーからのメッセージのみをスキャンします。データはデバイス上でプライベートに保たれます。",
+        "sms_explanation_body": "Tally SMS は、モバイル マネー取引を自動的に検出して記録するために、SMS メッセージにアクセスする必要があります。当社は、支出の追跡を支援するために、モバイル マネー プロバイダーからのメッセージのみをスキャンします。データはデバイス上でプライベートに保たれます。",
         "sms_desc": "モバイルマネーのSMSを自動的に記録する",
         "help_guide": "ヘルプとガイド"
       }
@@ -3125,25 +2765,7 @@ const resources = {
   },
   "ko": {
     "translation": {
-      "camera": {
-        "camera_denied": "카메라 액세스가 거부되었습니다",
-        "save_transactions_one": "{{count}} 거래 저장",
-        "cancel": "취소",
-        "live_scan": "라이브 스캔",
-        "upload_gallery": "갤러리에서 업로드",
-        "upload_image": "이미지 업로드",
-        "save_transactions_other": "{{count}} 거래 저장",
-        "instructions": "카메라를 다른 휴대폰의 모바일 머니 SMS로 향하게 하세요. 라이브 스캔의 경우 천천히 아래로 스크롤하여 모든 세부 정보를 캡처하세요. 또한 사진 찍기를 사용하여 화면을 직접 캡처하거나 갤러리에서 스크린샷을 업로드할 수도 있습니다.",
-        "transactions_found_one": "{{count}}개의 거래가 발견되었습니다!",
-        "take_photo": "사진 찍기",
-        "transactions_found_other": "{{count}}건의 거래가 발견되었습니다!",
-        "title": "SMS 스캔",
-        "processing": "이미지 처리 중...",
-        "no_transactions": "이 파일에서는 유효한 거래가 감지되지 않습니다.",
-        "stop_scan": "스캔 중지",
-        "unknown_line": "알려지지 않은",
-        "save_success": "성공적으로 저장되었습니다!"
-      },
+      
       "history": {
         "deposits": "매장",
         "search_placeholder": "거래 검색...",
@@ -3251,7 +2873,7 @@ const resources = {
         "logout_lock": "로그아웃/앱 잠금",
         "manual_scan_desc": "거래를 위해 기존 SMS를 스캔하세요.",
         "sms_desc": "모바일머니 SMS 자동로그인",
-        "sms_explanation_body": "Momo Tracker는 모바일 머니 거래를 자동으로 감지하고 기록하려면 SMS 메시지에 액세스해야 합니다. 우리는 귀하의 지출을 추적하는 데 도움을 주기 위해 귀하의 모바일 머니 제공업체가 보낸 메시지만 스캔합니다. 귀하의 데이터는 귀하의 장치에 비공개로 유지됩니다."
+        "sms_explanation_body": "Tally SMS는 모바일 머니 거래를 자동으로 감지하고 기록하려면 SMS 메시지에 액세스해야 합니다. 우리는 귀하의 지출을 추적하는 데 도움을 주기 위해 귀하의 모바일 머니 제공업체가 보낸 메시지만 스캔합니다. 귀하의 데이터는 귀하의 장치에 비공개로 유지됩니다."
       },
       "reports": {
         "title": "보고서",
@@ -3281,25 +2903,7 @@ const resources = {
   },
   "ms": {
     "translation": {
-      "camera": {
-        "camera_denied": "Akses Kamera Ditolak",
-        "unknown_line": "Tidak diketahui",
-        "processing": "Memproses imej...",
-        "save_transactions_other": "Simpan {{count}} Transaksi",
-        "cancel": "Batal",
-        "title": "Imbas SMS",
-        "transactions_found_one": "{{count}} Transaksi Ditemui!",
-        "instructions": "Halakan kamera pada SMS wang mudah alih pada telefon lain. Untuk Imbasan Langsung, tatal perlahan ke bawah untuk menangkap semua butiran. Anda juga boleh menggunakan Ambil Foto untuk menangkap skrin secara terus atau memuat naik tangkapan skrin daripada Galeri.",
-        "take_photo": "Ambil Foto",
-        "save_transactions_one": "Simpan {{count}} Transaksi",
-        "stop_scan": "Hentikan Imbasan",
-        "transactions_found_other": "{{count}} Transaksi Ditemui!",
-        "upload_image": "Muat Naik Imej",
-        "save_success": "Berjaya disimpan!",
-        "no_transactions": "Tiada transaksi yang sah dikesan dalam fail ini.",
-        "live_scan": "Imbasan Langsung",
-        "upload_gallery": "Muat naik daripada Galeri"
-      },
+      
       "common": {
         "loading": "Memproses...",
         "upgrade": "Naik taraf kepada Premium",
@@ -3395,7 +2999,7 @@ const resources = {
         "country_currency": "Negara & Mata Wang",
         "country_desc": "Tetapkan mata wang tempatan anda",
         "help_guide": "Bantuan & Panduan",
-        "sms_explanation_body": "Momo Tracker memerlukan akses kepada mesej SMS anda untuk mengesan dan log transaksi Wang Mudah Alih anda secara automatik. Kami hanya mengimbas mesej daripada pembekal Wang Mudah Alih anda untuk membantu anda menjejaki perbelanjaan anda. Data anda kekal peribadi pada peranti anda.",
+        "sms_explanation_body": "Tally SMS memerlukan akses kepada mesej SMS anda untuk mengesan dan log transaksi Wang Mudah Alih anda secara automatik. Kami hanya mengimbas mesej daripada pembekal Wang Mudah Alih anda untuk membantu anda menjejaki perbelanjaan anda. Data anda kekal peribadi pada peranti anda.",
         "backup": "Data Sandaran",
         "data": "Data"
       },
@@ -3437,25 +3041,7 @@ const resources = {
   },
   "mr": {
     "translation": {
-      "camera": {
-        "save_transactions_one": "{{count}} व्यवहार जतन करा",
-        "camera_denied": "कॅमेरा प्रवेश नाकारला",
-        "no_transactions": "या फाइलमध्ये कोणतेही वैध व्यवहार आढळले नाहीत.",
-        "processing": "इमेजवर प्रक्रिया करत आहे...",
-        "transactions_found_one": "{{count}} व्यवहार सापडला!",
-        "upload_image": "प्रतिमा अपलोड करा",
-        "transactions_found_other": "{{count}} व्यवहार सापडले!",
-        "cancel": "रद्द करा",
-        "title": "एसएमएस स्कॅन करा",
-        "stop_scan": "स्कॅन थांबवा",
-        "save_success": "यशस्वीरित्या जतन केले!",
-        "upload_gallery": "गॅलरीमधून अपलोड करा",
-        "live_scan": "थेट स्कॅन",
-        "take_photo": "फोटो घ्या",
-        "instructions": "दुसऱ्या फोनवरील मोबाईल मनी एसएमएसकडे कॅमेरा पॉइंट करा. थेट स्कॅनसाठी, सर्व तपशील कॅप्चर करण्यासाठी हळू हळू खाली स्क्रोल करा. तुम्ही थेट स्क्रीन कॅप्चर करण्यासाठी किंवा गॅलरीमधून स्क्रीनशॉट अपलोड करण्यासाठी फोटो घ्या वापरू शकता.",
-        "unknown_line": "अज्ञात",
-        "save_transactions_other": "{{count}} व्यवहार जतन करा"
-      },
+      
       "common": {
         "upgrade_now": "आता अपग्रेड करा",
         "loading": "प्रक्रिया करत आहे...",
@@ -3593,25 +3179,7 @@ const resources = {
   },
   "no": {
     "translation": {
-      "camera": {
-        "upload_image": "Last opp bilde",
-        "title": "Skann SMS",
-        "instructions": "Pek kameraet mot en mobilpenge-SMS på en annen telefon. For Live Scan, bla sakte ned for å fange alle detaljer. Du kan også bruke Ta bilde for å ta en skjerm direkte, eller laste opp skjermbilder fra Galleri.",
-        "take_photo": "Ta bilde",
-        "live_scan": "Live Scan",
-        "stop_scan": "Stopp skanning",
-        "transactions_found_other": "{{count}} transaksjoner funnet!",
-        "save_transactions_other": "Lagre {{count}} transaksjoner",
-        "cancel": "Kansellere",
-        "save_transactions_one": "Lagre {{count}} transaksjon",
-        "no_transactions": "Ingen gyldige transaksjoner oppdaget i denne filen.",
-        "transactions_found_one": "{{count}} transaksjon funnet!",
-        "processing": "Behandler bilde...",
-        "save_success": "Lagret vellykket!",
-        "upload_gallery": "Last opp fra Galleri",
-        "camera_denied": "Kameratilgang nektet",
-        "unknown_line": "Ukjent"
-      },
+      
       "dashboard": {
         "history": "Historie",
         "welcome": "Velkommen tilbake",
@@ -3637,7 +3205,7 @@ const resources = {
         "about": "Om",
         "language": "Språk",
         "manual_scan_desc": "Skann eksisterende SMS for transaksjoner",
-        "sms_explanation_body": "Momo Tracker trenger tilgang til SMS-meldingene dine for automatisk å oppdage og logge mobilpengetransaksjonene dine. Vi skanner kun meldinger fra mobilpengerleverandøren din for å hjelpe deg med å spore forbruket ditt. Dataene dine forblir private på enheten din.",
+        "sms_explanation_body": "Tally SMS trenger tilgang til SMS-meldingene dine for automatisk å oppdage og logge mobilpengetransaksjonene dine. Vi skanner kun meldinger fra mobilpengerleverandøren din for å hjelpe deg med å spore forbruket ditt. Dataene dine forblir private på enheten din.",
         "clear_data": "Fjern alle data",
         "logout_lock": "Logg ut / lås app",
         "sms_explanation_title": "SMS-tilgang kreves",
@@ -3749,25 +3317,7 @@ const resources = {
   },
   "fa": {
     "translation": {
-      "camera": {
-        "upload_image": "آپلود تصویر",
-        "camera_denied": "دسترسی به دوربین ممنوع شد",
-        "save_transactions_other": "ذخیره {{count}} تراکنش",
-        "transactions_found_one": "{{count}} تراکنش پیدا شد!",
-        "unknown_line": "ناشناس",
-        "live_scan": "اسکن زنده",
-        "no_transactions": "هیچ تراکنش معتبری در این فایل شناسایی نشد.",
-        "processing": "در حال پردازش تصویر...",
-        "stop_scan": "اسکن را متوقف کنید",
-        "transactions_found_other": "{{count}} تراکنش پیدا شد!",
-        "cancel": "لغو کنید",
-        "save_success": "با موفقیت ذخیره شد!",
-        "instructions": "دوربین را به سمت پیامک پول همراه روی تلفن دیگری بگیرید. برای اسکن زنده، به آرامی به پایین بروید تا همه جزئیات را ثبت کنید. همچنین می توانید از Take Photo برای گرفتن مستقیم یک صفحه یا آپلود اسکرین شات از گالری استفاده کنید.",
-        "save_transactions_one": "ذخیره {{count}} تراکنش",
-        "upload_gallery": "آپلود از گالری",
-        "title": "اسکن اس ام اس",
-        "take_photo": "عکس بگیرید"
-      },
+      
       "common": {
         "upgrade": "به Premium ارتقا دهید",
         "loading": "در حال پردازش...",
@@ -3899,31 +3449,13 @@ const resources = {
         "manual_scan": "اسکن دستی صندوق ورودی",
         "sms_detection": "تشخیص خودکار پیامک",
         "sms_explanation_title": "دسترسی به پیامک الزامی است",
-        "sms_explanation_body": "Momo Tracker برای شناسایی و ثبت تراکنش‌های Mobile Money شما به پیام‌های SMS شما نیاز دارد. ما فقط پیام‌های ارائه‌دهنده پول موبایل شما را اسکن می‌کنیم تا به شما کمک کنیم هزینه‌های خود را پیگیری کنید. داده های شما در دستگاه شما خصوصی می ماند."
+        "sms_explanation_body": "Tally SMS برای شناسایی و ثبت تراکنش‌های Mobile Money شما به پیام‌های SMS شما نیاز دارد. ما فقط پیام‌های ارائه‌دهنده پول موبایل شما را اسکن می‌کنیم تا به شما کمک کنیم هزینه‌های خود را پیگیری کنید. داده های شما در دستگاه شما خصوصی می ماند."
       }
     }
   },
   "pl": {
     "translation": {
-      "camera": {
-        "title": "Skanuj SMS-y",
-        "camera_denied": "Odmowa dostępu do aparatu",
-        "save_transactions_one": "Zapisz {{count}} transakcję",
-        "save_success": "Zapisano pomyślnie!",
-        "transactions_found_other": "Znaleziono transakcje: {{count}}!",
-        "upload_gallery": "Prześlij z galerii",
-        "take_photo": "Zrób zdjęcie",
-        "cancel": "Anulować",
-        "transactions_found_one": "Znaleziono {{count}} transakcję!",
-        "upload_image": "Prześlij obraz",
-        "stop_scan": "Zatrzymaj skanowanie",
-        "processing": "Przetwarzanie obrazu...",
-        "unknown_line": "Nieznany",
-        "save_transactions_other": "Zapisz {{count}} transakcji",
-        "no_transactions": "W tym pliku nie wykryto żadnych prawidłowych transakcji.",
-        "instructions": "Skieruj aparat na SMS-a o pieniądzach mobilnych na innym telefonie. W przypadku skanowania na żywo powoli przewiń w dół, aby uchwycić wszystkie szczegóły. Możesz także użyć opcji Zrób zdjęcie, aby bezpośrednio przechwycić ekran lub przesłać zrzuty ekranu z Galerii.",
-        "live_scan": "Skanowanie na żywo"
-      },
+      
       "common": {
         "upgrade": "Uaktualnij do wersji Premium",
         "loading": "Przetwarzanie...",
@@ -3976,7 +3508,7 @@ const resources = {
         "country_currency": "Kraj i waluta",
         "help_guide": "Pomoc i przewodnik",
         "manual_scan": "Ręczne skanowanie skrzynki odbiorczej",
-        "sms_explanation_body": "Momo Tracker potrzebuje dostępu do Twoich wiadomości SMS, aby automatycznie wykrywać i rejestrować transakcje Mobile Money. Skanujemy tylko wiadomości od Twojego dostawcy Mobile Money, aby pomóc Ci śledzić swoje wydatki. Twoje dane pozostają prywatne na Twoim urządzeniu.",
+        "sms_explanation_body": "Tally SMS potrzebuje dostępu do Twoich wiadomości SMS, aby automatycznie wykrywać i rejestrować transakcje Mobile Money. Skanujemy tylko wiadomości od Twojego dostawcy Mobile Money, aby pomóc Ci śledzić swoje wydatki. Twoje dane pozostają prywatne na Twoim urządzeniu.",
         "sms_explanation_title": "Wymagany dostęp SMS",
         "logout_lock": "Wyloguj się/zablokuj aplikację"
       },
@@ -4061,25 +3593,7 @@ const resources = {
   },
   "ro": {
     "translation": {
-      "camera": {
-        "cancel": "Anula",
-        "live_scan": "Scanare în direct",
-        "unknown_line": "Necunoscut",
-        "no_transactions": "Nu au fost detectate tranzacții valide în acest fișier.",
-        "save_success": "Salvat cu succes!",
-        "upload_image": "Încărcați imaginea",
-        "instructions": "Îndreptați camera către un SMS cu bani mobil de pe alt telefon. Pentru Live Scan, derulați încet în jos pentru a captura toate detaliile. De asemenea, puteți utiliza Take Photo pentru a captura un ecran direct sau pentru a încărca capturi de ecran din Galerie.",
-        "processing": "Se procesează imaginea...",
-        "transactions_found_other": "{{count}} tranzacții găsite!",
-        "camera_denied": "Acces la cameră interzis",
-        "stop_scan": "Opriți scanarea",
-        "save_transactions_one": "Salvați {{count}} tranzacție",
-        "transactions_found_one": "{{count}} tranzacție găsită!",
-        "save_transactions_other": "Salvați {{count}} tranzacții",
-        "title": "Scanați SMS-uri",
-        "upload_gallery": "Încărcați din Galerie",
-        "take_photo": "Faceți o fotografie"
-      },
+      
       "common": {
         "upgrade": "Faceți upgrade la Premium",
         "loading": "Prelucrare...",
@@ -4185,7 +3699,7 @@ const resources = {
         "backup": "Date de rezervă",
         "share_app": "Partajați aplicația",
         "dark_mode_desc": "Comutați aspectul aplicației",
-        "sms_explanation_body": "Momo Tracker are nevoie de acces la mesajele dvs. SMS pentru a detecta și înregistra automat tranzacțiile dvs. MoMo Money. Scanăm doar mesajele de la furnizorul dvs. de bani mobili pentru a vă ajuta să vă urmăriți cheltuielile. Datele dvs. rămân private pe dispozitiv.",
+        "sms_explanation_body": "Tally SMS are nevoie de acces la mesajele dvs. SMS pentru a detecta și înregistra automat tranzacțiile dvs. MoMo Money. Scanăm doar mesajele de la furnizorul dvs. de bani mobili pentru a vă ajuta să vă urmăriți cheltuielile. Datele dvs. rămân private pe dispozitiv.",
         "rate_us": "Evaluează-ne",
         "clear_data": "Ștergeți toate datele"
       },
@@ -4217,25 +3731,7 @@ const resources = {
   },
   "ru": {
     "translation": {
-      "camera": {
-        "upload_image": "Загрузить изображение",
-        "cancel": "Отмена",
-        "take_photo": "Сфотографироваться",
-        "processing": "Обработка изображения...",
-        "no_transactions": "В этом файле не обнаружено действительных транзакций.",
-        "title": "Сканировать СМС",
-        "live_scan": "Живое сканирование",
-        "stop_scan": "Остановить сканирование",
-        "instructions": "Наведите камеру на SMS-сообщение с мобильными деньгами на другом телефоне. Для сканирования в реальном времени медленно прокрутите вниз, чтобы получить все детали. Вы также можете использовать «Сделать фото», чтобы сделать снимок экрана напрямую, или загрузить снимки экрана из галереи.",
-        "save_transactions_other": "Сохранить {{count}} транзакций",
-        "unknown_line": "Неизвестный",
-        "transactions_found_one": "{{count}} Транзакция найдена!",
-        "upload_gallery": "Загрузить из галереи",
-        "camera_denied": "Доступ к камере запрещен",
-        "save_transactions_one": "Сохранить {{count}} транзакцию",
-        "transactions_found_other": "Обнаружено {{count}} транзакций!",
-        "save_success": "Сохранено успешно!"
-      },
+      
       "history": {
         "title": "История",
         "filter_all": "Все",
@@ -4282,7 +3778,7 @@ const resources = {
         "logout_lock": "Выйти/заблокировать приложение",
         "sms_detection": "Автоопределение СМС",
         "manual_scan_desc": "Сканировать существующие SMS на предмет транзакций",
-        "sms_explanation_body": "Momo Tracker необходим доступ к вашим SMS-сообщениям, чтобы автоматически обнаруживать и регистрировать ваши транзакции с мобильных денег. Мы сканируем только сообщения от вашего провайдера мобильных денег, чтобы помочь вам отслеживать свои расходы. Ваши данные остаются конфиденциальными на вашем устройстве."
+        "sms_explanation_body": "Tally SMS необходим доступ к вашим SMS-сообщениям, чтобы автоматически обнаруживать и регистрировать ваши транзакции с мобильных денег. Мы сканируем только сообщения от вашего провайдера мобильных денег, чтобы помочь вам отслеживать свои расходы. Ваши данные остаются конфиденциальными на вашем устройстве."
       },
       "dashboard": {
         "welcome": "Добро пожаловать",
@@ -4373,25 +3869,7 @@ const resources = {
   },
   "sv": {
     "translation": {
-      "camera": {
-        "instructions": "Rikta kameran mot ett mobilpengar-SMS på en annan telefon. För Live Scan, scrolla långsamt nedåt för att fånga alla detaljer. Du kan också använda Ta foto för att ta en skärm direkt, eller ladda upp skärmdumpar från Galleri.",
-        "stop_scan": "Stoppa skanning",
-        "no_transactions": "Inga giltiga transaktioner upptäcktes i den här filen.",
-        "save_transactions_other": "Spara {{count}} transaktioner",
-        "save_transactions_one": "Spara {{count}} transaktion",
-        "camera_denied": "Kameraåtkomst nekad",
-        "live_scan": "Live Scan",
-        "take_photo": "Ta foto",
-        "unknown_line": "Okänd",
-        "transactions_found_other": "{{count}} transaktioner hittades!",
-        "cancel": "Avboka",
-        "save_success": "Sparad framgångsrikt!",
-        "upload_image": "Ladda upp bild",
-        "upload_gallery": "Ladda upp från Galleri",
-        "title": "Skanna SMS",
-        "processing": "Bearbetar bild...",
-        "transactions_found_one": "{{count}} transaktion hittades!"
-      },
+      
       "common": {
         "upgrade": "Uppgradera till Premium",
         "loading": "Bearbetar...",
@@ -4426,7 +3904,7 @@ const resources = {
         "logout_lock": "Logga ut/lås appen",
         "sms_desc": "Logga automatiskt Mobile Money SMS",
         "manual_scan_desc": "Skanna befintliga SMS för transaktioner",
-        "sms_explanation_body": "Momo Tracker behöver åtkomst till dina SMS-meddelanden för att automatiskt upptäcka och logga dina mobilpengartransaktioner. Vi skannar endast meddelanden från din mobilpengarleverantör för att hjälpa dig spåra dina utgifter. Din data förblir privat på din enhet.",
+        "sms_explanation_body": "Tally SMS behöver åtkomst till dina SMS-meddelanden för att automatiskt upptäcka och logga dina mobilpengartransaktioner. Vi skannar endast meddelanden från din mobilpengarleverantör för att hjälpa dig spåra dina utgifter. Din data förblir privat på din enhet.",
         "sms_detection": "SMS Auto-detektion",
         "manual_scan": "Inkorgen för manuell skanning",
         "help_guide": "Hjälp & guide",
@@ -4529,25 +4007,7 @@ const resources = {
   },
   "tl": {
     "translation": {
-      "camera": {
-        "live_scan": "Live Scan",
-        "upload_image": "Mag-upload ng Larawan",
-        "stop_scan": "Itigil ang Pag-scan",
-        "no_transactions": "Walang natukoy na wastong transaksyon sa file na ito.",
-        "cancel": "Kanselahin",
-        "transactions_found_other": "{{count}} Mga Transaksyon na Nahanap!",
-        "save_transactions_other": "Makatipid ng {{count}} na mga Transaksyon",
-        "unknown_line": "Hindi kilala",
-        "take_photo": "Kumuha ng Larawan",
-        "camera_denied": "Tinanggihan ang Access sa Camera",
-        "processing": "Pinoproseso ang larawan...",
-        "transactions_found_one": "{{count}} Nahanap ang Transaksyon!",
-        "instructions": "Ituro ang camera sa isang mobile money SMS sa isa pang telepono. Para sa Live Scan, dahan-dahang mag-scroll pababa para makuha ang lahat ng detalye. Maaari mo ring gamitin ang Kumuha ng Larawan upang direktang kumuha ng screen, o mag-upload ng mga screenshot mula sa Gallery.",
-        "upload_gallery": "Mag-upload mula sa Gallery",
-        "title": "I-scan ang SMS",
-        "save_transactions_one": "I-save ang {{count}} na Transaksyon",
-        "save_success": "Matagumpay na na-save!"
-      },
+      
       "dashboard": {
         "history": "Kasaysayan",
         "welcome": "Maligayang pagbabalik",
@@ -4588,7 +4048,7 @@ const resources = {
         "share_app": "Ibahagi ang App",
         "change_pin": "Baguhin ang PIN",
         "backup": "Backup na Data",
-        "sms_explanation_body": "Kailangan ng Momo Tracker ng access sa iyong mga SMS message para awtomatikong makita at mai-log ang iyong mga transaksyon sa Mobile Money. Ini-scan lang namin ang mga mensahe mula sa iyong Mobile Money provider upang matulungan kang subaybayan ang iyong paggastos. Nananatiling pribado ang iyong data sa iyong device."
+        "sms_explanation_body": "Kailangan ng Tally SMS ng access sa iyong mga SMS message para awtomatikong makita at mai-log ang iyong mga transaksyon sa Mobile Money. Ini-scan lang namin ang mga mensahe mula sa iyong Mobile Money provider upang matulungan kang subaybayan ang iyong paggastos. Nananatiling pribado ang iyong data sa iyong device."
       },
       "history": {
         "received": "Natanggap",
@@ -4685,25 +4145,7 @@ const resources = {
   },
   "ta": {
     "translation": {
-      "camera": {
-        "transactions_found_one": "{{count}} பரிவர்த்தனை கண்டறியப்பட்டது!",
-        "save_success": "வெற்றிகரமாக சேமிக்கப்பட்டது!",
-        "save_transactions_other": "{{count}} பரிவர்த்தனைகளைச் சேமிக்கவும்",
-        "instructions": "மற்றொரு ஃபோனில் உள்ள மொபைல் பண எஸ்எம்எஸ் மீது கேமராவைக் காட்டவும். லைவ் ஸ்கேனுக்கு, எல்லா விவரங்களையும் படமெடுக்க மெதுவாக கீழே உருட்டவும். நீங்கள் நேரடியாக ஒரு திரையைப் பிடிக்க புகைப்படம் எடுக்கலாம் அல்லது கேலரியில் இருந்து ஸ்கிரீன் ஷாட்களைப் பதிவேற்றலாம்.",
-        "camera_denied": "கேமரா அணுகல் மறுக்கப்பட்டது",
-        "title": "எஸ்எம்எஸ் ஸ்கேன் செய்யவும்",
-        "upload_image": "படத்தை பதிவேற்றவும்",
-        "upload_gallery": "கேலரியில் இருந்து பதிவேற்றவும்",
-        "save_transactions_one": "{{count}} பரிவர்த்தனையைச் சேமிக்கவும்",
-        "transactions_found_other": "{{count}} பரிவர்த்தனைகள் கண்டறியப்பட்டன!",
-        "take_photo": "புகைப்படம் எடு",
-        "cancel": "ரத்து செய்",
-        "live_scan": "நேரடி ஸ்கேன்",
-        "unknown_line": "தெரியவில்லை",
-        "no_transactions": "இந்தக் கோப்பில் சரியான பரிவர்த்தனைகள் எதுவும் கண்டறியப்படவில்லை.",
-        "stop_scan": "நிறுத்து ஸ்கேன்",
-        "processing": "படத்தை செயலாக்குகிறது..."
-      },
+      
       "history": {
         "download_report": "அறிக்கையைப் பதிவிறக்கவும்",
         "deposits": "வைப்புத்தொகை",
@@ -4841,25 +4283,7 @@ const resources = {
   },
   "te": {
     "translation": {
-      "camera": {
-        "stop_scan": "ఆపు స్కాన్",
-        "live_scan": "ప్రత్యక్ష స్కాన్",
-        "transactions_found_other": "{{count}} లావాదేవీలు కనుగొనబడ్డాయి!",
-        "save_success": "విజయవంతంగా సేవ్ చేయబడింది!",
-        "instructions": "మరొక ఫోన్‌లోని మొబైల్ మనీ SMS వైపు కెమెరాను సూచించండి. లైవ్ స్కాన్ కోసం, అన్ని వివరాలను క్యాప్చర్ చేయడానికి నెమ్మదిగా క్రిందికి స్క్రోల్ చేయండి. మీరు స్క్రీన్‌ను నేరుగా క్యాప్చర్ చేయడానికి లేదా గ్యాలరీ నుండి స్క్రీన్‌షాట్‌లను అప్‌లోడ్ చేయడానికి ఫోటో తీయడాన్ని కూడా ఉపయోగించవచ్చు.",
-        "processing": "చిత్రాన్ని ప్రాసెస్ చేస్తోంది...",
-        "no_transactions": "ఈ ఫైల్‌లో చెల్లుబాటు అయ్యే లావాదేవీలు ఏవీ కనుగొనబడలేదు.",
-        "save_transactions_one": "{{count}} లావాదేవీని సేవ్ చేయండి",
-        "upload_image": "చిత్రాన్ని అప్‌లోడ్ చేయండి",
-        "transactions_found_one": "{{count}} లావాదేవీ కనుగొనబడింది!",
-        "cancel": "రద్దు చేయి",
-        "title": "SMSని స్కాన్ చేయండి",
-        "unknown_line": "తెలియదు",
-        "camera_denied": "కెమెరా యాక్సెస్ నిరాకరించబడింది",
-        "save_transactions_other": "{{count}} లావాదేవీలను సేవ్ చేయండి",
-        "upload_gallery": "గ్యాలరీ నుండి అప్‌లోడ్ చేయండి",
-        "take_photo": "ఫోటో తీయండి"
-      },
+      
       "reports": {
         "select_date": "తేదీని ఎంచుకోండి",
         "today": "ఈరోజు",
@@ -4997,25 +4421,7 @@ const resources = {
   },
   "th": {
     "translation": {
-      "camera": {
-        "take_photo": "ถ่ายภาพ",
-        "title": "สแกน SMS",
-        "transactions_found_other": "พบธุรกรรม {{count}} รายการ!",
-        "upload_image": "อัพโหลดรูปภาพ",
-        "camera_denied": "การเข้าถึงกล้องถูกปฏิเสธ",
-        "live_scan": "สแกนสด",
-        "processing": "กำลังประมวลผลภาพ...",
-        "save_transactions_one": "บันทึกธุรกรรม {{count}} รายการ",
-        "transactions_found_one": "พบธุรกรรม {{count}} รายการ!",
-        "cancel": "ยกเลิก",
-        "no_transactions": "ไม่พบธุรกรรมที่ถูกต้องในไฟล์นี้",
-        "instructions": "เล็งกล้องไปที่ SMS เงินบนมือถือในโทรศัพท์เครื่องอื่น สำหรับ Live Scan ให้เลื่อนลงช้าๆ เพื่อเก็บรายละเอียดทั้งหมด คุณยังสามารถใช้ Take Photo เพื่อจับภาพหน้าจอได้โดยตรง หรืออัปโหลดภาพหน้าจอจากแกลเลอรี",
-        "unknown_line": "ไม่ทราบ",
-        "stop_scan": "หยุดการสแกน",
-        "save_success": "บันทึกเรียบร้อยแล้ว!",
-        "save_transactions_other": "บันทึกธุรกรรม {{count}} รายการ",
-        "upload_gallery": "อัปโหลดจากแกลเลอรี"
-      },
+      
       "common": {
         "upgrade_now": "อัพเกรดทันที",
         "loading": "กำลังประมวลผล...",
@@ -5068,7 +4474,7 @@ const resources = {
         "backup": "ข้อมูลสำรอง",
         "manual_scan": "กล่องจดหมายสแกนด้วยตนเอง",
         "sms_detection": "การตรวจจับ SMS อัตโนมัติ",
-        "sms_explanation_body": "Momo Tracker ต้องการเข้าถึงข้อความ SMS ของคุณเพื่อตรวจจับและบันทึกธุรกรรมเงินมือถือของคุณโดยอัตโนมัติ เราสแกนเฉพาะข้อความจากผู้ให้บริการเงินมือถือของคุณเพื่อช่วยคุณติดตามการใช้จ่ายของคุณ ข้อมูลของคุณยังคงเป็นส่วนตัวบนอุปกรณ์ของคุณ",
+        "sms_explanation_body": "Tally SMS ต้องการเข้าถึงข้อความ SMS ของคุณเพื่อตรวจจับและบันทึกธุรกรรมเงินมือถือของคุณโดยอัตโนมัติ เราสแกนเฉพาะข้อความจากผู้ให้บริการเงินมือถือของคุณเพื่อช่วยคุณติดตามการใช้จ่ายของคุณ ข้อมูลของคุณยังคงเป็นส่วนตัวบนอุปกรณ์ของคุณ",
         "manual_scan_desc": "สแกน SMS ที่มีอยู่สำหรับการทำธุรกรรม",
         "change_pin": "เปลี่ยนรหัส PIN"
       },
@@ -5153,25 +4559,7 @@ const resources = {
   },
   "tr": {
     "translation": {
-      "camera": {
-        "take_photo": "Fotoğraf Çek",
-        "cancel": "İptal etmek",
-        "live_scan": "Canlı Tarama",
-        "processing": "Resim işleniyor...",
-        "instructions": "Kamerayı başka bir telefondaki mobil para SMS'ine doğrultun. Canlı Tarama için tüm ayrıntıları yakalamak üzere yavaşça aşağı kaydırın. Doğrudan bir ekran yakalamak veya Galeri'den ekran görüntüleri yüklemek için Fotoğraf Çek'i de kullanabilirsiniz.",
-        "unknown_line": "Bilinmiyor",
-        "transactions_found_other": "{{count}} İşlem Bulundu!",
-        "camera_denied": "Kamera Erişimi Reddedildi",
-        "save_transactions_other": "{{count}} İşlemi Kaydet",
-        "save_success": "Başarıyla kaydedildi!",
-        "stop_scan": "Taramayı Durdur",
-        "title": "SMS'i tara",
-        "transactions_found_one": "{{count}} İşlem Bulundu!",
-        "save_transactions_one": "{{count}} İşlemi Kaydet",
-        "upload_gallery": "Galeriden yükle",
-        "no_transactions": "Bu dosyada geçerli bir işlem algılanmadı.",
-        "upload_image": "Resim Yükle"
-      },
+      
       "reports": {
         "this_month": "Bu Ay",
         "this_week": "Bu hafta",
@@ -5267,7 +4655,7 @@ const resources = {
         "logout_lock": "Oturumu Kapat / Uygulamayı Kilitle",
         "sms_desc": "Mobil Para SMS'ini otomatik olarak kaydet",
         "manual_scan_desc": "İşlemler için mevcut SMS'i tarayın",
-        "sms_explanation_body": "Momo Tracker'ın Mobil Para işlemlerinizi otomatik olarak algılayıp günlüğe kaydetmesi için SMS mesajlarınıza erişmesi gerekiyor. Harcamalarınızı takip etmenize yardımcı olmak için yalnızca Mobil Para sağlayıcınızdan gelen mesajları tarıyoruz. Verileriniz cihazınızda gizli kalır.",
+        "sms_explanation_body": "Tally SMS'ın Mobil Para işlemlerinizi otomatik olarak algılayıp günlüğe kaydetmesi için SMS mesajlarınıza erişmesi gerekiyor. Harcamalarınızı takip etmenize yardımcı olmak için yalnızca Mobil Para sağlayıcınızdan gelen mesajları tarıyoruz. Verileriniz cihazınızda gizli kalır.",
         "sms_detection": "SMS Otomatik Algılama",
         "help_guide": "Yardım ve Rehber"
       },
@@ -5309,25 +4697,7 @@ const resources = {
   },
   "uk": {
     "translation": {
-      "camera": {
-        "no_transactions": "У цьому файлі не виявлено дійсних транзакцій.",
-        "live_scan": "Живе сканування",
-        "unknown_line": "Невідомий",
-        "save_transactions_other": "Збережіть {{count}} трансакцій",
-        "processing": "Обробка зображення...",
-        "upload_image": "Завантажити зображення",
-        "cancel": "Скасувати",
-        "upload_gallery": "Завантажити з галереї",
-        "instructions": "Наведіть камеру на мобільне SMS з грошима на іншому телефоні. Для сканування в реальному часі повільно прокручуйте вниз, щоб зафіксувати всі деталі. Ви також можете використовувати функцію «Зробити фотографію», щоб безпосередньо зробити знімок екрана, або завантажити знімки екрана з Галереї.",
-        "stop_scan": "Зупинити сканування",
-        "take_photo": "Зробіть фото",
-        "transactions_found_other": "Знайдено трансакцій: {{count}}!",
-        "transactions_found_one": "{{count}} трансакцію знайдено!",
-        "save_success": "Успішно збережено!",
-        "title": "Сканувати SMS",
-        "camera_denied": "Доступ до камери заборонено",
-        "save_transactions_one": "Зберегти {{count}} трансакцію"
-      },
+      
       "settings": {
         "preferences": "Уподобання",
         "sms_explanation_btn": "Продовжити",
@@ -5355,7 +4725,7 @@ const resources = {
         "help_guide": "Довідка та посібник",
         "logout_lock": "Вийти / заблокувати додаток",
         "country_currency": "Країна та валюта",
-        "sms_explanation_body": "Momo Tracker потребує доступу до ваших SMS-повідомлень, щоб автоматично виявляти та реєструвати ваші транзакції Mobile Money. Ми скануємо лише повідомлення від вашого постачальника мобільних грошей, щоб допомогти вам відстежувати свої витрати. Ваші дані залишаються конфіденційними на вашому пристрої."
+        "sms_explanation_body": "Tally SMS потребує доступу до ваших SMS-повідомлень, щоб автоматично виявляти та реєструвати ваші транзакції Mobile Money. Ми скануємо лише повідомлення від вашого постачальника мобільних грошей, щоб допомогти вам відстежувати свої витрати. Ваші дані залишаються конфіденційними на вашому пристрої."
       },
       "dashboard": {
         "history": "історія",
@@ -5465,25 +4835,7 @@ const resources = {
   },
   "ur": {
     "translation": {
-      "camera": {
-        "save_transactions_one": "{{count}} ٹرانزیکشن محفوظ کریں۔",
-        "camera_denied": "کیمرے تک رسائی سے انکار کر دیا گیا۔",
-        "save_success": "کامیابی سے محفوظ ہو گیا!",
-        "cancel": "منسوخ کریں۔",
-        "take_photo": "تصویر لیں",
-        "processing": "تصویر پر کارروائی ہو رہی ہے...",
-        "upload_image": "تصویر اپ لوڈ کریں۔",
-        "transactions_found_other": "{{count}} لین دین مل گئے!",
-        "transactions_found_one": "{{count}} ٹرانزیکشن مل گیا!",
-        "upload_gallery": "گیلری سے اپ لوڈ کریں۔",
-        "save_transactions_other": "{{count}} لین دین محفوظ کریں۔",
-        "no_transactions": "اس فائل میں کوئی درست لین دین نہیں پایا گیا۔",
-        "title": "ایس ایم ایس اسکین کریں۔",
-        "instructions": "کیمرے کو دوسرے فون پر موبائل منی ایس ایم ایس کی طرف اشارہ کریں۔ لائیو اسکین کے لیے، تمام تفصیلات حاصل کرنے کے لیے آہستہ آہستہ نیچے سکرول کریں۔ آپ براہ راست اسکرین کیپچر کرنے یا گیلری سے اسکرین شاٹس اپ لوڈ کرنے کے لیے فوٹو لیں کا استعمال بھی کر سکتے ہیں۔",
-        "live_scan": "لائیو اسکین",
-        "stop_scan": "اسکین بند کریں۔",
-        "unknown_line": "نامعلوم"
-      },
+      
       "history": {
         "download_report": "رپورٹ ڈاؤن لوڈ کریں۔",
         "deposits": "جمع",
@@ -5621,25 +4973,7 @@ const resources = {
   },
   "vi": {
     "translation": {
-      "camera": {
-        "take_photo": "Chụp ảnh",
-        "camera_denied": "Truy cập máy ảnh bị từ chối",
-        "stop_scan": "Dừng quét",
-        "unknown_line": "Không xác định",
-        "no_transactions": "Không phát hiện thấy giao dịch hợp lệ nào trong tệp này.",
-        "transactions_found_other": "Đã tìm thấy {{count}} giao dịch!",
-        "upload_image": "Tải hình ảnh lên",
-        "instructions": "Hướng máy ảnh vào tin nhắn SMS kiếm tiền trên điện thoại di động khác. Đối với Live Scan, hãy từ từ cuộn xuống để nắm bắt mọi chi tiết. Bạn cũng có thể sử dụng Chụp ảnh để chụp màn hình trực tiếp hoặc tải ảnh chụp màn hình lên từ Thư viện.",
-        "save_success": "Đã lưu thành công!",
-        "save_transactions_other": "Lưu {{count}} giao dịch",
-        "title": "Quét tin nhắn SMS",
-        "cancel": "Hủy bỏ",
-        "transactions_found_one": "Đã tìm thấy giao dịch {{count}}!",
-        "save_transactions_one": "Lưu {{count}} giao dịch",
-        "upload_gallery": "Tải lên từ Thư viện",
-        "live_scan": "Quét trực tiếp",
-        "processing": "Đang xử lý hình ảnh..."
-      },
+      
       "history": {
         "commission": "Nhiệm vụ",
         "title": "Lịch sử",
@@ -5691,7 +5025,7 @@ const resources = {
         "sms_detection": "Tự động phát hiện SMS",
         "dark_mode_desc": "Chuyển đổi giao diện ứng dụng",
         "preferences": "Tùy chọn",
-        "sms_explanation_body": "Momo Tracker cần quyền truy cập vào tin nhắn SMS của bạn để tự động phát hiện và ghi lại các giao dịch Mobile Money của bạn. Chúng tôi chỉ quét tin nhắn từ nhà cung cấp Mobile Money của bạn để giúp bạn theo dõi chi tiêu của mình. Dữ liệu của bạn vẫn ở chế độ riêng tư trên thiết bị của bạn.",
+        "sms_explanation_body": "Tally SMS cần quyền truy cập vào tin nhắn SMS của bạn để tự động phát hiện và ghi lại các giao dịch Mobile Money của bạn. Chúng tôi chỉ quét tin nhắn từ nhà cung cấp Mobile Money của bạn để giúp bạn theo dõi chi tiêu của mình. Dữ liệu của bạn vẫn ở chế độ riêng tư trên thiết bị của bạn.",
         "sms_explanation_title": "Yêu cầu truy cập SMS",
         "clear_data": "Xóa tất cả dữ liệu",
         "manual_scan_desc": "Quét SMS hiện có để tìm giao dịch",

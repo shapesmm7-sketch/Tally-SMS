@@ -14,7 +14,6 @@ import TransactionDetail from './pages/TransactionDetail';
 import Subscription from './pages/Subscription';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
-import CameraScanner from './pages/CameraScanner';
 import { InterstitialAdController } from './lib/ads/InterstitialAdController';
 import { ThemeProvider } from './context/ThemeContext';
 import { AdProvider } from './context/AdContext';
@@ -130,7 +129,6 @@ function AppContent() {
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="/add" element={<AddTransaction />} />
-            <Route path="/scan-sms" element={<CameraScanner />} />
             <Route path="/help" element={<Help />} />
             <Route path="/transaction/:id" element={<TransactionDetail />} />
             <Route path="/subscription" element={<Subscription />} />

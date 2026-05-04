@@ -12,10 +12,7 @@ BillingManager.initialize();
 
 // Initialize AdMob
 if (Capacitor.isNativePlatform()) {
-  AdMob.initialize({
-    testingDevices: ['2077ef9a63d2b398840261c8221a0c9b'], // optional
-    initializeForTesting: true,
-  }).catch(console.error);
+  AdMob.initialize().catch(console.error);
 }
 
 createRoot(document.getElementById('root')!).render(

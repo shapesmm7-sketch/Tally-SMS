@@ -16,14 +16,22 @@ workflows:
         script: |
           # Create assets directory if it doesn't exist
           mkdir -p assets
-          # If logo.png is uploaded to root, use it as the icon and splash
-          if [ -f "logo.png" ]; then
+          
+          # Check for icon images to use for assets
+          if [ -f "icon.png" ]; then
+            cp icon.png assets/icon-only.png
+            cp icon.png assets/icon-foreground.png
+            cp icon.png assets/icon-background.png
+            cp icon.png assets/splash.png
+            cp icon.png assets/splash-dark.png
+          elif [ -f "logo.png" ]; then
             cp logo.png assets/icon-only.png
             cp logo.png assets/icon-foreground.png
             cp logo.png assets/icon-background.png
             cp logo.png assets/splash.png
             cp logo.png assets/splash-dark.png
           fi
+          
           # Generate icons and splash screens for Android
           # This assumes logo.png (as icon-only.png) is 1024x1024
           npx -y @capacitor/assets generate --android

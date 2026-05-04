@@ -15,7 +15,8 @@ export class InterstitialAdController {
     if (Capacitor.isNativePlatform()) {
       try {
         await AdMob.prepareInterstitial({
-          adId: 'ca-app-pub-3940256099942544/1033173712',
+          adId: 'ca-app-pub-8582659585800553/3131072745',
+          isTesting: false,
         });
         this.isPreloaded = true;
       } catch (err) {

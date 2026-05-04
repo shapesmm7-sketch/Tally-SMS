@@ -3,7 +3,6 @@ import { differenceInDays, isSameDay } from 'date-fns';
 export class UsageLimiter {
   static TRIAL_DAYS = 30;
   static DAILY_LIMIT = 10;
-  static LIVESCAN_DAILY_LIMIT = 15;
 
   static initializeTrial() {
     if (!localStorage.getItem('momo_trial_start')) {
@@ -29,7 +28,7 @@ export class UsageLimiter {
     return Math.max(0, this.TRIAL_DAYS - days);
   }
 
-  static getDailyUsage(type: 'autodetect' | 'manualscan' | 'livescan' = 'autodetect'): number {
+  static getDailyUsage(type: 'autodetect' | 'manualscan' = 'autodetect'): number {
     const dateKey = `momo_${type}_date`;
     const usageKey = `momo_${type}_usage`;
     const lastDate = localStorage.getItem(dateKey);
@@ -43,14 +42,14 @@ export class UsageLimiter {
     return parseInt(localStorage.getItem(usageKey) || '0', 10);
   }
 
-  static incrementUsage(type: 'autodetect' | 'manualscan' | 'livescan', count: number = 1) {
-    const current = this.getDailyUsage(type);
+  static incrementUsage(type: 'autodetect' | 'manualscan', count: number = 1) {
+    const current = this.getDailyUsage(type as any);
     localStorage.setItem(`momo_${type}_usage`, (current + count).toString());
     localStorage.setItem(`momo_${type}_date`, new Date().toISOString());
   }
 
-  static canUseFreeTier(type: 'autodetect' | 'manualscan' | 'livescan'): boolean {
-    const limit = type === 'livescan' ? this.LIVESCAN_DAILY_LIMIT : this.DAILY_LIMIT;
+  static canUseFreeTier(type: 'autodetect' | 'manualscan'): boolean {
+    const limit = this.DAILY_LIMIT;
     return this.getDailyUsage(type) < limit;
   }
 }

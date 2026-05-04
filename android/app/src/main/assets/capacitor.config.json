@@ -1,6 +1,6 @@
 {
 	"appId": "com.momotracker.myapp",
-	"appName": "MoMo Tracker",
+	"appName": "Tally SMS",
 	"webDir": "dist",
 	"plugins": {
 		"SplashScreen": {
