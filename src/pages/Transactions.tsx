@@ -108,42 +108,60 @@ export default function Transactions() {
   const generateAndDownloadPDF = async () => {
     const doc = new jsPDF();
     
+    // Add header branding
+    doc.setFontSize(22);
+    doc.setTextColor(37, 99, 235); // blue-600
+    doc.setFont("helvetica", "bold");
+    doc.text("Tally SMS", 14, 20);
+
     // Add title
-    doc.setFontSize(18);
-    doc.text('Transaction Report', 14, 22);
+    doc.setFontSize(14);
+    doc.setTextColor(31, 41, 55);
+    doc.text('Transaction History Report', 14, 28);
     
     // Add subtitle with filters
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setTextColor(100);
+    doc.setFont("helvetica", "normal");
     const filterText = `Date: ${dateFilter === 'custom' && customDate ? customDate : dateFilter} | Type: ${filterType}`;
-    doc.text(filterText, 14, 30);
+    doc.text(filterText, 14, 35);
+    doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, doc.internal.pageSize.width - 14, 35, { align: 'right' });
+
+    // Divider
+    doc.setDrawColor(229, 231, 235);
+    doc.line(14, 38, doc.internal.pageSize.width - 14, 38);
 
     // Add totals summary
-    doc.setFontSize(10);
-    doc.text(`Deposits: ${formatCurrency(totals.deposits)} | Withdrawals: ${formatCurrency(totals.withdrawals)}`, 14, 38);
-    doc.text(`Received: ${formatCurrency(totals.received)} | Sent: ${formatCurrency(totals.sent)} | Airtime Bought: ${formatCurrency(totals.airtimeBought)}`, 14, 44);
-    doc.text(`Airtime Sold: ${formatCurrency(totals.airtimeSold)} | Commission: ${formatCurrency(totals.commission)}`, 14, 50);
+    doc.setFontSize(9);
+    doc.setTextColor(50);
+    doc.text(`Deposits: ${formatCurrency(totals.deposits)} | Withdrawals: ${formatCurrency(totals.withdrawals)}`, 14, 45);
+    doc.text(`Received: ${formatCurrency(totals.received)} | Sent: ${formatCurrency(totals.sent)} | Airtime Bought: ${formatCurrency(totals.airtimeBought)}`, 14, 50);
+    doc.text(`Airtime Sold: ${formatCurrency(totals.airtimeSold)} | Commission: ${formatCurrency(totals.commission)}`, 14, 55);
 
     // Prepare table data
     const tableData = transactions.map(tx => [
       format(parseISO(tx.date), 'MMM d, yyyy'),
-      tx.smsTime || '-',
+      tx.smsTime || format(parseISO(tx.date), 'HH:mm'),
       tx.category.replace('_', ' '),
-      tx.senderReceiverName || '-',
+      normalizeProviderName(tx.provider || '') || '-',
+      tx.senderReceiverName || tx.note || '-',
       tx.tid || '-',
       (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
     ]);
 
     autoTable(doc, {
-      startY: 56,
-      head: [['Date', 'Time', 'Category', 'Name', 'TID', 'Amount']],
+      startY: 62,
+      head: [['Date', 'Time', 'Category', 'Line', 'Name', 'TID', 'Amount']],
       body: tableData,
       theme: 'striped',
       headStyles: { fillColor: [37, 99, 235] }, // blue-600
-      styles: { fontSize: 9 },
+      styles: { fontSize: 7, cellPadding: 2 },
+      columnStyles: {
+        6: { halign: 'right', fontStyle: 'bold' }
+      },
     });
 
-    const fileName = `transactions_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    const fileName = `tally_sms_history_${format(new Date(), 'yyyyMMdd')}.pdf`;
 
     if (Capacitor.isNativePlatform()) {
       try {
@@ -171,11 +189,7 @@ export default function Transactions() {
   };
 
   const handleDownloadPDF = () => {
-    if (needsAdForPdf) {
-      forceAd(generateAndDownloadPDF);
-    } else {
-      generateAndDownloadPDF();
-    }
+    generateAndDownloadPDF();
   };
 
   // Group by date

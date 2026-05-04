@@ -105,6 +105,9 @@ export default function Help() {
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
               <strong>Entering Commission:</strong> You can quickly add manual commission entries by going to the <strong>Reports</strong> tab and clicking the "Add Manual Commission" button. From there, select a date, choose the line/provider, input the figures, and save it.
             </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Editing Commission:</strong> We only allow editing a commission entry if a mistake was made during manual entry. To edit, find the commission in your <strong>History</strong>, tap to view its details, and use the <strong>Edit (pencil) icon</strong> to correct the amount.
+            </p>
           </div>
         </section>
 

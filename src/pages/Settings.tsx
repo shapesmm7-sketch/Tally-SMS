@@ -176,28 +176,24 @@ export default function Settings() {
       };
 
       const dataStr = JSON.stringify(backupData, null, 2);
-      const exportFileDefaultName = `momo_tracker_backup_${new Date().toISOString().split('T')[0]}.json`;
+      const exportFileDefaultName = `tally_sms_backup_${new Date().toISOString().split('T')[0]}.json`;
       
       if (Capacitor.isNativePlatform()) {
         const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
         
         try {
+          // Save to Documents directory instead of Cache
           const result = await Filesystem.writeFile({
             path: exportFileDefaultName,
             data: dataStr,
-            directory: Directory.Cache,
+            directory: Directory.Documents,
             encoding: Encoding.UTF8
           });
           
-          await Share.share({
-            title: 'Tally SMS Backup',
-            text: 'Save or send your Tally SMS backup file.',
-            url: result.uri,
-            dialogTitle: 'Export Backup',
-          });
+          alert(`Backup saved successfully to your Documents folder as ${exportFileDefaultName}`);
         } catch (fileErr) {
-          console.error('Filesystem/Share error:', fileErr);
-          alert('Failed to share backup file.');
+          console.error('Filesystem error:', fileErr);
+          alert('Failed to save backup file. Please check storage permissions.');
         }
       } else {
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
