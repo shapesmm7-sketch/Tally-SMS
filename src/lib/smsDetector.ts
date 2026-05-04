@@ -55,29 +55,53 @@ export async function checkSmsPermission(): Promise<boolean> {
 export async function requestSmsPermissions(): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return true;
   
+  console.log("Requesting SMS permissions...");
+  
   // Check if already granted
-  if (await checkSmsPermission()) return true;
-
-  // Try custom plugin request
-  try {
-    const status = await SMSDetection.requestPermissions();
-    if (status.sms === 'granted') return true;
-  } catch (error) {
-    console.log("Custom plugin requestPermissions not available", error);
+  if (await checkSmsPermission()) {
+    console.log("SMS permission already granted");
+    return true;
   }
 
-  // Fallback to cordova plugin request
+  let finalGranted = false;
+
+  // Try custom plugin request first
+  try {
+    console.log("Trying SMSDetection.requestPermissions()");
+    const status = await SMSDetection.requestPermissions();
+    console.log("SMSDetection permission status:", JSON.stringify(status));
+    if (status.sms === 'granted') {
+      finalGranted = true;
+    }
+  } catch (error) {
+    console.log("Custom plugin requestPermissions not available or failed", error);
+  }
+
+  if (finalGranted) return true;
+
+  // Fallback to cordova plugin request - often more reliable for SMS on older Android
   const sms = getSmsPlugin();
   if (sms && typeof sms.requestPermission === 'function') {
-    return new Promise((resolve) => {
-      sms.requestPermission(() => resolve(true), (err: any) => {
-        console.error("Cordova SMS permission request failed", err);
-        resolve(false);
-      });
+    console.log("Trying cordova-plugin-sms requestPermission()");
+    const cordovaGranted = await new Promise<boolean>((resolve) => {
+      sms.requestPermission(
+        () => {
+          console.log("Cordova SMS permission granted");
+          resolve(true);
+        }, 
+        (err: any) => {
+          console.error("Cordova SMS permission request failed", err);
+          resolve(false);
+        }
+      );
     });
+    if (cordovaGranted) return true;
   }
 
-  return false;
+  // One last check just in case the OS granted it but the plugin didn't return correctly
+  const lastCheck = await checkSmsPermission();
+  console.log("Final checkSmsPermission result:", lastCheck);
+  return lastCheck;
 }
 
 export async function openSettingsFallback(): Promise<void> {

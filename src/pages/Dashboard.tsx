@@ -101,18 +101,20 @@ export default function Dashboard() {
     
     try {
       const granted = await requestSmsPermissions();
+      setIsRequesting(false);
       if (granted) {
-        setIsRequesting(false);
         setShowSmsModal(false);
+        setSmsError(null);
         startSmsScan();
       } else {
-        setIsRequesting(false);
-        setSmsError('Permission was not granted. Please click Continue to try again.');
+        // If not granted immediately, the dialog might still be showing or was dismissed.
+        // We don't show a blocking red error yet to give user another chance if they mis-clicked.
+        console.log("Permission not granted yet");
       }
     } catch (err: any) {
       console.error('SMS Permission Exception:', err);
       setIsRequesting(false);
-      setSmsError('An unexpected error occurred while requesting permission.');
+      setSmsError('The SMS system could not be initialized. Please try again or check your device permissions.');
     }
   };
 

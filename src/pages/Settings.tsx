@@ -129,19 +129,22 @@ export default function Settings() {
 
     try {
       const granted = await requestSmsPermissions();
+      setIsRequesting(false);
       
       if (granted) {
         setSmsEnabled(true);
         localStorage.setItem('momo_sms_enabled', 'true');
         setShowSmsModal(false);
+        setSmsError(null);
       } else {
-        setSmsError('Permission was not granted. Please click Continue to try again.');
+        // If not granted immediately, the dialog might still be showing or was dismissed.
+        // We don't show a blocking red error yet to give user another chance if they mis-clicked.
+        console.log("Permission not granted yet");
       }
     } catch (error) {
       console.error('SMS Permission Error:', error);
-      setSmsError('An error occurred while requesting permissions.');
-    } finally {
       setIsRequesting(false);
+      setSmsError('The SMS system could not be initialized. Please try again or check your device permissions.');
     }
   };
 
