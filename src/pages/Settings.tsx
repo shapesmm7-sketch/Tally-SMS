@@ -8,7 +8,7 @@ import { useAccessControl } from '../hooks/useAccessControl';
 import { useTheme } from '../context/ThemeContext';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
-import SMSDetection, { requestSmsPermissions, checkSmsPermission } from '../lib/smsDetector';
+import { requestSmsPermissions, checkSmsPermission } from '../lib/smsDetector';
 import { scanAndImportSMS } from '../lib/smsScanner';
 import { App as CapacitorApp } from '@capacitor/app';
 import LimitModal from '../components/LimitModal';
@@ -32,13 +32,7 @@ export default function Settings() {
   const [needsManualSettings, setNeedsManualSettings] = useState(false);
 
   const checkBatteryOptimization = async () => {
-    if (!Capacitor.isNativePlatform()) return;
-    try {
-      const { disabled } = await SMSDetection.isBatteryOptimizationDisabled();
-      setBatteryOptimizationDisabled(disabled);
-    } catch (e) {
-      console.error('Error checking battery optimization:', e);
-    }
+    // Battery optimization check not available through cordova-plugin-sms
   };
 
   useEffect(() => {
@@ -76,15 +70,7 @@ export default function Settings() {
   }, [showSmsModal]);
 
   const handleOpenBatterySettings = async () => {
-    try {
-      await SMSDetection.openBatteryOptimizationSettings();
-      // Fallback checks in case the appStateChange event doesn't fire immediately
-      setTimeout(() => checkBatteryOptimization(), 1500);
-      setTimeout(() => checkBatteryOptimization(), 3500);
-      setTimeout(() => checkBatteryOptimization(), 6000);
-    } catch (e) {
-      console.error('Error opening battery settings:', e);
-    }
+    alert('Please open your phone Settings > Apps > Battery > Optimization to adjust this manually.');
   };
 
   const handleSmsToggle = async () => {
@@ -155,12 +141,9 @@ export default function Settings() {
           return;
         }
 
-        setSmsError('Attempting to open phone settings...');
-        await SMSDetection.openAppSettings();
-        setSmsError('Please grant the SMS and Phone permissions, then return here.');
+        setSmsError('Please go to your phone Settings > Apps > Permissions manually to grant SMS access.');
       } catch (e: any) {
-        console.error('Error opening app settings:', e);
-        setSmsError(`Failed to open settings: ${e.message || String(e)}. Please go to your phone Settings > Apps > Tally SMS > Permissions manually.`);
+        console.error('Manual permissions check:', e);
       } finally {
         setIsRequesting(false);
       }
