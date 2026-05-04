@@ -109,23 +109,17 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">7. No Affiliation with MTN MoMo</h3>
-            <p><strong>Tally SMS is an independent application and is NOT affiliated, associated, authorized, endorsed by, or in any way officially connected with MTN Group Limited, MTN MoMo, or any of its subsidiaries or its affiliates.</strong></p>
-            <p className="mt-2">The official MTN MoMo application can be found on the Google Play Store. The name "MTN MoMo" as well as related names, marks, emblems and images are registered trademarks of their respective owners. We do not collect, process, or transmit data to MTN Group Limited. Tally SMS operates independently as a personal utility for users to track their own SMS messages.</p>
-          </section>
-
-          <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">8. Children’s Privacy</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">7. Children’s Privacy</h3>
             <p>Tally SMS is not intended for children under 13. We do not knowingly collect data from children.</p>
           </section>
 
           <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">9. Changes to This Privacy Policy</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">8. Changes to This Privacy Policy</h3>
             <p>We may update this Privacy Policy from time to time. Any changes will be posted within the app with an updated effective date.</p>
           </section>
 
           <section className="pb-12">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">10. Contact Us</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">9. Contact Us</h3>
             <p>If you have any questions or concerns about this Privacy Policy, you can contact us at:</p>
             <p className="mt-2 font-medium text-blue-600 dark:text-blue-400">Email: shapesmm7@gmail.com</p>
           </section>

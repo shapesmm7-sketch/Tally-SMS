@@ -22,8 +22,12 @@ export default function Help() {
 
       <div className="p-4 space-y-4 pb-12">
         <div className="bg-blue-50 dark:bg-blue-900/30 rounded-2xl p-5 mb-6">
+          <h2 className="text-blue-900 dark:text-blue-100 font-bold mb-2">What is Tally SMS?</h2>
+          <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed mb-3">
+            Tally SMS is a specialized tool designed to help you track and manage your transactions automatically. It is built <strong>strictly for Mobile Money SMS messages only</strong>.
+          </p>
           <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-            Welcome to Tally SMS! This guide explains all the features available to help you track your mobile money transactions effortlessly.
+            We <strong>highly recommend</strong> this app for <strong>Mobile Money Agents</strong> to maintain clean, accurate digital records of their daily transactions and commissions without manual bookkeeping.
           </p>
         </div>
 
@@ -80,14 +84,11 @@ export default function Help() {
         <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
           <h2 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white mb-2">
             <History className="w-5 h-5 mr-2 text-indigo-500" />
-            History, Edit & <FileText className="inline w-5 h-5 mx-1 text-orange-500" /> Reports
+            History & <FileText className="inline w-5 h-5 mx-1 text-orange-500" /> Reports
           </h2>
           <div className="space-y-3">
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
               <strong>History:</strong> This tab shows a complete list of all your transactions across time. You can search, filter, and view exactly where your money went.
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              <strong>Editing Transactions:</strong> If you made a mistake (like setting the wrong line or category), find the transaction in the History tab, tap on it to view details, and click the <strong>pencil (Edit) icon</strong>. Make the corrections and hit Save.
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
               <strong>Reports:</strong> This screen groups your totals (Deposits, Withdrawals, Sent, etc.) by timeline. You can also download clean <strong>PDF summaries</strong> which now display the exact time alongside the date, helping you see when the transactions were made easily.

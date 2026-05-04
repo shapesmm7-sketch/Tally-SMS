@@ -152,8 +152,7 @@ export default function Reports() {
         ['Money Sent/Paid', formatCurrency(sent)],
         ['Airtime Bought', formatCurrency(airtimeBought)],
         ['Airtime Sold', formatCurrency(airtimeSold)],
-        ['Commission Earned', formatCurrency(commission)],
-        ['Net Cash Flow', formatCurrency(received + deposits - sent - withdrawals - airtimeBought)]
+        ['Commission Earned', formatCurrency(commission)]
       ],
       theme: 'grid',
       headStyles: { fillColor: [75, 85, 99] },

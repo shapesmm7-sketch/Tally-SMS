@@ -72,13 +72,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">5. No Affiliation with MTN MoMo</h3>
-            <p><strong>Tally SMS is an independent application and is NOT affiliated, associated, authorized, endorsed by, or in any way officially connected with MTN Group Limited, MTN MoMo, or any of its subsidiaries or its affiliates.</strong></p>
-            <p className="mt-2">The official MTN MoMo application can be found on the Google Play Store. The name "MTN MoMo" as well as related names, marks, emblems and images are registered trademarks of their respective owners. Tally SMS solely provides a personal utility for users to track their own SMS messages.</p>
-          </section>
-
-          <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">6. No Financial Service</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">5. No Financial Service</h3>
             <p>Tally SMS is not a financial institution and does not:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Provide financial, banking, or payment services</li>
@@ -88,7 +82,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">7. Limitation of Liability</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">6. Limitation of Liability</h3>
             <p>To the fullest extent permitted by law:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>We are not responsible for any financial loss, incorrect data, or misinterpretation of transaction details</li>
@@ -98,7 +92,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">8. Data Deletion</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">7. Data Deletion</h3>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>Users can delete their data at any time within the app</li>
               <li>Deleted data cannot be recovered</li>
@@ -107,12 +101,12 @@ export default function TermsAndConditions() {
           </section>
 
           <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">9. Updates and Changes</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">8. Updates and Changes</h3>
             <p>We may update or modify the app and these Terms at any time. Continued use of the app after changes means you accept the updated Terms.</p>
           </section>
 
           <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">10. Termination</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">9. Termination</h3>
             <p>We reserve the right to suspend or terminate access to the app if:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>You violate these Terms</li>
@@ -121,17 +115,17 @@ export default function TermsAndConditions() {
           </section>
 
           <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">11. Intellectual Property</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">10. Intellectual Property</h3>
             <p>All rights, design, and content of Tally SMS are owned by us. You may not copy, modify, or distribute any part of the app without permission.</p>
           </section>
 
           <section>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">12. Governing Law</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">11. Governing Law</h3>
             <p>These Terms shall be governed and interpreted in accordance with the laws of your country of residence.</p>
           </section>
 
           <section className="pb-12">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">13. Contact Us</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">12. Contact Us</h3>
             <p>If you have any questions about these Terms and Conditions, contact us at:</p>
             <p className="mt-2 font-medium text-blue-600 dark:text-blue-400">Email: shapesmm7@gmail.com</p>
           </section>
