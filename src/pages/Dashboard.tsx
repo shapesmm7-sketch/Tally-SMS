@@ -74,7 +74,7 @@ export default function Dashboard() {
           setScanMessage(`Scan complete! Found and successfully added ${count} new transactions to your History section.`);
           recordManualScanUsage(count);
         } else {
-          setScanMessage(`Scan complete! No new transactions found in your inbox.`);
+          setScanMessage(`Scan complete! All messages in your inbox appear to be already saved in your History.`);
         }
         
         setTimeout(() => {

@@ -96,6 +96,24 @@ export default function Help() {
           </div>
         </section>
 
+        <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+          <h2 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white mb-2">
+            <RefreshCw className="w-5 h-5 mr-2 text-blue-500" />
+            Data Persistence & Safety
+          </h2>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Uninstalling & Reinstalling:</strong> On many modern phones, your transaction data may be automatically backed up by the phone's system. This means if you uninstall and reinstall Tally SMS, your history might still be there! <strong>This is a safety feature</strong> to ensure you don't lose your important records.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Duplicate Prevention:</strong> If you try to "Scan SMS" and the app says "No new messages found" but you see them in your history, it means the app already has those records saved and is <strong>intelligently preventing duplicates</strong>.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <strong>Starting Fresh:</strong> If you want to permanently delete everything and start over, you can use the <strong>"Clear All Data"</strong> button in the Settings tab.
+            </p>
+          </div>
+        </section>
+
         {/* Feature: Commission */}
         <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
           <h2 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white mb-2">
