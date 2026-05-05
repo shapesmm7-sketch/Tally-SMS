@@ -128,7 +128,12 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
     return { count: 0, limitReached: false };
   }
 
-  // First verify permission
+  // First check if the user actually enabled this feature
+  if (localStorage.getItem('momo_sms_enabled') !== 'true') {
+    return { count: 0, limitReached: false };
+  }
+
+  // Then verify permission
   const hasPermission = await checkSmsPermission();
   if (!hasPermission) {
     return { count: 0, limitReached: false };
@@ -154,12 +159,26 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
         
         const existingTxs = await db.transactions.toArray();
         const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
+        const lastClearedStr = localStorage.getItem('momo_last_cleared_date');
+        const lastClearedTime = lastClearedStr ? parseInt(lastClearedStr, 10) : 0;
+        
+        let autoSyncStartTimeStr = localStorage.getItem('momo_auto_sync_start_time');
+        // If somehow not set by main.tsx, fallback to Date.now()
+        let autoSyncStartTime = autoSyncStartTimeStr ? parseInt(autoSyncStartTimeStr, 10) : Date.now();
+        
+        const cutoffTime = Math.max(autoSyncStartTime, lastClearedTime);
+        
         let hasMoreUnprocessed = false;
 
         for (const msg of messages) {
           if (count >= limit) {
             hasMoreUnprocessed = true;
             break;
+          }
+
+          // Skip if msg was received before the cutoff time (app install or last clear)
+          if (msg.date && cutoffTime > 0 && typeof msg.date === 'number' && msg.date < cutoffTime) {
+            continue;
           }
 
           // Depending on cordova-plugin-sms format

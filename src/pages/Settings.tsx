@@ -54,6 +54,7 @@ export default function Settings() {
             if (granted) {
               setSmsEnabled(true);
               localStorage.setItem('momo_sms_enabled', 'true');
+              localStorage.setItem('momo_auto_sync_start_time', Date.now().toString());
               setShowSmsModal(false);
             }
           }
@@ -134,6 +135,7 @@ export default function Settings() {
       if (granted) {
         setSmsEnabled(true);
         localStorage.setItem('momo_sms_enabled', 'true');
+        localStorage.setItem('momo_auto_sync_start_time', Date.now().toString());
         setShowSmsModal(false);
         setSmsError(null);
       } else {
@@ -151,6 +153,7 @@ export default function Settings() {
   const handleClearData = async () => {
     if (window.confirm('WARNING: This will delete all your transactions. Are you sure?')) {
       await db.transactions.clear();
+      localStorage.setItem('momo_last_cleared_date', Date.now().toString());
       alert('Data cleared successfully.');
     }
   };

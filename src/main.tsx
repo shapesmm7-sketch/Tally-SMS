@@ -15,6 +15,11 @@ if (Capacitor.isNativePlatform()) {
   AdMob.initialize().catch(console.error);
 }
 
+// Record the first time the app is launched so auto-sync doesn't pull in older history automatically
+if (!localStorage.getItem('momo_auto_sync_start_time')) {
+  localStorage.setItem('momo_auto_sync_start_time', Date.now().toString());
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
