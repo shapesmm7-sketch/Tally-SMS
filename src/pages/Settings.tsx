@@ -179,36 +179,25 @@ export default function Settings() {
       const exportFileDefaultName = `tally_sms_backup_${new Date().toISOString().split('T')[0]}.json`;
       
       if (Capacitor.isNativePlatform()) {
-        const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
+        const { registerPlugin } = await import('@capacitor/core');
         
         try {
-          // Attempt to write directly to Documents. On many Android versions, 
-          // scoped storage allows this without explicit 'publicStorage' permission.
-          const result = await Filesystem.writeFile({
-            path: exportFileDefaultName,
-            data: dataStr,
-            directory: Directory.Documents,
-            encoding: Encoding.UTF8
+          const MediaStore = registerPlugin<{
+            saveFile(options: { base64Data: string; fileName: string; mimeType: string }): Promise<{ success: boolean; uri: string }>;
+          }>('MediaStore');
+
+          const base64Data = btoa(unescape(encodeURIComponent(dataStr)));
+
+          await MediaStore.saveFile({
+            base64Data,
+            fileName: exportFileDefaultName,
+            mimeType: 'application/json'
           });
           
-          alert(`Backup saved successfully! You can find it in your phone's Documents folder as: ${exportFileDefaultName}`);
+          alert(`Backup saved successfully! You can find it in your phone's Documents/TallySMS folder as: ${exportFileDefaultName}`);
         } catch (fileErr) {
-          console.error('Filesystem error:', fileErr);
-          
-          // Fallback: try to request permissions and save again
-          try {
-            await Filesystem.requestPermissions();
-            const resultRetry = await Filesystem.writeFile({
-              path: exportFileDefaultName,
-              data: dataStr,
-              directory: Directory.Documents,
-              encoding: Encoding.UTF8
-            });
-            alert(`Backup saved successfully! You can find it in your phone's Documents folder as: ${exportFileDefaultName}`);
-          } catch (retryErr) {
-            console.error('Retry failed:', retryErr);
-            alert('Failed to save backup file. Please ensure the app has "Files" permission in your phone settings, or try again later.');
-          }
+          console.error('MediaStore error:', fileErr);
+          alert('Failed to save backup file. Please try again.');
         }
       } else {
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);

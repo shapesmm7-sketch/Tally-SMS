@@ -1,5 +1,4 @@
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
 export interface ReportTransaction {
   date: string;
@@ -8,6 +7,12 @@ export interface ReportTransaction {
   amount: string;
 }
 
+export interface MediaStorePlugin {
+  saveFile(options: { base64Data: string; fileName: string; mimeType?: string }): Promise<{ success: boolean; uri: string }>;
+}
+
+const MediaStore = registerPlugin<MediaStorePlugin>('MediaStore');
+
 export interface PDFExportPlugin {
   saveBase64PDF(options: { data: string; filename?: string }): Promise<{ success: boolean; uri: string }>;
   openPDF(options: { uri: string }): Promise<void>;
@@ -15,33 +20,19 @@ export interface PDFExportPlugin {
 
 const PDFExport: PDFExportPlugin = {
   saveBase64PDF: async (options: { data: string; filename?: string }) => {
-    const fileName = options.filename || `report_${Date.now()}.pdf`;
+    const fileName = options.filename || `TallySMS_Report_${Date.now()}.pdf`;
     
     if (Capacitor.isNativePlatform()) {
       try {
-        // Log for debugging
-        console.log('Saving PDF to Documents:', fileName);
+        console.log('Saving PDF via MediaStore:', fileName);
         
-        try {
-          const result = await Filesystem.writeFile({
-            path: fileName,
-            data: options.data,
-            directory: Directory.Documents,
-          });
-          
-          console.log('PDF saved successfully:', result.uri);
-          return { success: true, uri: result.uri };
-        } catch (initialError) {
-          console.warn('Initial save failed, requesting permissions...', initialError);
-          // Try requesting permissions and saving again
-          await Filesystem.requestPermissions();
-          const result = await Filesystem.writeFile({
-            path: fileName,
-            data: options.data,
-            directory: Directory.Documents,
-          });
-          return { success: true, uri: result.uri };
-        }
+        const result = await MediaStore.saveFile({
+          base64Data: options.data,
+          fileName: fileName,
+          mimeType: 'application/pdf'
+        });
+        
+        return { success: true, uri: result.uri };
       } catch (error) {
         console.error('Error in saveBase64PDF:', error);
         throw error;
