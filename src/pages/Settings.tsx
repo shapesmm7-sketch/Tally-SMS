@@ -182,14 +182,8 @@ export default function Settings() {
         const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
         
         try {
-          // Request permissions explicitly for storage
-          const permission = await Filesystem.requestPermissions();
-          
-          if (permission.publicStorage !== 'granted') {
-            alert('Storage permission is required to save the backup file directly to your device.');
-            return;
-          }
-
+          // Attempt to write directly to Documents. On many Android versions, 
+          // scoped storage allows this without explicit 'publicStorage' permission.
           const result = await Filesystem.writeFile({
             path: exportFileDefaultName,
             data: dataStr,
@@ -200,7 +194,21 @@ export default function Settings() {
           alert(`Backup saved successfully! You can find it in your phone's Documents folder as: ${exportFileDefaultName}`);
         } catch (fileErr) {
           console.error('Filesystem error:', fileErr);
-          alert('Failed to save backup file directly to storage. Please check if the app has storage permissions in your device settings.');
+          
+          // Fallback: try to request permissions and save again
+          try {
+            await Filesystem.requestPermissions();
+            const resultRetry = await Filesystem.writeFile({
+              path: exportFileDefaultName,
+              data: dataStr,
+              directory: Directory.Documents,
+              encoding: Encoding.UTF8
+            });
+            alert(`Backup saved successfully! You can find it in your phone's Documents folder as: ${exportFileDefaultName}`);
+          } catch (retryErr) {
+            console.error('Retry failed:', retryErr);
+            alert('Failed to save backup file. Please ensure the app has "Files" permission in your phone settings, or try again later.');
+          }
         }
       } else {
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);

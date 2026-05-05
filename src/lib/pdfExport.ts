@@ -22,14 +22,26 @@ const PDFExport: PDFExportPlugin = {
         // Log for debugging
         console.log('Saving PDF to Documents:', fileName);
         
-        const result = await Filesystem.writeFile({
-          path: fileName,
-          data: options.data,
-          directory: Directory.Documents,
-        });
-        
-        console.log('PDF saved successfully:', result.uri);
-        return { success: true, uri: result.uri };
+        try {
+          const result = await Filesystem.writeFile({
+            path: fileName,
+            data: options.data,
+            directory: Directory.Documents,
+          });
+          
+          console.log('PDF saved successfully:', result.uri);
+          return { success: true, uri: result.uri };
+        } catch (initialError) {
+          console.warn('Initial save failed, requesting permissions...', initialError);
+          // Try requesting permissions and saving again
+          await Filesystem.requestPermissions();
+          const result = await Filesystem.writeFile({
+            path: fileName,
+            data: options.data,
+            directory: Directory.Documents,
+          });
+          return { success: true, uri: result.uri };
+        }
       } catch (error) {
         console.error('Error in saveBase64PDF:', error);
         throw error;
