@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Smartphone, RefreshCcw, ClipboardCopy, History, FileText, Zap, Mail } from 'lucide-react';
+import { ArrowLeft, BookOpen, Smartphone, RefreshCw, ClipboardCopy, History, FileText, Zap, Mail } from 'lucide-react';
 
 export default function Help() {
   const navigate = useNavigate();
@@ -56,7 +56,7 @@ export default function Help() {
         {/* Feature: Manual Scan Inbox */}
         <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
           <h2 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white mb-2">
-            <RefreshCcw className="w-5 h-5 mr-2 text-green-500" />
+            <RefreshCw className="w-5 h-5 mr-2 text-green-500" />
             Manual Scan Inbox
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">
