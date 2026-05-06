@@ -146,19 +146,20 @@ export default function Transactions() {
       tx.category.replace('_', ' '),
       normalizeProviderName(tx.provider || '') || '-',
       tx.senderReceiverName || tx.note || '-',
+      tx.phoneNumber || '-',
       tx.tid || '-',
       (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
     ]);
 
     autoTable(doc, {
       startY: 62,
-      head: [['Date', 'Time', 'Category', 'Line', 'Name', 'TID', { content: 'Amount', styles: { halign: 'right' } }]],
+      head: [['Date', 'Time', 'Category', 'Line', 'Name', 'Phone', 'TID', { content: 'Amount', styles: { halign: 'right' } }]],
       body: tableData,
       theme: 'striped',
       headStyles: { fillColor: [37, 99, 235], halign: 'left', cellPadding: 2 }, // blue-600
       styles: { fontSize: 7, cellPadding: 2 },
       columnStyles: {
-        6: { halign: 'right', fontStyle: 'bold' }
+        7: { halign: 'right', fontStyle: 'bold' }
       },
     });
 
@@ -382,10 +383,20 @@ export default function Transactions() {
                         </div>
                         <div>
                           <p className="font-medium text-gray-800 dark:text-white capitalize">{tx.category.replace('_', ' ')}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 max-w-[200px] mt-0.5">
-                            {tx.rawMessage || tx.note || (tx.senderReceiverName ? `${tx.type === 'income' ? 'From' : 'To'} ${tx.senderReceiverName}` : '')}
-                          </p>
-                          {tx.tid && <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">TID: {tx.tid}</p>}
+                          <div className="flex flex-col space-y-0.5 mt-0.5">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 max-w-[200px]">
+                              {tx.rawMessage || tx.note || (tx.senderReceiverName ? `${tx.type === 'income' ? 'From' : 'To'} ${tx.senderReceiverName}` : '')}
+                            </p>
+                            <div className="flex items-center space-x-2 text-[10px] text-gray-400 dark:text-gray-500">
+                              {tx.tid && <span>TID: {tx.tid}</span>}
+                              {tx.phoneNumber && (
+                                <>
+                                  <span>•</span>
+                                  <span>{tx.phoneNumber}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center space-x-3">

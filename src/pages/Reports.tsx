@@ -178,6 +178,7 @@ export default function Reports() {
       tx.category.replace('_', ' '),
       normalizeProviderName(tx.provider || '') || '-',
       tx.senderReceiverName || tx.note || '-',
+      tx.phoneNumber || '-',
       tx.tid || '-',
       (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
     ]);
@@ -185,13 +186,13 @@ export default function Reports() {
     if (tableData.length > 0) {
       autoTable(doc, {
         startY: finalY + 5,
-        head: [['Date', 'Time', 'Category', 'Line', 'Name', 'TID', { content: 'Amount', styles: { halign: 'right' } }]],
+        head: [['Date', 'Time', 'Category', 'Line', 'Name', 'Phone', 'TID', { content: 'Amount', styles: { halign: 'right' } }]],
         body: tableData,
         theme: 'striped',
         headStyles: { fillColor: [37, 99, 235], halign: 'left', cellPadding: 2 },
         styles: { fontSize: 7, cellPadding: 2 },
         columnStyles: {
-          6: { halign: 'right', fontStyle: 'bold' }
+          7: { halign: 'right', fontStyle: 'bold' }
         },
         margin: { bottom: 20 }
       });
