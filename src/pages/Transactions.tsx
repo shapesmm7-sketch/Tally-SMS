@@ -125,7 +125,7 @@ export default function Transactions() {
     doc.setFont("helvetica", "normal");
     const filterText = `Date: ${dateFilter === 'custom' && customDate ? customDate : dateFilter} | Type: ${filterType}`;
     doc.text(filterText, 14, 35);
-    doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, doc.internal.pageSize.width - 14, 35, { align: 'right' });
+    doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy hh:mm a').toUpperCase()}`, doc.internal.pageSize.width - 14, 35, { align: 'right' });
 
     // Divider
     doc.setDrawColor(229, 231, 235);
@@ -141,7 +141,7 @@ export default function Transactions() {
     // Prepare table data
     const tableData = transactions.map(tx => [
       format(parseISO(tx.date), 'MMM d, yyyy'),
-      tx.smsTime || format(parseISO(tx.date), 'HH:mm'),
+      format(parseISO(tx.date), 'hh:mm a').toUpperCase(),
       tx.category.replace('_', ' '),
       normalizeProviderName(tx.provider || '') || '-',
       tx.senderReceiverName || tx.note || '-',
@@ -395,7 +395,7 @@ export default function Transactions() {
                           )}>
                             {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
                           </p>
-                          {tx.smsTime && <span className="text-[10px] text-gray-400 dark:text-gray-500">{tx.smsTime}</span>}
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500">{format(parseISO(tx.date), 'hh:mm a').toUpperCase()}</span>
                         </div>
                         <button 
                           onClick={(e) => handleDeleteClick(e, tx.id)}

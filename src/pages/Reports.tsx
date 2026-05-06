@@ -122,7 +122,7 @@ export default function Reports() {
     doc.setTextColor(100);
     doc.setFont("helvetica", "normal");
     doc.text("Financial Transaction Report", 14, 28);
-    doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, pageWidth - 14, 28, { align: 'right' });
+    doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy hh:mm a').toUpperCase()}`, pageWidth - 14, 28, { align: 'right' });
     
     // Divider
     doc.setDrawColor(229, 231, 235);
@@ -173,7 +173,7 @@ export default function Reports() {
     // Transaction Details Table
     const tableData = filtered.map(tx => [
       format(parseISO(tx.date), 'MMM d, yyyy'),
-      format(parseISO(tx.date), 'HH:mm'),
+      format(parseISO(tx.date), 'hh:mm a').toUpperCase(),
       tx.category.replace('_', ' '),
       normalizeProviderName(tx.provider || '') || '-',
       tx.senderReceiverName || tx.note || '-',
@@ -358,100 +358,102 @@ export default function Reports() {
         )}
       </div>
 
-      <div className="p-6 space-y-4">
+      <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
         {/* Total Volume Card */}
-        <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 shadow-md text-white mb-2">
-          <div className="flex items-center mb-2 opacity-90">
-            <Activity className="w-5 h-5 mr-2" />
-            <h2 className="text-sm font-medium">{t('reports.total_volume')}</h2>
+        <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-4 sm:p-6 shadow-sm text-white mb-1">
+          <div className="flex items-center mb-1.5 opacity-90">
+            <Activity className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
+            <h2 className="text-xs sm:text-sm font-medium">{t('reports.total_volume')}</h2>
           </div>
-          <p className="text-3xl font-bold">{formatCurrency(totalVolume)}</p>
-          <p className="text-blue-100 text-xs mt-2">{t('reports.total_volume_desc')}</p>
+          <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(totalVolume)}</p>
+          <p className="text-blue-100 text-[10px] sm:text-xs mt-1 sm:mt-2">{t('reports.total_volume_desc')}</p>
         </div>
 
-        {/* Deposits Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-green-100 dark:border-green-900/30 flex items-center transition-colors">
-          <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-4 shrink-0">
-            <ArrowDownRight className="w-6 h-6 text-green-600 dark:text-green-400" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{t('reports.total_deposits')}</p>
-            <p className="text-2xl font-bold text-gray-800 dark:text-white">{formatCurrency(deposits)}</p>
-          </div>
-        </div>
-
-        {/* Withdrawals Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-red-100 dark:border-red-900/30 flex items-center transition-colors">
-          <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mr-4 shrink-0">
-            <ArrowUpRight className="w-6 h-6 text-red-600 dark:text-red-400" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{t('reports.total_withdrawals')}</p>
-            <p className="text-2xl font-bold text-gray-800 dark:text-white">{formatCurrency(withdrawals)}</p>
-          </div>
-        </div>
-
-        {/* Received Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-blue-100 dark:border-blue-900/30 flex items-center transition-colors">
-          <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-4 shrink-0">
-            <Download className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{t('reports.total_received')}</p>
-            <p className="text-2xl font-bold text-gray-800 dark:text-white">{formatCurrency(received)}</p>
-          </div>
-        </div>
-
-        {/* Sent Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-orange-100 dark:border-orange-900/30 flex items-center transition-colors">
-          <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mr-4 shrink-0">
-            <Send className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{t('reports.total_sent')}</p>
-            <p className="text-2xl font-bold text-gray-800 dark:text-white">{formatCurrency(sent)}</p>
-          </div>
-        </div>
-
-        {/* Airtime Cards */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-purple-100 dark:border-purple-900/30 flex flex-col transition-colors">
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mr-2 shrink-0">
-                <Smartphone className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+        {/* Summary Grid for compact mobile view */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          {/* Deposits Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-green-100 dark:border-green-900/30 flex flex-col transition-colors">
+            <div className="flex items-center mb-1.5 sm:mb-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-2 shrink-0">
+                <ArrowDownRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
               </div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('reports.airtime_bought')}</p>
+              <p className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">{t('reports.total_deposits')}</p>
             </div>
-            <p className="text-lg font-bold text-gray-800 dark:text-white mt-auto">{formatCurrency(airtimeBought)}</p>
+            <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mt-auto">{formatCurrency(deposits)}</p>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-purple-100 dark:border-purple-900/30 flex flex-col transition-colors">
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mr-2 shrink-0">
-                <Smartphone className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          {/* Withdrawals Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-red-100 dark:border-red-900/30 flex flex-col transition-colors">
+            <div className="flex items-center mb-1.5 sm:mb-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mr-2 shrink-0">
+                <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600 dark:text-red-400" />
               </div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{t('reports.airtime_sold')}</p>
+              <p className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">{t('reports.total_withdrawals')}</p>
             </div>
-            <p className="text-lg font-bold text-gray-800 dark:text-white mt-auto">{formatCurrency(airtimeSold)}</p>
+            <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mt-auto">{formatCurrency(withdrawals)}</p>
           </div>
-        </div>
 
-        {/* Commission Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-emerald-100 dark:border-emerald-900/30 flex items-center transition-colors">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mr-4 shrink-0">
-            <Landmark className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+          {/* Received Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-blue-100 dark:border-blue-900/30 flex flex-col transition-colors">
+            <div className="flex items-center mb-1.5 sm:mb-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-2 shrink-0">
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <p className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">{t('reports.total_received')}</p>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mt-auto">{formatCurrency(received)}</p>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{t('reports.total_commission', 'Total Commission')}</p>
-            <div className="flex items-end justify-between">
-              <p className="text-2xl font-bold text-gray-800 dark:text-white">{formatCurrency(commission)}</p>
-              <button 
-                onClick={() => setShowCommissionModal(true)}
-                className="flex items-center text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-lg transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                {t('reports.add_commission', 'Add Commission')}
-              </button>
+
+          {/* Sent Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-orange-100 dark:border-orange-900/30 flex flex-col transition-colors">
+            <div className="flex items-center mb-1.5 sm:mb-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mr-2 shrink-0">
+                <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-600 dark:text-orange-400" />
+              </div>
+              <p className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">{t('reports.total_sent')}</p>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mt-auto">{formatCurrency(sent)}</p>
+          </div>
+
+          {/* Airtime Bought Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-purple-100 dark:border-purple-900/30 flex flex-col transition-colors">
+            <div className="flex items-center mb-1.5 sm:mb-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mr-2 shrink-0">
+                <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
+              </div>
+              <p className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">{t('reports.airtime_bought')}</p>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mt-auto">{formatCurrency(airtimeBought)}</p>
+          </div>
+
+          {/* Airtime Sold Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-purple-100 dark:border-purple-900/30 flex flex-col transition-colors">
+            <div className="flex items-center mb-1.5 sm:mb-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mr-2 shrink-0">
+                <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <p className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">{t('reports.airtime_sold')}</p>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mt-auto">{formatCurrency(airtimeSold)}</p>
+          </div>
+          
+          {/* Commission Card - Full Width */}
+          <div className="col-span-2 bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-emerald-100 dark:border-emerald-900/30 flex items-center transition-colors">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mr-3 shrink-0">
+              <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[11px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">{t('reports.total_commission', 'Total Commission')}</p>
+              <div className="flex items-end justify-between">
+                <p className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">{formatCurrency(commission)}</p>
+                <button 
+                  onClick={() => setShowCommissionModal(true)}
+                  className="flex items-center text-[10px] sm:text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-md sm:rounded-lg transition-colors"
+                >
+                  <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
+                  {t('reports.add_commission', 'Add Commission')}
+                </button>
+              </div>
             </div>
           </div>
         </div>

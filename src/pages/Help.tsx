@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Smartphone, RefreshCw, ClipboardCopy, History, FileText, Zap, Mail } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft, BookOpen, Smartphone, RefreshCw, ClipboardCopy, History, FileText, Zap, Mail, Landmark } from 'lucide-react';
 
 export default function Help() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)] transition-colors">
@@ -46,7 +48,7 @@ export default function Help() {
         <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
           <h2 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white mb-2">
             <Zap className="w-5 h-5 mr-2 text-amber-500" />
-            Battery Optimization
+            {t('settings.battery_optimization', 'Battery Optimization')}
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
             Android phones sometimes kill background apps to save battery. For <strong>SMS Auto Detection</strong> to be reliable, you must turn off battery optimization for Tally SMS. You can find the "Fix Now" button under the Core Features in Settings. Once disabled, Tally SMS can consistently detect messages while your screen is off.

@@ -359,9 +359,9 @@ export default function Settings() {
                     <Zap className="w-4 h-4" />
                   </div>
                   <div className="text-left">
-                    <p className="font-medium text-gray-800 dark:text-white">Battery Optimization</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{t('settings.battery_optimization')}</p>
                     <p className={`text-xs ${batteryOptimizationDisabled ? 'text-green-600' : 'text-amber-600 font-medium'}`}>
-                      {batteryOptimizationDisabled ? 'Optimized for background detection' : 'Restricted (Detection may fail)'}
+                      {batteryOptimizationDisabled ? t('settings.battery_optimized_desc') : t('settings.battery_restricted_desc')}
                     </p>
                   </div>
                 </div>

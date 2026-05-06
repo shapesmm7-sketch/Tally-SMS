@@ -20,6 +20,9 @@ const resources = {
         "money_sent": "Money Sent"
       },
       "settings": {
+        "battery_optimization": "Battery Optimization",
+        "battery_optimized_desc": "Optimized for background detection",
+        "battery_restricted_desc": "Restricted (Detection may fail)",
         "title": "Settings",
         "preferences": "Preferences",
         "language": "Language",
@@ -176,6 +179,9 @@ const resources = {
         "deposits": "Dépôts"
       },
       "settings": {
+        "battery_optimization": "Optimisation de la batterie",
+        "battery_optimized_desc": "Optimisé pour la détection en arrière-plan",
+        "battery_restricted_desc": "Restreint (la détection peut échouer)",
         "privacy": "politique de confidentialité",
         "sms_explanation_btn": "Continuer",
         "security": "Sécurité",
@@ -283,6 +289,9 @@ const resources = {
     "translation": {
       
       "settings": {
+        "battery_optimization": "Optimización de batería",
+        "battery_optimized_desc": "Optimizado para detección en segundo plano",
+        "battery_restricted_desc": "Restringido (la detección puede fallar)",
         "share_app": "Compartir aplicación",
         "about": "Acerca de",
         "title": "Ajustes",
@@ -434,6 +443,9 @@ const resources = {
         "paste_sms": "Fügen Sie hier Ihre Mobile Money-Nachricht ein, um Ihre Transaktion zu speichern"
       },
       "settings": {
+        "battery_optimization": "Akku-Optimierung",
+        "battery_optimized_desc": "Optimiert für Hintergrunderkennung",
+        "battery_restricted_desc": "Eingeschränkt (Erkennung kann fehlschlagen)",
         "title": "Einstellungen",
         "language": "Sprache",
         "share_app": "App teilen",
@@ -605,6 +617,9 @@ const resources = {
         "sent": "Enviado/Pago"
       },
       "settings": {
+        "battery_optimization": "Otimização de Bateria",
+        "battery_optimized_desc": "Otimizado para detecção em segundo plano",
+        "battery_restricted_desc": "Restrito (A detecção pode falhar)",
         "security": "Segurança",
         "language": "Linguagem",
         "title": "Configurações",
@@ -730,6 +745,9 @@ const resources = {
         "search_placeholder": "Tafuta miamala..."
       },
       "settings": {
+        "battery_optimization": "Uboreshaji wa Betri",
+        "battery_optimized_desc": "Imeboreshwa kwa utambuzi wa usuli",
+        "battery_restricted_desc": "Imezuiliwa (Utambuzi unaweza kushindwa)",
         "title": "Mipangilio",
         "about": "Kuhusu",
         "privacy": "Sera ya Faragha",
@@ -915,6 +933,9 @@ const resources = {
         "purchases_restored": "تمت استعادة المشتريات بنجاح!"
       },
       "settings": {
+        "battery_optimization": "تحسين البطارية",
+        "battery_optimized_desc": "مُحسّن للاكتشاف في الخلفية",
+        "battery_restricted_desc": "مقيد (قد يفشل الاكتشاف)",
         "clear_data": "مسح كافة البيانات",
         "preferences": "التفضيلات",
         "backup": "بيانات النسخ الاحتياطي",
@@ -1125,6 +1146,9 @@ const resources = {
         "premium_active_desc": "您可以使用所有高级功能。点击进行管理。"
       },
       "settings": {
+        "battery_optimization": "电池优化",
+        "battery_optimized_desc": "针对后台检测进行了优化",
+        "battery_restricted_desc": "受限（检测可能失败）",
         "title": "设置",
         "security": "安全",
         "about": "关于",
@@ -2147,6 +2171,9 @@ const resources = {
         "premium_desc": "विज्ञापन हटाएं, असीमित एसएमएस ऑटो-डिटेक्शन और मैन्युअल स्कैनिंग अनलॉक करें।"
       },
       "settings": {
+        "battery_optimization": "बैटरी अनुकूलन",
+        "battery_optimized_desc": "पृष्ठभूमि पहचान के लिए अनुकूलित",
+        "battery_restricted_desc": "प्रतिबंधित (पहचान विफल हो सकती है)",
         "security": "सुरक्षा",
         "change_pin": "पिन बदलें",
         "select_language": "अपनी भाषा का चयन करें",
@@ -2571,6 +2598,9 @@ const resources = {
         "benefit_1": "Rilevamento automatico SMS illimitato"
       },
       "settings": {
+        "battery_optimization": "Ottimizzazione Batteria",
+        "battery_optimized_desc": "Ottimizzato per rilevamento in background",
+        "battery_restricted_desc": "Limitato (il rilevamento potrebbe fallire)",
         "clear_data": "Cancella tutti i dati",
         "title": "Impostazioni",
         "share_app": "Condividi l'app",
@@ -2733,6 +2763,9 @@ const resources = {
         "premium_active_desc": "すべての高度な機能にアクセスできます。タップして管理します。"
       },
       "settings": {
+        "battery_optimization": "バッテリー最適化",
+        "battery_optimized_desc": "バックグラウンド検出用に最適化",
+        "battery_restricted_desc": "制限あり（検出に失敗する可能性があります）",
         "language": "言語",
         "share_app": "アプリを共有する",
         "security": "安全",
@@ -2847,6 +2880,9 @@ const resources = {
         "benefit_1": "무제한 SMS 자동 감지"
       },
       "settings": {
+        "battery_optimization": "배터리 최적화",
+        "battery_optimized_desc": "백그라운드 감지에 최적화됨",
+        "battery_restricted_desc": "제한됨 (감지 실패 가능성 있음)",
         "backup": "백업 데이터",
         "sms_explanation_btn": "계속하다",
         "privacy": "개인 정보 보호 정책",
@@ -3752,6 +3788,9 @@ const resources = {
         "confirm_delete_body": "Вы уверены, что хотите удалить эту транзакцию?"
       },
       "settings": {
+        "battery_optimization": "Оптимизация батареи",
+        "battery_optimized_desc": "Оптимизировано для фонового обнаружения",
+        "battery_restricted_desc": "Ограничено (обнаружение может завершиться ошибкой)",
         "preferences": "Предпочтения",
         "select_language": "Выберите свой язык",
         "privacy": "политика конфиденциальности",

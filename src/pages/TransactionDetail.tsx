@@ -153,15 +153,13 @@ export default function TransactionDetail() {
             <div className="p-4 flex justify-between items-center">
               <span className="text-gray-500 dark:text-gray-400 text-sm">Date</span>
               <span className="font-medium text-gray-800 dark:text-white text-right">
-                {tx.smsDate || format(parseISO(tx.date), 'MMM d, yyyy')}
+                {format(parseISO(tx.date), 'MMM d, yyyy')}
               </span>
             </div>
-            {tx.smsTime && (
-              <div className="p-4 flex justify-between items-center">
-                <span className="text-gray-500 dark:text-gray-400 text-sm">Time</span>
-                <span className="font-medium text-gray-800 dark:text-white text-right">{tx.smsTime}</span>
-              </div>
-            )}
+            <div className="p-4 flex justify-between items-center">
+              <span className="text-gray-500 dark:text-gray-400 text-sm">Time</span>
+              <span className="font-medium text-gray-800 dark:text-white text-right">{format(parseISO(tx.date), 'hh:mm a').toUpperCase()}</span>
+            </div>
             {tx.balance !== undefined && (
               <div className="p-4 flex justify-between items-center">
                 <span className="text-gray-500 dark:text-gray-400 text-sm">Balance</span>
