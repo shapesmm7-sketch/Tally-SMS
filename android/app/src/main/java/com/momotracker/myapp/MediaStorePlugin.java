@@ -1,7 +1,12 @@
 package com.momotracker.myapp;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Base64;
 
 import com.getcapacitor.JSObject;
@@ -13,6 +18,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 @CapacitorPlugin(name = "MediaStore")
 public class MediaStorePlugin extends Plugin {
@@ -29,32 +35,52 @@ public class MediaStorePlugin extends Plugin {
 
         try {
             Context context = getContext();
-            File docsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-            if (docsDir == null) {
-                call.reject("Could not access external files dir");
-                return;
-            }
-
-            File reportsDir = new File(docsDir, "Reports");
-            if (!reportsDir.exists()) {
-                if (!reportsDir.mkdirs()) {
-                    call.reject("Could not create Reports directory");
-                    return;
-                }
-            }
-
-            File file = new File(reportsDir, fileName);
             byte[] pdfAsBytes = Base64.decode(base64Data, Base64.DEFAULT);
 
-            FileOutputStream os = new FileOutputStream(file, false);
-            os.write(pdfAsBytes);
-            os.flush();
-            os.close();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContentResolver resolver = context.getContentResolver();
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
+                contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/Reports");
 
-            JSObject ret = new JSObject();
-            ret.put("success", true);
-            ret.put("uri", file.getAbsolutePath());
-            call.resolve(ret);
+                Uri uri = resolver.insert(MediaStore.Files.getContentUri("external"), contentValues);
+                
+                if (uri != null) {
+                    OutputStream os = resolver.openOutputStream(uri);
+                    if (os != null) {
+                        os.write(pdfAsBytes);
+                        os.flush();
+                        os.close();
+                    }
+                    JSObject ret = new JSObject();
+                    ret.put("success", true);
+                    ret.put("uri", uri.toString());
+                    call.resolve(ret);
+                    return;
+                } else {
+                    call.reject("Could not create MediaStore entry");
+                    return;
+                }
+            } else {
+                // Fallback for older Android versions
+                File docsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+                File reportsDir = new File(docsDir, "Reports");
+                if (!reportsDir.exists()) {
+                    reportsDir.mkdirs();
+                }
+
+                File file = new File(reportsDir, fileName);
+                FileOutputStream os = new FileOutputStream(file, false);
+                os.write(pdfAsBytes);
+                os.flush();
+                os.close();
+
+                JSObject ret = new JSObject();
+                ret.put("success", true);
+                ret.put("uri", file.getAbsolutePath());
+                call.resolve(ret);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,6 +88,9 @@ public class MediaStorePlugin extends Plugin {
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             call.reject("Base64 error: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            call.reject("Error: " + e.getMessage());
         }
     }
 }
