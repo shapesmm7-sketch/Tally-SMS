@@ -1098,6 +1098,9 @@ const resources = {
         "paste_sms": "আপনার লেনদেন সংরক্ষণ করতে এখানে আপনার মোবাইল মানি বার্তা আটকান"
       },
       "settings": {
+        "battery_optimization": "ব্যাটারি অপ্টিমাইজেশন",
+        "battery_optimized_desc": "ব্যাকগ্রাউন্ড সনাক্তকরণের জন্য অপ্টিমাইজ করা হয়েছে",
+        "battery_restricted_desc": "সীমাবদ্ধ (সনাক্তকরণ ব্যর্থ হতে পারে)",
         "clear_data": "সমস্ত ডেটা সাফ করুন",
         "share_app": "অ্যাপ শেয়ার করুন",
         "select_language": "আপনার ভাষা নির্বাচন করুন",
@@ -1273,6 +1276,9 @@ const resources = {
     "translation": {
       
       "settings": {
+        "battery_optimization": "Optimalizace baterie",
+        "battery_optimized_desc": "Optimalizováno pro detekci na pozadí",
+        "battery_restricted_desc": "Omezeno (detekce může selhat)",
         "dark_mode": "Tmavý režim",
         "terms": "Smluvní podmínky",
         "sms_explanation_btn": "Pokračovat",
@@ -1411,6 +1417,9 @@ const resources = {
     "translation": {
       
       "settings": {
+        "battery_optimization": "Batterioptimering",
+        "battery_optimized_desc": "Optimeret til baggrundsdetektion",
+        "battery_restricted_desc": "Begrænset (detektion kan fejle)",
         "about": "Om",
         "security": "Sikkerhed",
         "language": "Sprog",
@@ -1576,6 +1585,9 @@ const resources = {
         "no_transactions": "Geen transacties vandaag"
       },
       "settings": {
+        "battery_optimization": "Batterij-optimalisatie",
+        "battery_optimized_desc": "Geoptimaliseerd voor detectie op de achtergrond",
+        "battery_restricted_desc": "Beperkt (detectie kan mislukken)",
         "preferences": "Voorkeuren",
         "about": "Over",
         "language": "Taal",
@@ -1700,6 +1712,9 @@ const resources = {
         "paste_sms": "Liitä Mobile Money -viestisi tähän tallentaaksesi tapahtumasi"
       },
       "settings": {
+        "battery_optimization": "Akun optimointi",
+        "battery_optimized_desc": "Optimoitu taustatunnistukseen",
+        "battery_restricted_desc": "Rajoitettu (tunnistus saattaa epäonnistua)",
         "title": "Asetukset",
         "preferences": "Asetukset",
         "privacy": "Tietosuojakäytäntö",
@@ -1876,6 +1891,9 @@ const resources = {
         "download_report": "Λήψη αναφοράς"
       },
       "settings": {
+        "battery_optimization": "Βελτιστοποίηση Μπαταρίας",
+        "battery_optimized_desc": "Βελτιστοποιημένο για ανίχνευση στο παρασκήνιο",
+        "battery_restricted_desc": "Περιορισμένο (η ανίχνευση μπορεί να αποτύχει)",
         "sms_explanation_btn": "Συνεχίζω",
         "share_app": "Κοινή χρήση εφαρμογής",
         "security": "Ασφάλεια",
@@ -1990,6 +2008,9 @@ const resources = {
         "premium_active": "פרימיום אקטיב"
       },
       "settings": {
+        "battery_optimization": "אופטימיזציית סוללה",
+        "battery_optimized_desc": "מותאם לזיהוי ברקע",
+        "battery_restricted_desc": "מוגבל (זיהוי עלול להיכשל)",
         "privacy": "מדיניות פרטיות",
         "about": "אוֹדוֹת",
         "sms_explanation_btn": "לְהַמשִׁיך",
@@ -2242,6 +2263,9 @@ const resources = {
     "translation": {
       
       "settings": {
+        "battery_optimization": "Akkumulátor optimalizálása",
+        "battery_optimized_desc": "Háttérbeli észleléshez optimalizálva",
+        "battery_restricted_desc": "Korlátozott (az észlelés sikertelen lehet)",
         "data": "Adat",
         "help_guide": "Súgó és útmutató",
         "share_app": "Share App",
@@ -2450,6 +2474,9 @@ const resources = {
         "total_volume_desc": "Total uang yang dipindahkan pada periode ini"
       },
       "settings": {
+        "battery_optimization": "Optimasi Baterai",
+        "battery_optimized_desc": "Dioptimalkan untuk deteksi latar belakang",
+        "battery_restricted_desc": "Dibatasi (deteksi mungkin gagal)",
         "terms": "syarat dan Ketentuan",
         "backup": "Data Cadangan",
         "dark_mode": "Mode Gelap",
@@ -3011,6 +3038,9 @@ const resources = {
         "confirm_delete_body": "Adakah anda pasti mahu memadamkan transaksi ini?"
       },
       "settings": {
+        "battery_optimization": "Pengoptimuman Bateri",
+        "battery_optimized_desc": "Dioptimumkan untuk pengesanan latar belakang",
+        "battery_restricted_desc": "Terhad (pengesanan mungkin gagal)",
         "preferences": "Keutamaan",
         "terms": "Terma dan Syarat",
         "privacy": "Dasar Privasi",
@@ -3125,6 +3155,9 @@ const resources = {
         "no_transactions": "आज कोणतेही व्यवहार नाहीत"
       },
       "settings": {
+        "battery_optimization": "बॅटरी ऑप्टिमायझेशन",
+        "battery_optimized_desc": "पार्श्वभूमी ओळखण्यासाठी ऑप्टिमाइझ केले",
+        "battery_restricted_desc": "प्रतिबंधित (ओळख अयशस्वी होऊ शकते)",
         "help_guide": "मदत आणि मार्गदर्शन",
         "sms_explanation_btn": "चालू ठेवा",
         "terms": "नियम आणि अटी",
@@ -3230,6 +3263,9 @@ const resources = {
         "money_received": "Penger mottatt"
       },
       "settings": {
+        "battery_optimization": "Batterioptimalisering",
+        "battery_optimized_desc": "Optimalisert for bakgrunnsdeteksjon",
+        "battery_restricted_desc": "Begrenset (deteksjon kan mislykkes)",
         "privacy": "Personvernerklæring",
         "data": "Data",
         "security": "Sikkerhet",
@@ -3459,6 +3495,9 @@ const resources = {
         "money_sent": "پول ارسال شد"
       },
       "settings": {
+        "battery_optimization": "بهینه‌سازی باتری",
+        "battery_optimized_desc": "بهینه‌شده برای تشخیص در پس‌زمینه",
+        "battery_restricted_desc": "محدود شده (تشخیص ممکن است ناموفق باشد)",
         "title": "تنظیمات",
         "select_language": "زبان خود را انتخاب کنید",
         "share_app": "اشتراک گذاری برنامه",
@@ -3520,6 +3559,9 @@ const resources = {
         "paste_sms": "Wklej tutaj wiadomość Mobile Money, aby zapisać transakcję"
       },
       "settings": {
+        "battery_optimization": "Optymalizacja baterii",
+        "battery_optimized_desc": "Zoptymalizowane pod kątem wykrywania w tle",
+        "battery_restricted_desc": "Ograniczone (wykrywanie może się nie powieść)",
         "security": "Bezpieczeństwo",
         "dark_mode": "Tryb ciemny",
         "about": "O",
@@ -3711,6 +3753,9 @@ const resources = {
         "daily_pass": "Abonament zilnic"
       },
       "settings": {
+        "battery_optimization": "Optimizarea bateriei",
+        "battery_optimized_desc": "Optimizat pentru detectare în fundal",
+        "battery_restricted_desc": "Restricționat (detectarea poate eșua)",
         "sms_explanation_btn": "Continua",
         "language": "Limbă",
         "data": "Date",
@@ -3924,6 +3969,9 @@ const resources = {
         "premium_desc": "Ta bort annonser, lås upp obegränsad automatisk identifiering av SMS och manuell skanning."
       },
       "settings": {
+        "battery_optimization": "Batterioptimering",
+        "battery_optimized_desc": "Optimerad för bakgrundsdetektering",
+        "battery_restricted_desc": "Begränsad (detektering kan misslyckas)",
         "security": "Säkerhet",
         "data": "Data",
         "title": "Inställningar",
@@ -4061,6 +4109,9 @@ const resources = {
         "paste_sms": "I-paste ang iyong mensahe sa Mobile Money dito para i-save ang iyong transaksyon"
       },
       "settings": {
+        "battery_optimization": "Pag-optimize ng Baterya",
+        "battery_optimized_desc": "Na-optimize para sa background detection",
+        "battery_restricted_desc": "Pinaghihigpitan (maaaring mabigo ang detection)",
         "title": "Mga setting",
         "language": "Wika",
         "about": "Tungkol sa",
@@ -4276,6 +4327,9 @@ const resources = {
         "purchase_success": "கொள்முதல் வெற்றி! நன்றி."
       },
       "settings": {
+        "battery_optimization": "பேட்டரி மேம்பாடு",
+        "battery_optimized_desc": "பின்னணி கண்டறிதலுக்கு மேம்படுத்தப்பட்டது",
+        "battery_restricted_desc": "கட்டுப்படுத்தப்பட்டுள்ளது (கண்டறிதல் தோல்வியடையலாம்)",
         "title": "அமைப்புகள்",
         "language": "மொழி",
         "data": "தரவு",
@@ -4381,6 +4435,9 @@ const resources = {
         "confirm_delete_body": "మీరు ఈ లావాదేవీని ఖచ్చితంగా తొలగించాలనుకుంటున్నారా?"
       },
       "settings": {
+        "battery_optimization": "బ్యాటరీ ఆప్టిమైజేషన్",
+        "battery_optimized_desc": "బ్యాక్‌గ్రౌండ్ గుర్తింపు కోసం ఆప్టిమైజ్ చేయబడింది",
+        "battery_restricted_desc": "పరిమితం చేయబడింది (గుర్తింపు విఫలం కావచ్చు)",
         "security": "భద్రత",
         "language": "భాష",
         "country_currency": "దేశం & కరెన్సీ",
@@ -4489,6 +4546,9 @@ const resources = {
         "money_sent": "โอนเงินแล้ว"
       },
       "settings": {
+        "battery_optimization": "การเพิ่มประสิทธิภาพแบตเตอรี่",
+        "battery_optimized_desc": "ปรับให้เหมาะสมสำหรับการตรวจจับในพื้นหลัง",
+        "battery_restricted_desc": "ถูกจำกัด (การตรวจจับอาจล้มเหลว)",
         "security": "ความปลอดภัย",
         "select_language": "เลือกภาษาของคุณ",
         "terms": "ข้อกำหนดและเงื่อนไข",
@@ -4670,6 +4730,9 @@ const resources = {
         "premium_desc": "Reklamları kaldırın, sınırsız SMS otomatik algılama ve manuel taramanın kilidini açın."
       },
       "settings": {
+        "battery_optimization": "Pil Optimizasyonu",
+        "battery_optimized_desc": "Arka plan algılaması için optimize edildi",
+        "battery_restricted_desc": "Kısıtlı (algılama başarısız olabilir)",
         "title": "Ayarlar",
         "country_desc": "Yerel para biriminizi ayarlayın",
         "clear_data": "Tüm Verileri Temizle",
@@ -4738,6 +4801,9 @@ const resources = {
     "translation": {
       
       "settings": {
+        "battery_optimization": "Оптимізація батареї",
+        "battery_optimized_desc": "Оптимізовано для фонового виявлення",
+        "battery_restricted_desc": "Обмежено (виявлення може не вдатися)",
         "preferences": "Уподобання",
         "sms_explanation_btn": "Продовжити",
         "data": "Дані",
@@ -4909,6 +4975,9 @@ const resources = {
         "premium_active": "پریمیم ایکٹو"
       },
       "settings": {
+        "battery_optimization": "بیٹری کی بہتری",
+        "battery_optimized_desc": "پس منظر کی نشاندہی کے لیے بہتر بنایا گیا",
+        "battery_restricted_desc": "محدود (نشاندہی ناکام ہو سکتی ہے)",
         "data": "ڈیٹا",
         "backup": "بیک اپ ڈیٹا",
         "security": "سیکورٹی",
@@ -5047,6 +5116,9 @@ const resources = {
         "upgrade_now": "Nâng cấp ngay"
       },
       "settings": {
+        "battery_optimization": "Tối ưu hóa Pin",
+        "battery_optimized_desc": "Được tối ưu hóa để phát hiện trong nền",
+        "battery_restricted_desc": "Bị hạn chế (phát hiện có thể thất bại)",
         "title": "Cài đặt",
         "language": "Ngôn ngữ",
         "data": "dữ liệu",

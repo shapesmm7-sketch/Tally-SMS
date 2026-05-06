@@ -51,7 +51,7 @@ export default function Help() {
             {t('settings.battery_optimization', 'Battery Optimization')}
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            Android phones sometimes kill background apps to save battery. For <strong>SMS Auto Detection</strong> to be reliable, you must turn off battery optimization for Tally SMS. You can find the "Fix Now" button under the Core Features in Settings. Once disabled, Tally SMS can consistently detect messages while your screen is off.
+            Android phones sometimes kill background apps to save battery. For <strong>SMS Auto Detection</strong> to be reliable, you must turn off {t('settings.battery_optimization', 'battery optimization').toLowerCase()} for Tally SMS. You can find the "Fix Now" button under the Core Features in Settings. Once disabled, Tally SMS can consistently detect messages while your screen is off.
           </p>
         </section>
 
