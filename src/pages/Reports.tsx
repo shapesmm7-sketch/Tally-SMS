@@ -36,7 +36,8 @@ export default function Reports() {
   const [manualCommissionAmount, setManualCommissionAmount] = useState('');
   const [manualCommissionDate, setManualCommissionDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [manualCommissionProvider, setManualCommissionProvider] = useState('');
-  const { needsAdForPdf } = useAccessControl();
+  const { isPremium } = useAccessControl();
+  const needsAdForPdf = !isPremium;
   const { forceAd } = useInterstitialAd();
   
   const transactions = useLiveQuery(() => db.transactions.toArray()) || [];
@@ -239,7 +240,10 @@ export default function Reports() {
       }
     } else {
       doc.save(fileName);
-      if (needsAdForPdf) forceAd(() => {});
+      setTimeout(() => {
+        alert(t('reports.report_saved', `Report saved as ${fileName}`));
+        if (needsAdForPdf) forceAd(() => {});
+      }, 500);
     }
   };
 
