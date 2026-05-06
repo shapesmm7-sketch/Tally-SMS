@@ -26,39 +26,39 @@ export function useAccessControl() {
     return () => clearInterval(interval);
   }, [refresh]);
 
-  const canProcessAutoDetectSms = () => {
+  const canProcessAutoDetectSms = useCallback(() => {
     if (isPremium || isTrial) return true;
     return UsageLimiter.canUseFreeTier('autodetect');
-  };
+  }, [isPremium, isTrial]);
 
-  const getAutoDetectAllowance = () => {
+  const getAutoDetectAllowance = useCallback(() => {
     if (isPremium || isTrial) return Infinity;
     return Math.max(0, UsageLimiter.DAILY_LIMIT - autoDetectUsage);
-  };
+  }, [isPremium, isTrial, autoDetectUsage]);
 
-  const canProcessManualScan = () => {
+  const canProcessManualScan = useCallback(() => {
     if (isPremium || isTrial) return true;
     return UsageLimiter.canUseFreeTier('manualscan');
-  };
+  }, [isPremium, isTrial]);
 
-  const getManualScanAllowance = () => {
+  const getManualScanAllowance = useCallback(() => {
     if (isPremium || isTrial) return Infinity;
     return Math.max(0, UsageLimiter.DAILY_LIMIT - manualScanUsage);
-  };
+  }, [isPremium, isTrial, manualScanUsage]);
 
-  const recordAutoDetectUsage = (count: number = 1) => {
+  const recordAutoDetectUsage = useCallback((count: number = 1) => {
     if (!isPremium && !isTrial) {
       UsageLimiter.incrementUsage('autodetect', count);
       refresh();
     }
-  };
+  }, [isPremium, isTrial, refresh]);
 
-  const recordManualScanUsage = (count: number = 1) => {
+  const recordManualScanUsage = useCallback((count: number = 1) => {
     if (!isPremium && !isTrial) {
       UsageLimiter.incrementUsage('manualscan', count);
       refresh();
     }
-  };
+  }, [isPremium, isTrial, refresh]);
 
   return {
     isTrial,

@@ -28,8 +28,10 @@ export default function Dashboard() {
   const { triggerAction } = useInterstitialAd();
 
   const transactions = useLiveQuery(async () => {
-    const allTxs = await db.transactions.orderBy('date').reverse().toArray();
-    return allTxs.filter(tx => isToday(parseISO(tx.date)));
+    // Only fetch the most recent 100 transactions to check if they are from today
+    // This is much faster than fetching thousands of transactions
+    const recentTxs = await db.transactions.orderBy('date').reverse().limit(100).toArray();
+    return recentTxs.filter(tx => isToday(parseISO(tx.date)));
   }) || [];
 
   const handleScanSMS = async () => {

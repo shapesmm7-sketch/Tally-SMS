@@ -39,16 +39,57 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const isInProgress = React.useRef(false);
+
   const triggerAction = useCallback(async (action: () => void) => {
+    if (isInProgress.current) {
+      console.log('Ad show already in progress, skipping ad logic and executing action');
+      action();
+      return;
+    }
+
     const shouldShowAd = InterstitialAdController.recordAction();
     
     if (shouldShowAd) {
+      isInProgress.current = true;
       if (Capacitor.isNativePlatform()) {
-        setPendingAction(() => action);
-        await InterstitialAdController.showAd();
+        try {
+          setPendingAction(() => () => {
+            isInProgress.current = false;
+            action();
+          });
+          
+          // Safety timeout for native ad: if not dismissed in 30s, just run the action
+          const safetyTimeout = setTimeout(() => {
+            if (isInProgress.current) {
+              console.log('Ad safety timeout triggered (native)');
+              setPendingAction((currentAction) => {
+                if (currentAction) {
+                  currentAction();
+                }
+                return null;
+              });
+              isInProgress.current = false;
+            }
+          }, 30000);
+
+          await InterstitialAdController.showAd();
+        } catch (error) {
+          console.error('Error showing ad:', error);
+          isInProgress.current = false;
+          action();
+        }
       } else {
-        setPendingAction(() => action);
+        setPendingAction(() => () => {
+          isInProgress.current = false;
+          action();
+        });
         setShowModal(true);
+        
+        // Safety timeout for web modal
+        setTimeout(() => {
+           // We don't force close the modal here but ensure we don't block forever if somehow it breaks
+        }, 30000);
       }
     } else {
       action();
@@ -56,11 +97,28 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const forceAd = useCallback(async (action: () => void) => {
+    if (isInProgress.current) {
+      action();
+      return;
+    }
+
+    isInProgress.current = true;
     if (Capacitor.isNativePlatform()) {
-       setPendingAction(() => action);
-       await InterstitialAdController.showAd();
+       try {
+         setPendingAction(() => () => {
+           isInProgress.current = false;
+           action();
+         });
+         await InterstitialAdController.showAd();
+       } catch (error) {
+         isInProgress.current = false;
+         action();
+       }
     } else {
-      setPendingAction(() => action);
+      setPendingAction(() => () => {
+        isInProgress.current = false;
+        action();
+      });
       setShowModal(true);
     }
   }, []);
@@ -72,6 +130,7 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
       pendingAction();
       setPendingAction(null);
     }
+    isInProgress.current = false;
   }, [pendingAction]);
 
   return (

@@ -34,11 +34,13 @@ export default function Subscription() {
     
     // Sometimes store takes a moment to initialize prices over network
     // We poll briefly in case prices haven't populated yet
+    let attempts = 0;
     const interval = setInterval(() => {
+       attempts++;
        const prices = BillingManager.getLocalizedPrices();
        // Only update if they look like they've changed dynamically from the store
-       if (prices.monthly !== '$6.80') {
-          setLocalizedPrices(prices);
+       if (prices.monthly !== '$6.80' || attempts > 10) {
+          if (prices.monthly !== '$6.80') setLocalizedPrices(prices);
           clearInterval(interval);
        }
     }, 1000);

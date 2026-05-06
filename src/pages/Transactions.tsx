@@ -46,11 +46,19 @@ export default function Transactions() {
 
   const transactions = useLiveQuery(async () => {
     let collection = db.transactions.orderBy('date').reverse();
-    const all = await collection.toArray();
     
-    return all.filter(tx => {
-      const matchType = filterType === 'all' || tx.type === filterType;
-      const matchSearch = tx.category.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    // Applying database-level filters first for better performance
+    if (filterType !== 'all') {
+      // Note: Dexie handles basic equality well, but combining multiple is easier with .filter() after ordered collection
+      collection = collection.filter(tx => tx.type === filterType);
+    }
+
+    const results = await collection.toArray();
+    
+    // Refined filtering for search and date in JS memory (as complex date logic is harder in Dexie without indices)
+    return results.filter(tx => {
+      const matchSearch = searchQuery === '' || 
+                          tx.category.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (tx.note && tx.note.toLowerCase().includes(searchQuery.toLowerCase())) ||
                           (tx.senderReceiverName && tx.senderReceiverName.toLowerCase().includes(searchQuery.toLowerCase())) ||
                           (tx.tid && tx.tid.includes(searchQuery));
@@ -70,7 +78,7 @@ export default function Transactions() {
 
       const matchProvider = providerFilter === 'all' || normalizeProviderName(tx.provider || '') === providerFilter;
 
-      return matchType && matchSearch && matchDate && matchProvider;
+      return matchSearch && matchDate && matchProvider;
     });
   }, [filterType, searchQuery, dateFilter, customDate, providerFilter]) || [];
 

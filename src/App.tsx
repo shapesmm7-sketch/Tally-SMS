@@ -65,27 +65,32 @@ function AppContent() {
   const { getAutoDetectAllowance, recordAutoDetectUsage } = useAccessControl();
 
   useEffect(() => {
-    // Hardware back button for PIN screen (Exit app if locked and back pressed)
+    let active = true;
     let pinBackHandle: any;
+    let listenerHandle: any;
+
     const setupPinBack = async () => {
       if (!Capacitor.isNativePlatform() || isUnlocked) return;
       pinBackHandle = await CapacitorApp.addListener('backButton', () => {
         CapacitorApp.exitApp();
       });
+      if (!active && pinBackHandle) pinBackHandle.remove();
     };
     setupPinBack();
 
     const runSync = async () => {
+      if (!active) return;
       if (Capacitor.isNativePlatform()) {
         try {
           await db.removeDuplicates();
         } catch (e) {
           console.error("Failed to remove duplicates:", e);
         }
+        if (!active) return;
         const allowance = getAutoDetectAllowance();
         const { count, limitReached } = await syncPendingSMS(allowance);
-        if (count > 0) recordAutoDetectUsage(count);
-        if (limitReached) {
+        if (active && count > 0) recordAutoDetectUsage(count);
+        if (active && limitReached) {
           setShowGlobalLimitModal(true);
         }
       }
@@ -95,21 +100,21 @@ function AppContent() {
     runSync();
 
     // Listen for app foregrounding to sync again
-    let listenerHandle: any;
-    
     const setup = async () => {
-      if (!Capacitor.isNativePlatform()) return;
+      if (!Capacitor.isNativePlatform() || !active) return;
       
       listenerHandle = await CapacitorApp.addListener('appStateChange', ({ isActive }) => {
         if (isActive) {
           runSync();
         }
       });
+      if (!active && listenerHandle) listenerHandle.remove();
     };
 
     setup();
 
     return () => {
+      active = false;
       if (listenerHandle) {
         listenerHandle.remove();
       }
