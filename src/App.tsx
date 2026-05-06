@@ -22,6 +22,7 @@ import LimitModal from './components/LimitModal';
 import { useInterstitialAd } from './hooks/useInterstitialAd';
 import { useAccessControl } from './hooks/useAccessControl';
 import { syncPendingSMS } from './lib/smsDetector';
+import { db } from './lib/db';
 
 // Preload ads on startup
 InterstitialAdController.preload();
@@ -76,6 +77,11 @@ function AppContent() {
 
     const runSync = async () => {
       if (Capacitor.isNativePlatform()) {
+        try {
+          await db.removeDuplicates();
+        } catch (e) {
+          console.error("Failed to remove duplicates:", e);
+        }
         const allowance = getAutoDetectAllowance();
         const { count, limitReached } = await syncPendingSMS(allowance);
         if (count > 0) recordAutoDetectUsage(count);

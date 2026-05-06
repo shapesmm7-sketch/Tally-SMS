@@ -82,11 +82,12 @@ export default function Reports() {
     filtered.forEach(tx => {
       totalVolume += tx.amount;
       const cat = tx.category.toLowerCase();
-      if (cat === 'withdrawal') withdrawals += tx.amount;
+      if (cat === 'withdrawals' || cat === 'withdrawal') withdrawals += tx.amount;
       else if (cat === 'deposit') deposits += tx.amount;
-      else if (cat === 'airtime_bought') airtimeBought += tx.amount;
-      else if (cat === 'airtime_sold') airtimeSold += tx.amount;
-      else if (cat === 'airtime') airtimeBought += tx.amount; // Fallback for old ones
+      else if (cat === 'airtime bought' || cat === 'airtime_bought' || cat === 'airtime') airtimeBought += tx.amount;
+      else if (cat === 'airtime sold' || cat === 'airtime_sold') airtimeSold += tx.amount;
+      else if (cat === 'received') received += tx.amount;
+      else if (cat === 'sent/paid' || cat === 'sent' || cat === 'payment' || cat === 'paid') sent += tx.amount;
       else if (cat === 'commission') commission += tx.amount;
       else if (tx.type === 'income') received += tx.amount;
       else sent += tx.amount;

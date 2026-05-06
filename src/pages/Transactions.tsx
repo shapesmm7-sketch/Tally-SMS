@@ -94,11 +94,12 @@ export default function Transactions() {
 
   const totals = transactions.reduce((acc, tx) => {
     const cat = tx.category.toLowerCase();
-    if (cat === 'withdrawal') acc.withdrawals += tx.amount;
+    if (cat === 'withdrawals' || cat === 'withdrawal') acc.withdrawals += tx.amount;
     else if (cat === 'deposit') acc.deposits += tx.amount;
-    else if (cat === 'airtime_bought') acc.airtimeBought += tx.amount;
-    else if (cat === 'airtime_sold') acc.airtimeSold += tx.amount;
-    else if (cat === 'airtime') acc.airtimeBought += tx.amount;
+    else if (cat === 'airtime bought' || cat === 'airtime_bought' || cat === 'airtime') acc.airtimeBought += tx.amount;
+    else if (cat === 'airtime sold' || cat === 'airtime_sold') acc.airtimeSold += tx.amount;
+    else if (cat === 'received') acc.received += tx.amount;
+    else if (cat === 'sent/paid' || cat === 'sent' || cat === 'payment' || cat === 'paid') acc.sent += tx.amount;
     else if (cat === 'commission') acc.commission += tx.amount;
     else if (tx.type === 'income') acc.received += tx.amount;
     else acc.sent += tx.amount;
@@ -135,7 +136,7 @@ export default function Transactions() {
     doc.setFontSize(9);
     doc.setTextColor(50);
     doc.text(`Deposits: ${formatCurrency(totals.deposits)} | Withdrawals: ${formatCurrency(totals.withdrawals)}`, 14, 45);
-    doc.text(`Received: ${formatCurrency(totals.received)} | Sent: ${formatCurrency(totals.sent)} | Airtime Bought: ${formatCurrency(totals.airtimeBought)}`, 14, 50);
+    doc.text(`Received: ${formatCurrency(totals.received)} | Sent/Paid: ${formatCurrency(totals.sent)} | Airtime Bought: ${formatCurrency(totals.airtimeBought)}`, 14, 50);
     doc.text(`Airtime Sold: ${formatCurrency(totals.airtimeSold)} | Commission: ${formatCurrency(totals.commission)}`, 14, 55);
 
     // Prepare table data

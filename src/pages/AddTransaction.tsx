@@ -38,12 +38,22 @@ export default function AddTransaction() {
       }
     }
 
-    const type = parsed.transaction_type === 'deposit' ? 'income' : 'expense';
+    const incomeTypes = ['received', 'deposit', 'airtime_sold', 'commission'];
+    const type = incomeTypes.includes(parsed.transaction_type) ? 'income' : 'expense';
     let note = '';
     if (parsed.sender_name) note = `From ${parsed.sender_name}`;
     else if (parsed.receiver_name) note = `To ${parsed.receiver_name}`;
 
-    const categoryName = parsed.transaction_type.charAt(0).toUpperCase() + parsed.transaction_type.slice(1);
+    const categoryMap: Record<string, string> = {
+      received: "Received",
+      deposit: "Deposit",
+      withdrawal: "Withdrawals",
+      sent: "Sent/paid",
+      airtime_bought: "Airtime bought",
+      airtime_sold: "Airtime sold",
+      commission: "Commission"
+    };
+    const categoryName = categoryMap[parsed.transaction_type] || "Other";
 
     const txDate = parseTransactionDate(parsed.date, parsed.time);
 

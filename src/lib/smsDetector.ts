@@ -114,153 +114,179 @@ export async function openSettingsFallback(): Promise<void> {
 }
 
 
-/**
- * Sync pending SMS messages.
- * Note: cordova-plugin-sms might not support battery optimization checks or native open app settings.
- */
+let isSyncingSMS = false;
+
 export async function syncPendingSMS(limit: number = Infinity): Promise<{ count: number; limitReached: boolean }> {
+  if (isSyncingSMS) return { count: 0, limitReached: false };
+  
   if (!Capacitor.isNativePlatform()) {
     return { count: 0, limitReached: false };
   }
   
-  const sms = getSmsPlugin();
-  if (!sms || typeof sms.listSMS !== 'function') {
-    return { count: 0, limitReached: false };
-  }
+  isSyncingSMS = true;
+  try {
+    const sms = getSmsPlugin();
+    if (!sms || typeof sms.listSMS !== 'function') {
+      return { count: 0, limitReached: false };
+    }
 
-  // First check if the user actually enabled this feature
-  if (localStorage.getItem('momo_sms_enabled') !== 'true') {
-    return { count: 0, limitReached: false };
-  }
+    // First check if the user actually enabled this feature
+    if (localStorage.getItem('momo_sms_enabled') !== 'true') {
+      return { count: 0, limitReached: false };
+    }
 
-  // Then verify permission
-  const hasPermission = await checkSmsPermission();
-  if (!hasPermission) {
-    return { count: 0, limitReached: false };
-  }
+    // Then verify permission
+    const hasPermission = await checkSmsPermission();
+    if (!hasPermission) {
+      return { count: 0, limitReached: false };
+    }
 
-  return new Promise((resolve) => {
-    const filter = {
-      box: 'inbox',
-      indexFrom: 0,
-      maxCount: limit === Infinity ? 200 : limit,
-    };
+    return await new Promise((resolve) => {
+      const filter = {
+        box: 'inbox',
+        indexFrom: 0,
+        maxCount: limit === Infinity ? 200 : limit,
+      };
 
-    sms.listSMS(
-      filter,
-      async (messages: any[]) => {
-        if (!messages || messages.length === 0) {
-          resolve({ count: 0, limitReached: false });
-          return;
-        }
-
-        console.log(`Processing up to ${limit} from ${messages.length} pending SMS messages...`);
-        let count = 0;
-        
-        const existingTxs = await db.transactions.toArray();
-        const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
-        const lastClearedStr = localStorage.getItem('momo_last_cleared_date');
-        const lastClearedTime = lastClearedStr ? parseInt(lastClearedStr, 10) : 0;
-        
-        let autoSyncStartTimeStr = localStorage.getItem('momo_auto_sync_start_time');
-        // If somehow not set by main.tsx, fallback to Date.now()
-        let autoSyncStartTime = autoSyncStartTimeStr ? parseInt(autoSyncStartTimeStr, 10) : Date.now();
-        
-        const cutoffTime = Math.max(autoSyncStartTime, lastClearedTime);
-        
-        let hasMoreUnprocessed = false;
-
-        for (const msg of messages) {
-          if (count >= limit) {
-            hasMoreUnprocessed = true;
-            break;
+      sms.listSMS(
+        filter,
+        async (messages: any[]) => {
+          if (!messages || messages.length === 0) {
+            resolve({ count: 0, limitReached: false });
+            return;
           }
 
-          // Skip if msg was received before the cutoff time (app install or last clear)
-          if (msg.date && cutoffTime > 0 && typeof msg.date === 'number' && msg.date < cutoffTime) {
-            continue;
-          }
+          console.log(`Processing up to ${limit} from ${messages.length} pending SMS messages...`);
+          let count = 0;
+          
+          const existingTxs = await db.transactions.toArray();
+          const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
+          const lastClearedStr = localStorage.getItem('momo_last_cleared_date');
+          const lastClearedTime = lastClearedStr ? parseInt(lastClearedStr, 10) : 0;
+          
+          let autoSyncStartTimeStr = localStorage.getItem('momo_auto_sync_start_time');
+          // If somehow not set by main.tsx, fallback to Date.now()
+          let autoSyncStartTime = autoSyncStartTimeStr ? parseInt(autoSyncStartTimeStr, 10) : Date.now();
+          
+          const cutoffTime = Math.max(autoSyncStartTime, lastClearedTime);
+          
+          let hasMoreUnprocessed = false;
 
-          // Depending on cordova-plugin-sms format
-          const msgBody = msg.body || '';
-          const msgAddress = msg.address || msg.sender || '';
+          for (const msg of messages) {
+            if (count >= limit) {
+              hasMoreUnprocessed = true;
+              break;
+            }
 
-          const parsed = parseMoMoSMS(msgBody, msgAddress);
-          if (parsed && parsed.transaction_id) {
-            if (!existingTids.has(parsed.transaction_id)) {
-              let txDate = new Date().toISOString();
-              let finalTime = parsed.time;
-              
-              if (parsed.date) {
-                txDate = parseTransactionDate(parsed.date, parsed.time);
-              } else if (msg.date) {
-                const d = new Date(msg.date);
-                txDate = d.toISOString();
-                if (!finalTime) {
-                  finalTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                }
-              }
-              
-              const newId = await db.transactions.add({
-                amount: parsed.amount || 0,
-                type: parsed.transaction_type === 'deposit' ? 'income' : 'expense',
-                category: parsed.transaction_type.charAt(0).toUpperCase() + parsed.transaction_type.slice(1),
-                note: parsed.sender_name ? `From ${parsed.sender_name}` : (parsed.receiver_name ? `To ${parsed.receiver_name}` : ''),
-                date: txDate,
-                createdAt: new Date().toISOString(),
-                tid: parsed.transaction_id,
-                senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
-                smsDate: parsed.date || undefined,
-                smsTime: finalTime || undefined,
-                currency: parsed.currency || undefined,
-                phoneNumber: parsed.phone_number || undefined,
-                balance: parsed.balance || undefined,
-                fee: parsed.fee || undefined,
-                provider: parsed.provider || undefined,
-                rawMessage: parsed.raw_message || msgBody
-              });
-              
-              existingTxs.push({
-                id: newId,
-                tid: parsed.transaction_id,
-                category: parsed.transaction_type.charAt(0).toUpperCase() + parsed.transaction_type.slice(1),
-                provider: parsed.provider,
-                type: parsed.transaction_type === 'deposit' ? 'income' : 'expense'
-              } as any);
+            // Skip if msg was received before the cutoff time (app install or last clear)
+            if (msg.date && cutoffTime > 0 && typeof msg.date === 'number' && msg.date < cutoffTime) {
+              continue;
+            }
 
-              count++;
-              existingTids.add(parsed.transaction_id);
-            } else {
-              const existingTx = existingTxs.find((t: any) => t.tid === parsed.transaction_id);
-              if (existingTx && existingTx.id) {
-                let updates: any = {};
-                if (parsed.provider && existingTx.provider !== parsed.provider) {
-                  updates.provider = parsed.provider;
-                }
-                if (existingTx.category === 'Payment' && parsed.transaction_type === 'sent') {
-                  updates.type = 'expense';
-                  updates.category = 'Sent';
-                  updates.note = parsed.receiver_name ? `To ${parsed.receiver_name}` : '';
-                  updates.senderReceiverName = parsed.receiver_name || undefined;
-                  if (parsed.phone_number) updates.phoneNumber = parsed.phone_number;
-                  updates.rawMessage = parsed.raw_message || msgBody;
+            // Depending on cordova-plugin-sms format
+            const msgBody = msg.body || '';
+            const msgAddress = msg.address || msg.sender || '';
+
+            const parsed = parseMoMoSMS(msgBody, msgAddress);
+            if (parsed && parsed.transaction_id) {
+              // Extra safety check in DB directly to completely prevent duplicates
+              const currentTxInDb = await db.transactions.where('tid').equals(parsed.transaction_id).first();
+              
+              if (!existingTids.has(parsed.transaction_id) && !currentTxInDb) {
+                let txDate = new Date().toISOString();
+                let finalTime = parsed.time;
+                
+                if (parsed.date) {
+                  txDate = parseTransactionDate(parsed.date, parsed.time);
+                } else if (msg.date) {
+                  const d = new Date(msg.date);
+                  txDate = d.toISOString();
+                  if (!finalTime) {
+                    finalTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  }
                 }
                 
-                if (Object.keys(updates).length > 0) {
-                  await db.transactions.update(existingTx.id, updates);
-                  if (updates.category) existingTx.category = updates.category;
+                try {
+                  const incomeTypes = ['received', 'deposit', 'airtime_sold', 'commission'];
+                  const type = incomeTypes.includes(parsed.transaction_type) ? 'income' : 'expense';
+                  
+                  const categoryMap: Record<string, string> = {
+                    received: "Received",
+                    deposit: "Deposit",
+                    withdrawal: "Withdrawals",
+                    sent: "Sent/paid",
+                    airtime_bought: "Airtime bought",
+                    airtime_sold: "Airtime sold",
+                    commission: "Commission"
+                  };
+                  const categoryName = categoryMap[parsed.transaction_type] || "Other";
+
+                  const newId = await db.transactions.add({
+                    amount: parsed.amount || 0,
+                    type,
+                    category: categoryName,
+                    note: parsed.sender_name ? `From ${parsed.sender_name}` : (parsed.receiver_name ? `To ${parsed.receiver_name}` : ''),
+                    date: txDate,
+                    createdAt: new Date().toISOString(),
+                    tid: parsed.transaction_id,
+                    senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
+                    smsDate: parsed.date || undefined,
+                    smsTime: finalTime || undefined,
+                    currency: parsed.currency || undefined,
+                    phoneNumber: parsed.phone_number || undefined,
+                    balance: parsed.balance || undefined,
+                    fee: parsed.fee || undefined,
+                    provider: parsed.provider || undefined,
+                    rawMessage: parsed.raw_message || msgBody
+                  });
+                  
+                  existingTxs.push({
+                    id: newId,
+                    tid: parsed.transaction_id,
+                    category: categoryName,
+                    provider: parsed.provider,
+                    type: type
+                  } as any);
+
+                  count++;
+                  existingTids.add(parsed.transaction_id);
+                } catch (e) {
+                  console.warn('Transaction already exists', e);
+                }
+              } else {
+                const existingTx = currentTxInDb || existingTxs.find((t: any) => t.tid === parsed.transaction_id);
+                if (existingTx && existingTx.id) {
+                  let updates: any = {};
+                  if (parsed.provider && existingTx.provider !== parsed.provider) {
+                    updates.provider = parsed.provider;
+                  }
+                  if (existingTx.category === 'Payment' && parsed.transaction_type === 'sent') {
+                    updates.type = 'expense';
+                    updates.category = 'Sent';
+                    updates.note = parsed.receiver_name ? `To ${parsed.receiver_name}` : '';
+                    updates.senderReceiverName = parsed.receiver_name || undefined;
+                    if (parsed.phone_number) updates.phoneNumber = parsed.phone_number;
+                    updates.rawMessage = parsed.raw_message || msgBody;
+                  }
+                  
+                  if (Object.keys(updates).length > 0) {
+                    await db.transactions.update(existingTx.id, updates);
+                    if (updates.category) existingTx.category = updates.category;
+                  }
                 }
               }
             }
           }
+          resolve({ count, limitReached: hasMoreUnprocessed });
+        },
+        (err: any) => {
+          console.error('Error syncing SMS:', err);
+          resolve({ count: 0, limitReached: false });
         }
-        resolve({ count, limitReached: hasMoreUnprocessed });
-      },
-      (err: any) => {
-        console.error('Error syncing SMS:', err);
-        resolve({ count: 0, limitReached: false });
-      }
-    );
-  });
+      );
+    });
+  } finally {
+    isSyncingSMS = false;
+  }
 }
 

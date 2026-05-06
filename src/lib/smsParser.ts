@@ -1,5 +1,5 @@
 export interface ParsedSMS {
-  transaction_type: "deposit" | "sent" | "withdrawal" | "payment" | "airtime_bought" | "airtime_sold" | "airtime" | "commission" | "unknown";
+  transaction_type: "received" | "deposit" | "withdrawal" | "sent" | "airtime_bought" | "airtime_sold" | "airtime" | "commission" | "unknown";
   amount: number | null;
   currency: string | null;
   sender_name: string | null;
@@ -141,10 +141,10 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     }
   }
   // Then general types
-  else if (/(received|credited|deposit|cash-in|cashed in|reçu|d[eé]p[oô]t|pokea|imepokelewa|weka|recebido|deposito|recibido)/i.test(lowerText)) result.transaction_type = "deposit";
-  else if (/(sent|transferred|paid to|cash-out|cashed out|envoy[eé]|transfert|tuma|imetumwa|enviado|transferencia)/i.test(lowerText)) result.transaction_type = "sent";
-  else if (/(withdrawn|withdraw|cash out|retrait|retir[eé]|toa|imetolewa|levantamento|retirado|retiro)/i.test(lowerText)) result.transaction_type = "withdrawal";
-  else if (/(paid|debited|bill|purchase|pay[eé]|d[eé]bit[eé]|paiement|achat|lipa|imelipwa|pago|pagamento|pagado)/i.test(lowerText)) result.transaction_type = "payment";
+  else if (/(received|credited|pokea|imepokelewa|reçu|recebido|recibido)/i.test(lowerText)) result.transaction_type = "received";
+  else if (/(deposit|deposited|weka|d[eé]p[oô]t|deposito)/i.test(lowerText)) result.transaction_type = "deposit";
+  else if (/(withdrawn|withdraw|withdrawal|cash out|retrait|retir[eé]|toa|imetolewa|levantamento|retirado|retiro)/i.test(lowerText)) result.transaction_type = "withdrawal";
+  else if (/(sent|paid|debited|bill|purchase|envoy[eé]|transfert|tuma|imetumwa|enviado|transferencia|pago|pagamento|pagado)/i.test(lowerText)) result.transaction_type = "sent";
 
   // 2. Global Currency Detection
   const isoCodes = "AED|AFN|ALL|AMD|ANG|AOA|ARS|AUD|AWG|AZN|BAM|BBD|BDT|BGN|BHD|BIF|BMD|BND|BOB|BRL|BSD|BTN|BWP|BZD|CAD|CDF|CHF|CLP|CNY|COP|CRC|CUP|CVE|CZK|DJF|DKK|DOP|DZD|EGP|ERN|ETB|EUR|FJD|FKP|GBP|GEL|GHS|GIP|GMD|GNF|GTQ|GYD|HKD|HNL|HRK|HTG|HUF|IDR|ILS|INR|IQD|IRR|ISK|JMD|JOD|JPY|KES|KGS|KHR|KMF|KPW|KRW|KWD|KYD|KZT|LAK|LBP|LKR|LRD|LSL|LYD|MAD|MDL|MGA|MKD|MMK|MNT|MOP|MRU|MUR|MVR|MWK|MXN|MYR|MZN|NAD|NGN|NIO|NOK|NPR|NZD|OMR|PAB|PEN|PGK|PHP|PKR|PLN|PYG|QAR|RON|RSD|RUB|RWF|SAR|SBD|SCR|SDG|SEK|SGD|SHP|SLL|SOS|SRD|SSP|STN|SYP|SZL|THB|TJS|TMT|TND|TOP|TRY|TTD|TWD|TZS|UAH|UGX|USD|UYU|UZS|VES|VND|VUV|WST|XAF|XCD|XOF|XPF|YER|ZAR|ZMW|ZWL";
