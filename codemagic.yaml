@@ -67,6 +67,9 @@ workflows:
             exit 1
           fi
           
+          # Regenerate gradle wrapper to ensure it is not corrupt
+          gradle wrapper
+          
           # Build signed APK and AAB using project gradlew
           chmod +x gradlew
           ./gradlew assembleRelease \
