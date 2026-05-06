@@ -26,6 +26,13 @@ workflows:
             cp logo.png assets/splash-dark.png
           fi
           
+          # Ensure Android platform exists
+          if [ ! -f "android/settings.gradle" ]; then
+            echo "Android platform missing or corrupted, adding it..."
+            rm -rf android
+            npx cap add android
+          fi
+          
           # Generate icons and splash screens for Android
           # This assumes logo.png (as icon-only.png) is 1024x1024
           npx -y @capacitor/assets generate --android
@@ -60,15 +67,16 @@ workflows:
             exit 1
           fi
           
-          # Build signed APK and AAB using system gradle
-          gradle assembleRelease \
+          # Build signed APK and AAB using project gradlew
+          chmod +x gradlew
+          ./gradlew assembleRelease \
             --no-daemon --console=plain \
             -Pandroid.injected.signing.store.file=$(pwd)/keystore.jks \
             -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
             -Pandroid.injected.signing.key.alias=$CM_KEY_ALIAS \
             -Pandroid.injected.signing.key.password=$CM_KEY_PASSWORD
             
-          gradle bundleRelease \
+          ./gradlew bundleRelease \
             --no-daemon --console=plain \
             -Pandroid.injected.signing.store.file=$(pwd)/keystore.jks \
             -Pandroid.injected.signing.store.password=$CM_KEYSTORE_PASSWORD \
