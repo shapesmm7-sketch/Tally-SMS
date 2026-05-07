@@ -85,18 +85,8 @@ export async function scanAndImportSMS(
           // Basic filter to only parse likely financial messages
           const body = (msg.body || '').toLowerCase();
           
-          const keywords = [
-            'received', 'sent', 'withdrawn', 'withdraw', 'airtime', 'deposit', 
-            'payment', 'paid', 'confirmed', 'transfer', 'credited', 'debited', 
-            'recharged', 'cash', 'transid', 'txn', 'tid', 'ref', 'balance', 'bal',
-            'ugx', 'kes', 'ghs', 'rwf', 'tzs', 'zar', 'ngn', 'xof', 'xaf', 
-            'mzn', 'bwp', 'zmw', 'eur', 'usd', 'gbp', 'y\'ello', 'msg:', 'amount:'
-          ];
-
-          if (!keywords.some(k => body.includes(k))) {
-            continue;
-          }
-
+          // We rely on parseMoMoSMS to validate if the SMS is a financial transaction
+          // so we don't need to manually filter by keywords here.
           const parsed = parseMoMoSMS(body, msg.address);
           
           if (parsed && parsed.transaction_id) {

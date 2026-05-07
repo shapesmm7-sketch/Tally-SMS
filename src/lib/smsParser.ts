@@ -49,24 +49,15 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   if (!text || !text.trim()) return null;
 
   let cleanText = text;
-  const rawLines = text.split('\n');
-  const firstValidIndex = rawLines.findIndex(l => {
-    const trimmed = l.trim();
-    return /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(trimmed) ||
-           /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|YOU HAVE|TRANSFERRED|PAID|AMOUNT|CONFIRM|Y'ELLO|HELLO|MSG:|POKEA|REÇU|RECU|RECEBIDO|RECIBIDO|WEKA|DÉPÔT|DEPOT|DEPOSITO|RETRAIT|RETIRÉ|RETIRE|TOA|LEVANTAMENTO|RETIRADO|RETIRO|SAQUE|ENVOYÉ|ENVOYE|TUMA|ENVIADO|TRANSFERENCIA|PAGO|PAGAMENTO|PAGADO|TRASFERIMENTO|AIRTIME|BUNDLE|RECHARGE|CRÉDIT|CREDIT|MUDA|RECARGA|COMMISSION|KAMISHENI|COMISSAO|COMISIÓN|COMISION|BUY|BOUGHT|SPEND|SPENT)/i.test(trimmed);
-  });
-
-  if (firstValidIndex > 0) {
-    cleanText = rawLines.slice(firstValidIndex).join('\n');
-  }
-
-  // Move any leading date/time lines to the bottom
+  
+  // Move any leading date/time lines to the bottom, but don't truncate arbitrary lines
   const cleanLines = cleanText.split('\n');
   const linesToMove = [];
   let moveCount = 0;
   
   for (let i = 0; i < cleanLines.length; i++) {
     const l = cleanLines[i].trim();
+    // Only move date/time if it's explicitly a date or time line
     const isDateOrTime = /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(l) || 
                          /^[0-9]{1,2}:[0-9]{2}(?:\s*(?:AM|PM))?/i.test(l) ||
                          /^(?:Yesterday|Today)/i.test(l);
@@ -114,7 +105,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   // Explicitly ignore non-transactional messages like data quota warnings
   if (
     /(data quota|consumed.*data|mb remaining|gb remaining|renew.*bundle|recharge today)/i.test(lowerText) && 
-    !/(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|was successful|successful|buy|bought|purchase|spend|spent)/i.test(lowerText)
+    !/(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|was successful|successful|buy|bought|purchase|spend|spent|withdraw|withdrawn|deposit|deposited|cash|credited|debited)/i.test(lowerText)
   ) {
     return null;
   }
@@ -136,13 +127,15 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   else if (/(deposit|deposited|cash in|weka|d[eé]p[oô]t|deposito)/i.test(lowerText)) result.transaction_type = "deposit";
   else if (/(withdrawn|withdraw|withdrawal|cash out|retrait|retir[eé]|toa|imetolewa|idimbulwa|levantamento|retirado|retiro|saque)/i.test(lowerText)) result.transaction_type = "withdrawal";
   else if (/(sent|paid|debited|bill|purchase|envoy[eé]|transfert|tuma|imetumwa|enviado|transferencia|pago|pagamento|pagado|trasferimento|payment|entrega|buy|bought|spend|spent|pay|paying)/i.test(lowerText)) result.transaction_type = "sent";
+  // fallback for cash if no context
+  else if (/(cash)/i.test(lowerText) && result.transaction_type === "unknown") result.transaction_type = "unknown"; // cash is ambiguous without in/out
   else if (/\bto\s+[A-Za-z]+/.test(lowerText) && result.transaction_type === "unknown") result.transaction_type = "sent";
   else if (/\bfrom\s+[A-Za-z]+/.test(lowerText) && result.transaction_type === "unknown") result.transaction_type = "received";
 
   // 2. Global Currency Detection
   const isoCodes = "AED|AFN|ALL|AMD|ANG|AOA|ARS|AUD|AWG|AZN|BAM|BBD|BDT|BGN|BHD|BIF|BMD|BND|BOB|BRL|BSD|BTN|BWP|BZD|CAD|CDF|CHF|CLP|CNY|COP|CRC|CUP|CVE|CZK|DJF|DKK|DOP|DZD|EGP|ERN|ETB|EUR|FJD|FKP|GBP|GEL|GHS|GIP|GMD|GNF|GTQ|GYD|HKD|HNL|HRK|HTG|HUF|IDR|ILS|INR|IQD|IRR|ISK|JMD|JOD|JPY|KES|KGS|KHR|KMF|KPW|KRW|KWD|KYD|KZT|LAK|LBP|LKR|LRD|LSL|LYD|MAD|MDL|MGA|MKD|MMK|MNT|MOP|MRU|MUR|MVR|MWK|MXN|MYR|MZN|NAD|NGN|NIO|NOK|NPR|NZD|OMR|PAB|PEN|PGK|PHP|PKR|PLN|PYG|QAR|RON|RSD|RUB|RWF|SAR|SBD|SCR|SDG|SEK|SGD|SHP|SLL|SOS|SRD|SSP|STN|SYP|SZL|THB|TJS|TMT|TND|TOP|TRY|TTD|TWD|TZS|UAH|UGX|USD|UYU|UZS|VES|VND|VUV|WST|XAF|XCD|XOF|XPF|YER|ZAR|ZMW|ZWL";
   const symbols = "\\$|€|£|¥|₦|₹|₽|₩|₪|₫|฿|¢";
-  const aliases = "Ksh|Shs|CFA|Fr|Le|R";
+  const aliases = "Ksh|Shs|UG shs|CFA|Fr|Le|R";
   
   const textCurrencies = `${isoCodes}|${aliases}`;
   
@@ -195,10 +188,10 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   // Look for currency followed by numbers or numbers followed by currency
   // We remove the trailing \b for text currencies to allow them to be immediately followed by digits (e.g. UGX1000)
   const amountRegex = new RegExp(
-    `(?:\\b(?:${textCurrencies})|${symbols})\\s*([\\d, \\.]+\\d)|([\\d, \\.]+\\d)\\s*(?:(?:${textCurrencies})\\b|${symbols})`, 
+    `(?:\\b(?:${textCurrencies})|${symbols})\\s*(\\d(?:[\\d, \\.]*\\d)?)|(\\d(?:[\\d, \\.]*\\d)?)\\s*(?:(?:${textCurrencies})\\b|${symbols})`, 
     'i'
   );
-  const fallbackAmountRegex = /(?:amount|cash deposit of|cash in|paid|pay|received|sent|transferred|withdrawn|withdraw|montant|somme|kiasi|valor|cantidad|pokea|weka|toa|tuma|reçu|recu|dépôt|depot|retrait|envoyé|envoye|recebido|deposito|levantamento|enviado|buy|bought|spend|spent)[:\s.,\-]*([A-Z]{2,3})?[:\s.,\-]*([\d,.\s]+\d)/i;
+  const fallbackAmountRegex = /(?:amount|cash deposit of|cash in|paid|pay|received|sent|transferred|withdrawn|withdraw|montant|somme|kiasi|valor|cantidad|pokea|weka|toa|tuma|reçu|recu|dépôt|depot|retrait|envoyé|envoye|recebido|deposito|levantamento|enviado|buy|bought|spend|spent|cash|credited|debited)[:\s.,\-]*([A-Za-z]{2,3}(?:\s*shs)?)?[:\s.,\-]*(\d(?:[\d,.\s]*\d)?)/i;
   
   // Mask the transaction ID and phone number before looking for amounts 
   // so we don't accidentally parse a TID or phone number as an amount.
@@ -206,8 +199,8 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
 
   // Mask known secondary amounts (fee, tax, balance) to avoid confusion
   // We match the whole pattern but only replace the numerical part to keep the text structure
-  const feePattern = /(?:Fee|Charge|Cost|Tax|Taxa|Taxe)[^\d]*([\d, \.]+\d)/i;
-  const balPattern = /(?:Balance|New balance|Available balance|Bal|Amt)[^\d]*([\d, \.]+\d)/i;
+  const feePattern = /(?:Fee|Charge|Cost|Tax|Taxa|Taxe)[^\d]*(\d(?:[\d, \.]*\d)?)/i;
+  const balPattern = /(?:Balance|New balance|Available balance|Bal|Amt)[^\d]*(\d(?:[\d, \.]*\d)?)/i;
   
   const tempFeeMatch = textForAmount.match(feePattern);
   if (tempFeeMatch) {
@@ -247,7 +240,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     let name = source.trim();
     
     // Remove leading phone number if present (e.g. "0771234567 Name" or "256771234567 Name")
-    name = name.replace(/^(?:\+?\d{8,15}\b|(?:\+?256|0)\d{9}\b)[,\s.\-]*/i, '').trim();
+    name = name.replace(/^(?:\+?\d{8,15}\b|(?:\+?256|\+?\d{1,4})?\d{9,12}\b)[,\s.\-]*/i, '').trim();
 
     if (name.includes(',')) {
       const parts = name.split(',');
@@ -270,8 +263,8 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     return name.trim();
   };
 
-  const fromMatchContext = text.match(new RegExp(`from\\s+${nameCaptureRegex.source}`, 'i'));
-  const toMatchContext = text.match(new RegExp(`to\\s+${nameCaptureRegex.source}`, 'i'));
+  const fromMatchContext = text.match(new RegExp(`(?:from|de|mutu|kutoka|reçu de|recebido de|recibido de|paid by|sent by)\\s+${nameCaptureRegex.source}`, 'i'));
+  const toMatchContext = text.match(new RegExp(`(?:to|pour|para|kwa|envoyé à|enviado para|paid|sent)\\s+${nameCaptureRegex.source}`, 'i'));
 
   if (fromMatchContext) result.sender_name = extractName(fromMatchContext[1]);
   if (toMatchContext) result.receiver_name = extractName(toMatchContext[1]);
@@ -279,8 +272,8 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   // 6. Phone Number Extraction
   // Flexible regex for global numbers:
   // - International: starting with + or 00 followed by 8-15 digits
-  // - Local/Regional: sequences of 8-15 digits (often starting with 0 or a country code)
-  const phoneRegex = /(?:\+|00)\d{8,15}\b|\b0\d{8,12}\b|\b\d{9,15}\b/g;
+  // - Local/Regional: sequences of 8-15 digits (often starting with 0 or a country code like 256)
+  const phoneRegex = /(?:\+|00)\d{8,15}\b|\b(?:256|254|255|234|27|44|1)?0?\d{8,12}\b|\b\d{9,15}\b/g;
   
   // Strategy: Try to find the phone number in the source/destination context first
   const findPhoneInContext = (context: string | undefined | null) => {
@@ -354,8 +347,8 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   }
 
   if (!foundProvider) {
-    const providerMatch = text.match(/(M-Pesa|Orange Money|bKash|Paytm|MTN|Airtel|Safaricom|MoMo|HaloPesa|Tigo|Vodafone|Ecocash|Telecel|Wave|Chipper|Zamtel|Sasapay)/i);
-    const genericProviderMatch = text.match(/(?:from|via)\s+([a-zA-Z0-9\s]+?)(?:\s+mobile\s+money|\s+money|\s+cash|\s+m-pesa|\s+m-shwari)/i);
+    const providerMatch = text.match(/(M-Pesa|Orange Money|bKash|Paytm|MTN|Airtel|Safaricom|MoMo|HaloPesa|Tigo|Vodafone|Ecocash|Telecel|Wave|Chipper|Zamtel|Sasapay|Opay|Palmpay|PhonePe|Google Pay|GPay|Apple Pay|Zelle|Venmo|Cash App|Revolut)/i);
+    const genericProviderMatch = text.match(/(?:from|via)\s+([a-zA-Z0-9\s]+?)(?:\s+mobile\s+money|\s+money|\s+cash|\s+m-pesa|\s+m-shwari|\s+bank)/i);
     
     if (providerMatch) {
       foundProvider = normalizeProviderName(providerMatch[1]);
@@ -440,17 +433,17 @@ export function extractMultipleTransactions(text: string): ParsedSMS[] {
     
     // Pattern to detect start of a new message/transaction block
     const isDate = /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(line);
-    const isKeyword = /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|YOU HAVE|TRANSFERRED|PAID|AMOUNT|CONFIRM|Y'ELLO|HELLO|MSG:|POKEA|REÇU|RECU|RECEBIDO|RECIBIDO|WEKA|DÉPÔT|DEPOT|DEPOSITO|RETRAIT|RETIRÉ|RETIRE|TOA|LEVANTAMENTO|RETIRADO|RETIRO|SAQUE|ENVOYÉ|ENVOYE|TUMA|ENVIADO|TRANSFERENCIA|PAGO|PAGAMENTO|PAGADO|TRASFERIMENTO|AIRTIME|BUNDLE|RECHARGE|CRÉDIT|CREDIT|MUDA|RECARGA|COMMISSION|KAMISHENI|COMISSAO|COMISIÓN|COMISION|BUY|BOUGHT|SPEND|SPENT)/i.test(line) ||
+    const isKeyword = /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|YOU HAVE|TRANSFERRED|PAID|AMOUNT|CONFIRM|Y'ELLO|HELLO|MSG:|POKEA|REÇU|RECU|RECEBIDO|RECIBIDO|WEKA|DÉPÔT|DEPOT|DEPOSITO|RETRAIT|RETIRÉ|RETIRE|TOA|LEVANTAMENTO|RETIRADO|RETIRO|SAQUE|ENVOYÉ|ENVOYE|TUMA|ENVIADO|TRANSFERENCIA|PAGO|PAGAMENTO|PAGADO|TRASFERIMENTO|AIRTIME|BUNDLE|RECHARGE|CRÉDIT|CREDIT|MUDA|RECARGA|COMMISSION|KAMISHENI|COMISSAO|COMISIÓN|COMISION|BUY|BOUGHT|SPEND|SPENT|CREDITED|DEBITED)/i.test(line) ||
       /^.*(?:TID|TxId|Txn|Txn ID|Ref|Reference|ID|Transaction number|Amount)/i.test(line);
     
     // Also consider it a keyword block start if there's a currency symbol at the start
-    const isCurrencyKeyword = /^(?:\$|€|£|¥|₦|₹|₽|₩|₪|₫|฿|¢|[A-Z]{3})\s*[\d, \.]+\d/i.test(line);
+    const isCurrencyKeyword = /^(?:\$|€|£|¥|₦|₹|₽|₩|₪|₫|฿|¢|Ksh|Shs|UG shs|[A-Z]{3})\s*\d/i.test(line);
     
     const blockHasActionWord = currentBlock.some(l => 
-      /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|YOU HAVE|TRANSFERRED|PAID|AMOUNT|CONFIRM|Y'ELLO|HELLO|MSG:|POKEA|REÇU|RECU|RECEBIDO|RECIBIDO|WEKA|DÉPÔT|DEPOT|DEPOSITO|RETRAIT|RETIRÉ|RETIRE|TOA|LEVANTAMENTO|RETIRADO|RETIRO|SAQUE|ENVOYÉ|ENVOYE|TUMA|ENVIADO|TRANSFERENCIA|PAGO|PAGAMENTO|PAGADO|TRASFERIMENTO|AIRTIME|BUNDLE|RECHARGE|CREDIT|CRÉDIT|MUDA|RECARGA|COMMISSION|KAMISHENI|COMISSAO|COMISIÓN|COMISION|BUY|BOUGHT|SPEND|SPENT)/i.test(l) || 
-      /\b(?:TID|TxId|Txn|Txn ID|Ref|R[eé]f|Reference|ID|Transaction number|Transferred|Paid|Received|Sent|Deposit|Withdraw|Pokea|Reçu|Recu|Recebido|Recibido|Weka|Dépôt|Depot|Deposito|Retrait|Retiré|Retire|Toa|Levantamento|Retirado|Retiro|Saque|Envoyé|Envoye|Tuma|Enviado|Transferencia|Pago|Pagamento|Pagado|Trasferimento|Buy|Bought|Spend|Spent|Amount|Bal|Balance|Fee|Charge)\b/i.test(l) ||
-      /\b(?:\$|€|£|¥|₦|₹|₽|₩|₪|₫|฿|¢)\s*[\d, \.]+\d\b/.test(l) ||
-      /\b(?:UGX|KES|RWF|TZS|NGN|USD|EUR|GBP|ZAR|GHS|XOF|XAF)\s*[\d, \.]+\d\b/i.test(l)
+      /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|YOU HAVE|TRANSFERRED|PAID|AMOUNT|CONFIRM|Y'ELLO|HELLO|MSG:|POKEA|REÇU|RECU|RECEBIDO|RECIBIDO|WEKA|DÉPÔT|DEPOT|DEPOSITO|RETRAIT|RETIRÉ|RETIRE|TOA|LEVANTAMENTO|RETIRADO|RETIRO|SAQUE|ENVOYÉ|ENVOYE|TUMA|ENVIADO|TRANSFERENCIA|PAGO|PAGAMENTO|PAGADO|TRASFERIMENTO|AIRTIME|BUNDLE|RECHARGE|CREDIT|CRÉDIT|MUDA|RECARGA|COMMISSION|KAMISHENI|COMISSAO|COMISIÓN|COMISION|BUY|BOUGHT|SPEND|SPENT|CREDITED|DEBITED)/i.test(l) || 
+      /\b(?:TID|TxId|Txn|Txn ID|Ref|R[eé]f|Reference|ID|Transaction number|Transferred|Paid|Received|Sent|Deposit|Withdraw|Pokea|Reçu|Recu|Recebido|Recibido|Weka|Dépôt|Depot|Deposito|Retrait|Retiré|Retire|Toa|Levantamento|Retirado|Retiro|Saque|Envoyé|Envoye|Tuma|Enviado|Transferencia|Pago|Pagamento|Pagado|Trasferimento|Buy|Bought|Spend|Spent|Credited|Debited|Amount|Bal|Balance|Fee|Charge)\b/i.test(l) ||
+      /\b(?:\$|€|£|¥|₦|₹|₽|₩|₪|₫|฿|¢)\s*\d\b/.test(l) ||
+      /\b(?:UGX|KES|RWF|TZS|NGN|USD|EUR|GBP|ZAR|GHS|XOF|XAF|KSH|SHS|UG SHS|[A-Z]{3})\s*\d\b/i.test(l)
     );
     
     if (currentBlock.length > 0 && blockHasActionWord && (isDate || isKeyword || isCurrencyKeyword)) {
