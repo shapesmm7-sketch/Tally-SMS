@@ -1,3 +1,5 @@
+import { AdMob } from '@capacitor-community/admob';
+import { Capacitor } from '@capacitor/core';
 import { BillingManager } from '../BillingManager';
 
 export class AdManager {
@@ -9,13 +11,21 @@ export class AdManager {
     return true;
   }
 
-  static initialize() {
+  static async initialize() {
     if (!this.canShowAds()) {
       console.log('AdManager: Premium user, skipping AdMob initialization');
       return;
     }
-    console.log('AdManager: Initializing Google AdMob SDK...');
-    // In a native Capacitor app:
-    // AdMob.initialize({ requestTrackingAuthorization: true });
+    
+    if (Capacitor.isNativePlatform()) {
+      try {
+        console.log('AdManager: Initializing Google AdMob SDK...');
+        await AdMob.initialize();
+      } catch (e) {
+        console.error('AdManager: AdMob initialization failed', e);
+      }
+    } else {
+      console.log('AdManager: Web environment, skipping native AdMob initialization');
+    }
   }
 }

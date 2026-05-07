@@ -23,6 +23,7 @@ import { useInterstitialAd } from './hooks/useInterstitialAd';
 import { useAccessControl } from './hooks/useAccessControl';
 import { syncPendingSMS } from './lib/smsDetector';
 import { db } from './lib/db';
+import { AdManager } from './lib/ads/AdManager';
 
 // Preload ads on startup
 InterstitialAdController.preload();
@@ -81,6 +82,9 @@ function AppContent() {
     const runSync = async () => {
       if (!active) return;
       if (Capacitor.isNativePlatform()) {
+        // Initialize ads if not already done
+        AdManager.initialize();
+
         try {
           await db.removeDuplicates();
         } catch (e) {
