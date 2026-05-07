@@ -53,7 +53,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const firstValidIndex = rawLines.findIndex(l => {
     const trimmed = l.trim();
     return /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(trimmed) ||
-           /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Amount|Confirm|Y'ello|Hello|Msg:)/i.test(trimmed);
+           /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|YOU HAVE|TRANSFERRED|PAID|AMOUNT|CONFIRM|Y'ELLO|HELLO|MSG:|POKEA|REÇU|RECU|RECEBIDO|RECIBIDO|WEKA|DÉPÔT|DEPOT|DEPOSITO|RETRAIT|RETIRÉ|RETIRE|TOA|LEVANTAMENTO|RETIRADO|RETIRO|SAQUE|ENVOYÉ|ENVOYE|TUMA|ENVIADO|TRANSFERENCIA|PAGO|PAGAMENTO|PAGADO|TRASFERIMENTO|AIRTIME|BUNDLE|RECHARGE|CRÉDIT|CREDIT|MUDA|RECARGA|COMMISSION|KAMISHENI|COMISSAO|COMISIÓN|COMISION|BUY|BOUGHT|SPEND|SPENT)/i.test(trimmed);
   });
 
   if (firstValidIndex > 0) {
@@ -113,17 +113,8 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
 
   // Explicitly ignore non-transactional messages like data quota warnings
   if (
-    /(data quota|consumed.*data|mb remaining|gb remaining|remain.*(?:mb|gb)|renew.*bundle|recharge today)/i.test(lowerText) && 
-    !/(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|was successful|successful)/i.test(lowerText)
-  ) {
-    return null;
-  }
-
-  // Explicitly ignore preliminary transaction notifications that will be superseded by a final receipt
-  if (
-    /(?:withdraw|cash\s*out|payment|transfer|transaction|d[eé]p[oô]t|retrait|pagamento).*?(?:initiated|started|pending|initi[eé]|en attente|iniciado|pendente)/i.test(lowerText) ||
-    /(?:initiated|started|pending|initi[eé]|en attente|iniciado|pendente).*?(?:withdraw|cash\s*out|payment|transfer|transaction|d[eé]p[oô]t|retrait|pagamento)/i.test(lowerText) ||
-    /(?:secret\s*code|code\s*secret|c[oó]digo\s*secreto)/i.test(lowerText)
+    /(data quota|consumed.*data|mb remaining|gb remaining|renew.*bundle|recharge today)/i.test(lowerText) && 
+    !/(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|was successful|successful|buy|bought|purchase|spend|spent)/i.test(lowerText)
   ) {
     return null;
   }
@@ -144,7 +135,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   else if (/(received|credited|pokea|imepokelewa|reçu|recebido|recibido)/i.test(lowerText)) result.transaction_type = "received";
   else if (/(deposit|deposited|cash in|weka|d[eé]p[oô]t|deposito)/i.test(lowerText)) result.transaction_type = "deposit";
   else if (/(withdrawn|withdraw|withdrawal|cash out|retrait|retir[eé]|toa|imetolewa|idimbulwa|levantamento|retirado|retiro|saque)/i.test(lowerText)) result.transaction_type = "withdrawal";
-  else if (/(sent|paid|debited|bill|purchase|envoy[eé]|transfert|tuma|imetumwa|enviado|transferencia|pago|pagamento|pagado|trasferimento|payment|entrega)/i.test(lowerText)) result.transaction_type = "sent";
+  else if (/(sent|paid|debited|bill|purchase|envoy[eé]|transfert|tuma|imetumwa|enviado|transferencia|pago|pagamento|pagado|trasferimento|payment|entrega|buy|bought|spend|spent|pay|paying)/i.test(lowerText)) result.transaction_type = "sent";
   else if (/\bto\s+[A-Za-z]+/.test(lowerText) && result.transaction_type === "unknown") result.transaction_type = "sent";
   else if (/\bfrom\s+[A-Za-z]+/.test(lowerText) && result.transaction_type === "unknown") result.transaction_type = "received";
 
@@ -207,7 +198,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     `(?:\\b(?:${textCurrencies})|${symbols})\\s*([\\d, \\.]+\\d)|([\\d, \\.]+\\d)\\s*(?:(?:${textCurrencies})\\b|${symbols})`, 
     'i'
   );
-  const fallbackAmountRegex = /(?:amount|cash deposit of|cash in|paid|received|sent|transferred|withdrawn|withdraw|montant|somme|kiasi|valor|cantidad)[:\s.,\-]*([A-Z]{2,3})?[:\s.,\-]*([\d,.\s]+\d)/i;
+  const fallbackAmountRegex = /(?:amount|cash deposit of|cash in|paid|pay|received|sent|transferred|withdrawn|withdraw|montant|somme|kiasi|valor|cantidad|pokea|weka|toa|tuma|reçu|recu|dépôt|depot|retrait|envoyé|envoye|recebido|deposito|levantamento|enviado|buy|bought|spend|spent)[:\s.,\-]*([A-Z]{2,3})?[:\s.,\-]*([\d,.\s]+\d)/i;
   
   // Mask the transaction ID and phone number before looking for amounts 
   // so we don't accidentally parse a TID or phone number as an amount.
@@ -398,7 +389,13 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
 
   // If we couldn't even find a type, it's probably not a financial SMS
   if (result.transaction_type === 'unknown') {
-    return null;
+    if (result.transaction_id && result.amount !== null) {
+      if (result.fee && result.fee > 0) {
+        result.transaction_type = 'withdrawal'; // usually receiving has no fee
+      }
+    } else {
+      return null;
+    }
   }
 
   return result;
@@ -443,19 +440,28 @@ export function extractMultipleTransactions(text: string): ParsedSMS[] {
     
     // Pattern to detect start of a new message/transaction block
     const isDate = /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(line);
-    const isKeyword = /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Confirm|Y'ello|Hello|Airtime|Msg:)/i.test(line);
+    const isKeyword = /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|YOU HAVE|TRANSFERRED|PAID|AMOUNT|CONFIRM|Y'ELLO|HELLO|MSG:|POKEA|REÇU|RECU|RECEBIDO|RECIBIDO|WEKA|DÉPÔT|DEPOT|DEPOSITO|RETRAIT|RETIRÉ|RETIRE|TOA|LEVANTAMENTO|RETIRADO|RETIRO|SAQUE|ENVOYÉ|ENVOYE|TUMA|ENVIADO|TRANSFERENCIA|PAGO|PAGAMENTO|PAGADO|TRASFERIMENTO|AIRTIME|BUNDLE|RECHARGE|CRÉDIT|CREDIT|MUDA|RECARGA|COMMISSION|KAMISHENI|COMISSAO|COMISIÓN|COMISION|BUY|BOUGHT|SPEND|SPENT)/i.test(line) ||
+      /^.*(?:TID|TxId|Txn|Txn ID|Ref|Reference|ID|Transaction number|Amount)/i.test(line);
+    
+    // Also consider it a keyword block start if there's a currency symbol at the start
+    const isCurrencyKeyword = /^(?:\$|€|£|¥|₦|₹|₽|₩|₪|₫|฿|¢|[A-Z]{3})\s*[\d, \.]+\d/i.test(line);
     
     const blockHasActionWord = currentBlock.some(l => 
-      /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Confirm|Y'ello|Msg:)/i.test(l) || 
-      /\b(?:TID|TxId|Txn|Txn ID|Ref|Reference|ID|Transaction number|Transferred|Paid|Received|Sent|Deposit|Withdraw)\b/i.test(l)
+      /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|YOU HAVE|TRANSFERRED|PAID|AMOUNT|CONFIRM|Y'ELLO|HELLO|MSG:|POKEA|REÇU|RECU|RECEBIDO|RECIBIDO|WEKA|DÉPÔT|DEPOT|DEPOSITO|RETRAIT|RETIRÉ|RETIRE|TOA|LEVANTAMENTO|RETIRADO|RETIRO|SAQUE|ENVOYÉ|ENVOYE|TUMA|ENVIADO|TRANSFERENCIA|PAGO|PAGAMENTO|PAGADO|TRASFERIMENTO|AIRTIME|BUNDLE|RECHARGE|CREDIT|CRÉDIT|MUDA|RECARGA|COMMISSION|KAMISHENI|COMISSAO|COMISIÓN|COMISION|BUY|BOUGHT|SPEND|SPENT)/i.test(l) || 
+      /\b(?:TID|TxId|Txn|Txn ID|Ref|R[eé]f|Reference|ID|Transaction number|Transferred|Paid|Received|Sent|Deposit|Withdraw|Pokea|Reçu|Recu|Recebido|Recibido|Weka|Dépôt|Depot|Deposito|Retrait|Retiré|Retire|Toa|Levantamento|Retirado|Retiro|Saque|Envoyé|Envoye|Tuma|Enviado|Transferencia|Pago|Pagamento|Pagado|Trasferimento|Buy|Bought|Spend|Spent|Amount|Bal|Balance|Fee|Charge)\b/i.test(l) ||
+      /\b(?:\$|€|£|¥|₦|₹|₽|₩|₪|₫|฿|¢)\s*[\d, \.]+\d\b/.test(l) ||
+      /\b(?:UGX|KES|RWF|TZS|NGN|USD|EUR|GBP|ZAR|GHS|XOF|XAF)\s*[\d, \.]+\d\b/i.test(l)
     );
     
-    if (currentBlock.length > 0 && blockHasActionWord && (isDate || isKeyword)) {
+    if (currentBlock.length > 0 && blockHasActionWord && (isDate || isKeyword || isCurrencyKeyword)) {
        const parsed = parseMoMoSMS(currentBlock.join('\n'));
-       if (parsed && parsed.amount && parsed.transaction_type && parsed.transaction_type !== "unknown") {
+       if (parsed && parsed.amount && parsed.transaction_type) {
          if (!parsed.transaction_id || !foundTIDs.has(parsed.transaction_id)) {
-           results.push(parsed);
-           if (parsed.transaction_id) foundTIDs.add(parsed.transaction_id);
+           // We allow 'unknown' if it has a transaction ID
+           if (parsed.transaction_type !== "unknown" || parsed.transaction_id) {
+             results.push(parsed);
+             if (parsed.transaction_id) foundTIDs.add(parsed.transaction_id);
+           }
          }
        }
        currentBlock = [];
@@ -466,17 +472,21 @@ export function extractMultipleTransactions(text: string): ParsedSMS[] {
   
   if (currentBlock.length > 0) {
     const parsed = parseMoMoSMS(currentBlock.join('\n'));
-    if (parsed && parsed.amount && parsed.transaction_type && parsed.transaction_type !== "unknown") {
+    if (parsed && parsed.amount && parsed.transaction_type) {
       if (!parsed.transaction_id || !foundTIDs.has(parsed.transaction_id)) {
-        results.push(parsed);
+        if (parsed.transaction_type !== "unknown" || parsed.transaction_id) {
+          results.push(parsed);
+        }
       }
     }
   }
   
   if (results.length === 0) {
     const fallback = parseMoMoSMS(text);
-    if (fallback && fallback.amount && fallback.transaction_type !== "unknown") {
-      results.push(fallback);
+    if (fallback && fallback.amount) {
+      if (fallback.transaction_type !== "unknown" || fallback.transaction_id) {
+        results.push(fallback);
+      }
     }
   }
   
