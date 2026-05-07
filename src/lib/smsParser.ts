@@ -238,7 +238,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   }
 
   // 6. Name Detection
-  const nameCaptureRegex = /([A-Za-z0-9\s,.\-]{3,})?(?=\.|\s+Bal|\s+TID|\s+ID|\s+Ref|\s+on|\s+Charge|\s+Fee|$)/i;
+  const nameCaptureRegex = /([A-Za-z0-9\s,\-']+?)(?=\.|\s+(?:Bal|Balance|TID|Txn|TxId|ID|Ref|on|Charge|Fee|New|Date|$))/i;
   
   const extractName = (source: string) => {
     if (!source) return null;
@@ -247,32 +247,60 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     // Remove leading phone number if present (e.g. "0771234567 Name" or "256771234567 Name")
     name = name.replace(/^(?:\+?\d{8,15}\b|(?:\+?256|\+?\d{1,4})?\d{9,12}\b)[,\s.\-]*/i, '').trim();
 
-    if (name.includes(',')) {
-      const parts = name.split(',');
-      // Find candidate parts that contain at least some letters (potential names)
-      const candidates = parts.filter(part => {
-        const p = part.trim();
-        // A name part should have at least 2 letters and not just be a number or short code
-        return /[A-Z]{2,}/i.test(p) && !/^\d+$/.test(p);
-      });
-      
-      if (candidates.length > 0) {
-        // Pick the longest name candidate
-        name = candidates.reduce((a, b) => a.trim().length > b.trim().length ? a : b);
-      } else {
-        return null;
+    // Remove trailing numbers like phone or agent IDs (e.g. ", 1234" or "0708471505")
+    name = name.replace(/[,\s.\-]+(?:\+?\d{8,15}\b|(?:\+?256|\+?\d{1,4})?\d{9,12}\b|\d{3,6})\s*$/i, '').trim();
+
+    // Replace commas with spaces
+    name = name.replace(/,/g, ' ').trim().replace(/\s+/g, ' ');
+
+    // Deduplicate repeating parts (e.g. "MC PREPAID MC PREPAID")
+    const words = name.split(' ');
+    const half = Math.floor(words.length / 2);
+    if (words.length > 1 && words.length % 2 === 0) {
+      const firstHalf = words.slice(0, half).join(' ');
+      const secondHalf = words.slice(half).join(' ');
+      if (firstHalf.toLowerCase() === secondHalf.toLowerCase()) {
+        name = firstHalf;
       }
     }
+
+    // Capitalize properly
+    name = name.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    
+    // Remove any trailing punctuation
+    name = name.replace(/[.,;:!)\]}]+$/, '');
+
     // Final check: if it's purely numeric or too short, it's likely not a name
     if (!/[A-Z]/i.test(name) || name.trim().length < 2 || /^\d+$/.test(name.trim())) return null;
+
+    // Reject common false positive phrases
+    if (/\b(?:pay|borrow|invest|airtime|balance|fee|charge)\b/i.test(name)) return null;
+
     return name.trim();
   };
 
-  const fromMatchContext = text.match(new RegExp(`(?:from|de|mutu|kutoka|reçu de|recebido de|recibido de|paid by|sent by)\\s+${nameCaptureRegex.source}`, 'i'));
-  const toMatchContext = text.match(new RegExp(`(?:to|pour|para|kwa|envoyé à|enviado para|paid|sent)\\s+${nameCaptureRegex.source}`, 'i'));
+  const fromMatchContext = text.match(new RegExp(`(?:\\b(?:from|de|mutu|kutoka|reçu de|recebido de|recibido de|paid by|sent by)\\b)\\s+${nameCaptureRegex.source}`, 'i'));
+  const toMatchContext = text.match(new RegExp(`(?:\\b(?:to|pour|para|kwa|envoy[eé] [aà]|enviado para|paid to|sent to)\\b)\\s+${nameCaptureRegex.source}`, 'i'));
+  const reasonMatchContext = text.match(new RegExp(`(?:\\b(?:Reason|Message|For)\\b)\\s*:\\s*${nameCaptureRegex.source}`, 'i'));
 
   if (fromMatchContext) result.sender_name = extractName(fromMatchContext[1]);
   if (toMatchContext) result.receiver_name = extractName(toMatchContext[1]);
+  
+  // Prefer Reason field if it contains a valid name, especially for networks that mask the sender name (like Airtel Money)
+  if (reasonMatchContext) {
+    const reasonName = extractName(reasonMatchContext[1]);
+    if (reasonName) {
+       if (result.transaction_type === "received" || result.transaction_type === "deposit") {
+         if (!result.sender_name || result.sender_name.toLowerCase().includes("money") || result.sender_name.toLowerCase().includes("bank")) {
+           result.sender_name = reasonName;
+         }
+       } else if (result.transaction_type === "sent" || result.transaction_type === "withdrawal") {
+         if (!result.receiver_name || result.receiver_name.toLowerCase().includes("money") || result.receiver_name.toLowerCase().includes("bank")) {
+           result.receiver_name = reasonName;
+         }
+       }
+    }
+  }
 
   // 6. Phone Number Extraction
   // Flexible regex for global numbers:
