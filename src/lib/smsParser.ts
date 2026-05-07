@@ -181,8 +181,13 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   };
 
   // 4. Transaction ID (Extracted Early for Masking)
-  const tidMatch = text.match(/(?:TID|TxID|Txn|Txn ID|Ref|Reference|Transaction ID|Trans ID|ID|Transaction number|Id de transacci[oó]n|R[eé]f[eé]rence|R[eé]f|ID transa[cç][aã]o)\s*[:\-\.]?\s*([A-Za-z0-9\.\-]+)/i);
-  if (tidMatch) result.transaction_id = tidMatch[1].trim().replace(/\.$/, '');
+  const tidMatch = text.match(/(?:\b(?:Transaction number|Transaction ID|Trans ID|Txn ID|Id de transacci[oó]n|ID transa[cç][aã]o|R[eé]f[eé]rence|Reference|TxID|Txn|TID|Ref|R[eé]f|ID)\b)\s*[:\-\.]?\s*([A-Za-z0-9]+(?:[\.\-][A-Za-z0-9]+)*)/i);
+  let tid = tidMatch ? tidMatch[1].trim() : null;
+  if (tid) {
+    // Strip common attached words due to missing spaces (e.g. 140351527103.Send)
+    tid = tid.replace(/\.(?:Send|View|Dial).*$/i, '');
+    result.transaction_id = tid.replace(/\.$/, '');
+  }
 
   // 5. Amount Extraction
   // Look for currency followed by numbers or numbers followed by currency
