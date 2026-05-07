@@ -18,8 +18,13 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let adListener: any;
+    let failListener: any;
+    let failShowListener: any;
+    
     if (Capacitor.isNativePlatform()) {
+      // Event: Dismissed (User closed the ad)
       AdMob.addListener(InterstitialAdPluginEvents.Dismissed, () => {
+        console.log('Ad dismissed, executing pending action');
         setPendingAction((currentAction) => {
           if (currentAction) {
             currentAction();
@@ -30,20 +35,53 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
       }).then(listener => {
         adListener = listener;
       });
+
+      // Event: FailedToLoad or FailedToShow
+      const handleAdFailure = () => {
+        console.log('Ad failed to load or show, executing pending action');
+        setPendingAction((currentAction) => {
+          if (currentAction) {
+            currentAction();
+          }
+          return null;
+        });
+        clearSafetyTimeout();
+        isInProgress.current = false;
+      };
+
+      AdMob.addListener(InterstitialAdPluginEvents.FailedToLoad, handleAdFailure).then(listener => {
+        failListener = listener;
+      });
+
+      AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, handleAdFailure).then(listener => {
+        failShowListener = listener;
+      });
     }
 
     return () => {
-      if (adListener) {
-        adListener.remove();
-      }
+      if (adListener) adListener.remove();
+      if (failListener) failListener.remove();
+      if (failShowListener) failShowListener.remove();
     };
   }, []);
 
   const isInProgress = React.useRef(false);
+  const safetyTimeoutRef = React.useRef<any>(null);
+
+  const clearSafetyTimeout = () => {
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+  };
 
   const triggerAction = useCallback(async (action: () => void) => {
     if (isInProgress.current) {
-      console.log('Ad show already in progress, skipping ad logic and executing action');
+      console.log('Ad show already in progress, skipping ad logic and executing NEW action immediately');
+      // Clear previous pending action so we don't have two navigations
+      setPendingAction(null);
+      clearSafetyTimeout();
+      isInProgress.current = false;
       action();
       return;
     }
@@ -59,8 +97,10 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
             action();
           });
           
-          // Safety timeout for native ad: if not dismissed in 30s, just run the action
-          const safetyTimeout = setTimeout(() => {
+          // Safety timeout for native ad: if not dismissed in 10s, just run the action
+          // 30s is too long and frustrates users
+          clearSafetyTimeout();
+          safetyTimeoutRef.current = setTimeout(() => {
             if (isInProgress.current) {
               console.log('Ad safety timeout triggered (native)');
               setPendingAction((currentAction) => {
@@ -71,12 +111,14 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
               });
               isInProgress.current = false;
             }
-          }, 30000);
+          }, 10000); 
 
           await InterstitialAdController.showAd();
         } catch (error) {
           console.error('Error showing ad:', error);
+          clearSafetyTimeout();
           isInProgress.current = false;
+          setPendingAction(null);
           action();
         }
       } else {
@@ -85,11 +127,6 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
           action();
         });
         setShowModal(true);
-        
-        // Safety timeout for web modal
-        setTimeout(() => {
-           // We don't force close the modal here but ensure we don't block forever if somehow it breaks
-        }, 30000);
       }
     } else {
       action();
@@ -124,7 +161,9 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleAdClosed = useCallback(() => {
+    console.log('Ad closed manually (modal), executing pending action');
     setShowModal(false);
+    clearSafetyTimeout();
     InterstitialAdController.onAdShown();
     if (pendingAction) {
       pendingAction();

@@ -47,12 +47,11 @@ export default function Layout() {
       {/* Bottom Navigation */}
       <nav className="w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around items-center h-16 px-2 z-50 shrink-0 rounded-t-xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] transition-colors">
         {navItems.map((item) => (
-          <a
+          <button
             key={item.to}
-            href={item.to}
             onClick={(e) => handleNavClick(e, item.to)}
             className={cn(
-              "flex flex-col items-center justify-center w-full h-full space-y-1 text-xs font-medium transition-colors cursor-pointer",
+              "flex flex-col items-center justify-center w-full h-full space-y-1 text-xs font-medium transition-colors cursor-pointer border-none bg-transparent outline-none",
               location.pathname === item.to 
                 ? "text-blue-600 dark:text-blue-400" 
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -60,7 +59,7 @@ export default function Layout() {
           >
             <item.icon className="w-6 h-6" />
             <span>{item.label}</span>
-          </a>
+          </button>
         ))}
       </nav>
     </div>

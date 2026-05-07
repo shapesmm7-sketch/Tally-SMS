@@ -53,7 +53,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const firstValidIndex = rawLines.findIndex(l => {
     const trimmed = l.trim();
     return /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(trimmed) ||
-           /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Amount|Confirm|Y'ello|Hello)/i.test(trimmed);
+           /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Amount|Confirm|Y'ello|Hello|Msg:)/i.test(trimmed);
   });
 
   if (firstValidIndex > 0) {
@@ -133,7 +133,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   if (/(commission|kamisheni|comissao|comisi[oó]n)/i.test(lowerText)) {
     result.transaction_type = "commission";
   }
-  else if (/(airtime|bundle|recharge|cr[eé]dit|muda wa maongezi|recarga)/i.test(lowerText)) {
+  else if (/(airtime|bundle|recharge|cr[eé]dit|worth|muda wa maongezi|recarga)/i.test(lowerText)) {
     if (/(sold|sale|vendu|uzwa|vendido)/i.test(lowerText)) {
       result.transaction_type = "airtime_sold";
     } else {
@@ -143,8 +143,10 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   // Then general types
   else if (/(received|credited|pokea|imepokelewa|reçu|recebido|recibido)/i.test(lowerText)) result.transaction_type = "received";
   else if (/(deposit|deposited|cash in|weka|d[eé]p[oô]t|deposito)/i.test(lowerText)) result.transaction_type = "deposit";
-  else if (/(withdrawn|withdraw|withdrawal|cash out|retrait|retir[eé]|toa|imetolewa|levantamento|retirado|retiro)/i.test(lowerText)) result.transaction_type = "withdrawal";
-  else if (/(sent|paid|debited|bill|purchase|envoy[eé]|transfert|tuma|imetumwa|enviado|transferencia|pago|pagamento|pagado)/i.test(lowerText)) result.transaction_type = "sent";
+  else if (/(withdrawn|withdraw|withdrawal|cash out|retrait|retir[eé]|toa|imetolewa|idimbulwa|levantamento|retirado|retiro|saque)/i.test(lowerText)) result.transaction_type = "withdrawal";
+  else if (/(sent|paid|debited|bill|purchase|envoy[eé]|transfert|tuma|imetumwa|enviado|transferencia|pago|pagamento|pagado|trasferimento|payment|entrega)/i.test(lowerText)) result.transaction_type = "sent";
+  else if (/\bto\s+[A-Za-z]+/.test(lowerText) && result.transaction_type === "unknown") result.transaction_type = "sent";
+  else if (/\bfrom\s+[A-Za-z]+/.test(lowerText) && result.transaction_type === "unknown") result.transaction_type = "received";
 
   // 2. Global Currency Detection
   const isoCodes = "AED|AFN|ALL|AMD|ANG|AOA|ARS|AUD|AWG|AZN|BAM|BBD|BDT|BGN|BHD|BIF|BMD|BND|BOB|BRL|BSD|BTN|BWP|BZD|CAD|CDF|CHF|CLP|CNY|COP|CRC|CUP|CVE|CZK|DJF|DKK|DOP|DZD|EGP|ERN|ETB|EUR|FJD|FKP|GBP|GEL|GHS|GIP|GMD|GNF|GTQ|GYD|HKD|HNL|HRK|HTG|HUF|IDR|ILS|INR|IQD|IRR|ISK|JMD|JOD|JPY|KES|KGS|KHR|KMF|KPW|KRW|KWD|KYD|KZT|LAK|LBP|LKR|LRD|LSL|LYD|MAD|MDL|MGA|MKD|MMK|MNT|MOP|MRU|MUR|MVR|MWK|MXN|MYR|MZN|NAD|NGN|NIO|NOK|NPR|NZD|OMR|PAB|PEN|PGK|PHP|PKR|PLN|PYG|QAR|RON|RSD|RUB|RWF|SAR|SBD|SCR|SDG|SEK|SGD|SHP|SLL|SOS|SRD|SSP|STN|SYP|SZL|THB|TJS|TMT|TND|TOP|TRY|TTD|TWD|TZS|UAH|UGX|USD|UYU|UZS|VES|VND|VUV|WST|XAF|XCD|XOF|XPF|YER|ZAR|ZMW|ZWL";
@@ -195,8 +197,8 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   };
 
   // 4. Transaction ID (Extracted Early for Masking)
-  const tidMatch = text.match(/(?:TID|TxID|Txn|Txn ID|Ref|Reference|Transaction ID|Trans ID|ID|Id de transacci[oó]n|R[eé]f[eé]rence|R[eé]f|ID transa[cç][aã]o)\s*[:\-]?\s*([A-Za-z0-9]+)/i);
-  if (tidMatch) result.transaction_id = tidMatch[1].trim();
+  const tidMatch = text.match(/(?:TID|TxID|Txn|Txn ID|Ref|Reference|Transaction ID|Trans ID|ID|Transaction number|Id de transacci[oó]n|R[eé]f[eé]rence|R[eé]f|ID transa[cç][aã]o)\s*[:\-\.]?\s*([A-Za-z0-9\.\-]+)/i);
+  if (tidMatch) result.transaction_id = tidMatch[1].trim().replace(/\.$/, '');
 
   // 5. Amount Extraction
   // Look for currency followed by numbers or numbers followed by currency
@@ -247,7 +249,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   }
 
   // 6. Name Detection
-  const nameCaptureRegex = /([A-Za-z0-9\s,.\-]{3,})?(?=\.|\s+Bal|\s+TID|\s+ID|\s+Ref|\s+on|$)/i;
+  const nameCaptureRegex = /([A-Za-z0-9\s,.\-]{3,})?(?=\.|\s+Bal|\s+TID|\s+ID|\s+Ref|\s+on|\s+Charge|\s+Fee|$)/i;
   
   const extractName = (source: string) => {
     if (!source) return null;
@@ -294,7 +296,14 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     if (!context) return null;
     // Look for any digit sequence of 8-15 digits that isn't trapped in a larger alphanumeric string
     const ctxMatch = context.match(/\b(\d{8,15})\b/);
-    return ctxMatch ? ctxMatch[1] : null;
+    if (ctxMatch) {
+      const phone = ctxMatch[1];
+      // Ensure it's not the amount or TID
+      if (result.amount && phone.includes(result.amount.toString())) return null;
+      if (result.transaction_id && result.transaction_id.includes(phone)) return null;
+      return phone;
+    }
+    return null;
   };
 
   const phoneInFrom = findPhoneInContext(fromMatchContext?.[1]);
@@ -434,11 +443,11 @@ export function extractMultipleTransactions(text: string): ParsedSMS[] {
     
     // Pattern to detect start of a new message/transaction block
     const isDate = /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(line);
-    const isKeyword = /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Amount|Confirm|Y'ello|Hello|Airtime)/i.test(line);
+    const isKeyword = /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Confirm|Y'ello|Hello|Airtime|Msg:)/i.test(line);
     
     const blockHasActionWord = currentBlock.some(l => 
-      /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Amount|Confirm|Y'ello)/i.test(l) || 
-      /\b(?:TID|TxId|Txn|Txn ID|Ref|Reference|ID)\b/i.test(l)
+      /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Confirm|Y'ello|Msg:)/i.test(l) || 
+      /\b(?:TID|TxId|Txn|Txn ID|Ref|Reference|ID|Transaction number|Transferred|Paid|Received|Sent|Deposit|Withdraw)\b/i.test(l)
     );
     
     if (currentBlock.length > 0 && blockHasActionWord && (isDate || isKeyword)) {

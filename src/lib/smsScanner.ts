@@ -90,7 +90,7 @@ export async function scanAndImportSMS(
             'payment', 'paid', 'confirmed', 'transfer', 'credited', 'debited', 
             'recharged', 'cash', 'transid', 'txn', 'tid', 'ref', 'balance', 'bal',
             'ugx', 'kes', 'ghs', 'rwf', 'tzs', 'zar', 'ngn', 'xof', 'xaf', 
-            'mzn', 'bwp', 'zmw', 'eur', 'usd', 'gbp'
+            'mzn', 'bwp', 'zmw', 'eur', 'usd', 'gbp', 'y\'ello', 'msg:', 'amount:'
           ];
 
           if (!keywords.some(k => body.includes(k))) {
