@@ -256,15 +256,25 @@ export default function Reports() {
     const amount = parseFloat(manualCommissionAmount);
     if (isNaN(amount) || amount <= 0) return;
 
-    // Use selected date with current time, or just selected date ISO
-    const selectedDate = manualCommissionDate ? new Date(manualCommissionDate).toISOString() : new Date().toISOString();
+    // Combine selected date with current time
+    let selectedDateISO = new Date().toISOString();
+    if (manualCommissionDate) {
+      const dateParts = manualCommissionDate.split('-');
+      if (dateParts.length === 3) {
+        const now = new Date();
+        now.setFullYear(parseInt(dateParts[0], 10));
+        now.setMonth(parseInt(dateParts[1], 10) - 1);
+        now.setDate(parseInt(dateParts[2], 10));
+        selectedDateISO = now.toISOString();
+      }
+    }
 
     await db.transactions.add({
       amount,
       type: 'income',
       category: 'Commission',
       note: 'Manual Commission Entry',
-      date: selectedDate,
+      date: selectedDateISO,
       createdAt: new Date().toISOString(),
       provider: normalizeProviderName(manualCommissionProvider) || undefined,
     });

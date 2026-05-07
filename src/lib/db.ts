@@ -53,6 +53,7 @@ export class MoMoDatabase extends Dexie {
     // Keep a set of seen tids
     const seenTids = new Set<string>();
     const duplicateIds: number[] = [];
+    const idsWithBadPhones: number[] = [];
     
     await this.transactions.orderBy('date').each(tx => {
       if (tx.tid) {
@@ -62,11 +63,28 @@ export class MoMoDatabase extends Dexie {
           seenTids.add(tx.tid);
         }
       }
+      
+      if (tx.phoneNumber) {
+        const strictPhoneRegex = /(?:\+|00)\d{8,15}\b|\b(?:256|254|255|234|27|44|1)[73489]\d{8}\b|\b0[73489]\d{8}\b/;
+        if (!strictPhoneRegex.test(tx.phoneNumber)) {
+          idsWithBadPhones.push(tx.id!);
+        }
+      }
     });
 
     if (duplicateIds.length > 0) {
       console.log(`Removing ${duplicateIds.length} duplicate transactions.`);
       await this.transactions.bulkDelete(duplicateIds);
+    }
+
+    if (idsWithBadPhones.length > 0) {
+      console.log(`Clearing ${idsWithBadPhones.length} invalid phone numbers.`);
+      for (const id of idsWithBadPhones) {
+        // Only clear the phone number if it's not a duplicate we just deleted
+        if (!duplicateIds.includes(id)) {
+           await this.transactions.update(id, { phoneNumber: undefined });
+        }
+      }
     }
   }
 }

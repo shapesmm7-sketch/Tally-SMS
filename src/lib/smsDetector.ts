@@ -161,6 +161,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
           
           const existingTxs = await db.transactions.toArray();
           const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
+          const existingMessages = new Set(existingTxs.map(tx => (tx.rawMessage || '').trim()).filter(Boolean));
           const lastClearedStr = localStorage.getItem('momo_last_cleared_date');
           const lastClearedTime = lastClearedStr ? parseInt(lastClearedStr, 10) : 0;
           
@@ -188,11 +189,23 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
             const msgAddress = msg.address || msg.sender || '';
 
             const parsed = parseMoMoSMS(msgBody, msgAddress);
-            if (parsed && parsed.transaction_id) {
-              // Extra safety check in DB directly to completely prevent duplicates
-              const currentTxInDb = await db.transactions.where('tid').equals(parsed.transaction_id).first();
+            if (parsed) {
+              let isDuplicate = false;
+              let currentTxInDb = undefined;
               
-              if (!existingTids.has(parsed.transaction_id) && !currentTxInDb) {
+              if (parsed.transaction_id) {
+                 currentTxInDb = await db.transactions.where('tid').equals(parsed.transaction_id).first();
+                 isDuplicate = existingTids.has(parsed.transaction_id) || !!currentTxInDb;
+              } else if (parsed.raw_message) {
+                 const raw = parsed.raw_message.trim();
+                 isDuplicate = existingMessages.has(raw);
+                 if (!isDuplicate) {
+                     const match = existingTxs.find((t: any) => t.rawMessage === raw);
+                     if (match) isDuplicate = true;
+                 }
+              }
+
+              if (!isDuplicate) {
                 let txDate = new Date().toISOString();
                 let finalTime = parsed.time;
                 
@@ -243,18 +256,23 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
                   existingTxs.push({
                     id: newId,
                     tid: parsed.transaction_id,
+                    rawMessage: parsed.raw_message || msgBody,
                     category: categoryName,
                     provider: parsed.provider,
                     type: type
                   } as any);
 
                   count++;
-                  existingTids.add(parsed.transaction_id);
+                  if (parsed.transaction_id) existingTids.add(parsed.transaction_id);
+                  if (parsed.raw_message) existingMessages.add(parsed.raw_message.trim());
                 } catch (e) {
                   console.warn('Transaction already exists', e);
                 }
               } else {
-                const existingTx = currentTxInDb || existingTxs.find((t: any) => t.tid === parsed.transaction_id);
+                const existingTx = currentTxInDb || existingTxs.find((t: any) => 
+                  (parsed.transaction_id && t.tid === parsed.transaction_id) || 
+                  (!parsed.transaction_id && parsed.raw_message && t.rawMessage === parsed.raw_message.trim())
+                );
                 if (existingTx && existingTx.id) {
                   let updates: any = {};
                   if (parsed.provider && existingTx.provider !== parsed.provider) {

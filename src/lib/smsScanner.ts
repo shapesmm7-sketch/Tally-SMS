@@ -77,7 +77,9 @@ export async function scanAndImportSMS(
         
         // Get existing transaction IDs to avoid duplicates
         const existingTxs = await db.transactions.toArray();
+        // Pre-compute sets for faster lookups
         const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
+        const existingMessages = new Set(existingTxs.map(tx => (tx.rawMessage || '').trim()).filter(Boolean));
 
         for (const msg of messages) {
           if (newTransactionsCount >= limit) break; // ENFORCE LIMIT
@@ -89,10 +91,24 @@ export async function scanAndImportSMS(
           // so we don't need to manually filter by keywords here.
           const parsed = parseMoMoSMS(body, msg.address);
           
-          if (parsed && parsed.transaction_id) {
-            const currentTxInDb = await db.transactions.where('tid').equals(parsed.transaction_id).first();
+          if (parsed) {
+            let isDuplicate = false;
+            let currentTxInDb = undefined;
             
-            if (!existingTids.has(parsed.transaction_id) && !currentTxInDb) {
+            if (parsed.transaction_id) {
+               currentTxInDb = await db.transactions.where('tid').equals(parsed.transaction_id).first();
+               isDuplicate = existingTids.has(parsed.transaction_id) || !!currentTxInDb;
+            } else if (parsed.raw_message) {
+               const raw = parsed.raw_message.trim();
+               isDuplicate = existingMessages.has(raw);
+               if (!isDuplicate) {
+                   // Fallback check in DB for exact raw message match if not in existingTids
+                   const match = existingTxs.find((t: any) => t.rawMessage === raw);
+                   if (match) isDuplicate = true;
+               }
+            }
+            
+            if (!isDuplicate) {
               const incomeTypes = ['received', 'deposit', 'airtime_sold', 'commission'];
               const type = incomeTypes.includes(parsed.transaction_type) ? 'income' : 'expense';
               let note = '';
@@ -147,18 +163,23 @@ export async function scanAndImportSMS(
                 existingTxs.push({
                   id: newId,
                   tid: parsed.transaction_id,
+                  rawMessage: parsed.raw_message || body,
                   category: categoryName,
                   provider: parsed.provider,
                   type: type
                 } as any);
                 
-                existingTids.add(parsed.transaction_id);
+                if (parsed.transaction_id) existingTids.add(parsed.transaction_id);
+                if (parsed.raw_message) existingMessages.add(parsed.raw_message.trim());
                 newTransactionsCount++;
               } catch (e) {
                 console.warn('Transaction already exists', e);
               }
             } else {
-              const existingTx = currentTxInDb || existingTxs.find((t: any) => t.tid === parsed.transaction_id);
+              const existingTx = currentTxInDb || existingTxs.find((t: any) => 
+                (parsed.transaction_id && t.tid === parsed.transaction_id) || 
+                (!parsed.transaction_id && parsed.raw_message && t.rawMessage === parsed.raw_message.trim())
+              );
               if (existingTx && existingTx.id) {
                 let updates: any = {};
                 if (parsed.provider && existingTx.provider !== parsed.provider) {

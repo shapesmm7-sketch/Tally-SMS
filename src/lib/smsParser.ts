@@ -305,19 +305,23 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   // 6. Phone Number Extraction
   // Flexible regex for global numbers:
   // - International: starting with + or 00 followed by 8-15 digits
-  // - Local/Regional: sequences of 8-15 digits (often starting with 0 or a country code like 256)
-  const phoneRegex = /(?:\+|00)\d{8,15}\b|\b(?:256|254|255|234|27|44|1)?0?\d{8,12}\b|\b\d{9,15}\b/g;
+  // - Local/Regional: stricter sequences (starting with 0 or country codes) to prevent matching arbitrary IDs/TIDs
+  const phoneRegex = /(?:\+|00)\d{8,15}\b|\b(?:256|254|255|234|27|44|1)[73489]\d{8}\b|\b0[73489]\d{8}\b/g;
   
   // Strategy: Try to find the phone number in the source/destination context first
   const findPhoneInContext = (context: string | undefined | null) => {
     if (!context) return null;
-    // Look for any digit sequence of 8-15 digits that isn't trapped in a larger alphanumeric string
-    const ctxMatch = context.match(/\b(\d{8,15})\b/);
-    if (ctxMatch) {
-      const phone = ctxMatch[1];
+    
+    // We create a fresh regex based on phoneRegex source to avoid lastIndex issues
+    const localPhoneRegex = new RegExp(phoneRegex.source, 'g');
+    let match;
+    
+    while ((match = localPhoneRegex.exec(context)) !== null) {
+      const phone = match[0].trim();
       // Ensure it's not the amount or TID
-      if (result.amount && phone.includes(result.amount.toString())) return null;
-      if (result.transaction_id && result.transaction_id.includes(phone)) return null;
+      if (result.amount && phone.includes(result.amount.toString())) continue;
+      if (result.transaction_id && result.transaction_id.includes(phone)) continue;
+      
       return phone;
     }
     return null;
@@ -333,6 +337,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   } else {
     // Fallback: Scan entire message
     let match;
+    phoneRegex.lastIndex = 0;
     while ((match = phoneRegex.exec(text)) !== null) {
       const phone = match[0].trim();
       const cleanPhone = phone.replace(/[^\d]/g, '');
@@ -359,17 +364,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const feeMatch = text.match(/(?:Fee|Charge|Cost)[^\d]*([\d, \.]+\d)/i);
   if (feeMatch) result.fee = cleanNumber(feeMatch[1]);
 
-  // Handle missing TID for airtime (some networks don't provide it in the summary)
-  if (!result.transaction_id && result.transaction_type.startsWith('airtime')) {
-    // Create a stable synthetic ID based on the message content and date to avoid duplicates
-    const stablePart = result.raw_message.replace(/\d{2}:\d{2}:\d{2}|\d{2}:\d{2}/g, '').trim();
-    let hash = 0;
-    for (let i = 0; i < stablePart.length; i++) {
-        hash = ((hash << 5) - hash) + stablePart.charCodeAt(i);
-        hash |= 0;
-    }
-    result.transaction_id = `AT-${Math.abs(hash)}-${result.amount}`;
-  }
+  // If airtime has no TID, we will keep it undefined and deduplicate using rawMessage instead.
 
   // 10. Provider Detection (Global scope)
   let foundProvider = null;
