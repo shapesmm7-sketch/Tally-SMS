@@ -180,7 +180,7 @@ export default function Reports() {
       normalizeProviderName(tx.provider || '') || '-',
       tx.senderReceiverName || tx.note || '-',
       tx.phoneNumber || '-',
-      tx.tid || '-',
+      tx.tid && !tx.tid.startsWith('AT-') ? tx.tid : '-',
       (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
     ]);
 

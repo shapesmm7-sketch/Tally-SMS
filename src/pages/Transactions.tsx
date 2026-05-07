@@ -155,7 +155,7 @@ export default function Transactions() {
       normalizeProviderName(tx.provider || '') || '-',
       tx.senderReceiverName || tx.note || '-',
       tx.phoneNumber || '-',
-      tx.tid || '-',
+      tx.tid && !tx.tid.startsWith('AT-') ? tx.tid : '-',
       (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.amount)
     ]);
 
@@ -396,7 +396,7 @@ export default function Transactions() {
                               {tx.rawMessage || tx.note || (tx.senderReceiverName ? `${tx.type === 'income' ? 'From' : 'To'} ${tx.senderReceiverName}` : '')}
                             </p>
                             <div className="flex items-center space-x-2 text-[10px] text-gray-400 dark:text-gray-500">
-                              {tx.tid && <span>TID: {tx.tid}</span>}
+                              {tx.tid && !tx.tid.startsWith('AT-') && <span>TID: {tx.tid}</span>}
                               {tx.phoneNumber && (
                                 <>
                                   <span>•</span>

@@ -144,7 +144,7 @@ export default function TransactionDetail() {
                 <span className="font-medium text-gray-800 dark:text-white text-right">{tx.senderReceiverName}</span>
               </div>
             )}
-            {tx.tid && (
+            {tx.tid && !tx.tid.startsWith('AT-') && (
               <div className="p-4 flex justify-between items-center">
                 <span className="text-gray-500 dark:text-gray-400 text-sm">Transaction ID</span>
                 <span className="font-medium text-gray-800 dark:text-white text-right">{tx.tid}</span>
