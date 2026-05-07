@@ -88,7 +88,7 @@ export async function scanAndImportSMS(
           const keywords = [
             'received', 'sent', 'withdrawn', 'withdraw', 'airtime', 'deposit', 
             'payment', 'paid', 'confirmed', 'transfer', 'credited', 'debited', 
-            'recharged', 'cash', 'transid', 'txn:', 'ref:', 'balance',
+            'recharged', 'cash', 'transid', 'txn', 'tid', 'ref', 'balance', 'bal',
             'ugx', 'kes', 'ghs', 'rwf', 'tzs', 'zar', 'ngn', 'xof', 'xaf', 
             'mzn', 'bwp', 'zmw', 'eur', 'usd', 'gbp'
           ];

@@ -53,7 +53,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const firstValidIndex = rawLines.findIndex(l => {
     const trimmed = l.trim();
     return /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(trimmed) ||
-           /^(?:SENT|RECEIVED|CASH IN|CASH OUT|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid)/i.test(trimmed);
+           /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Amount|Confirm|Y'ello|Hello)/i.test(trimmed);
   });
 
   if (firstValidIndex > 0) {
@@ -142,7 +142,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   }
   // Then general types
   else if (/(received|credited|pokea|imepokelewa|reçu|recebido|recibido)/i.test(lowerText)) result.transaction_type = "received";
-  else if (/(deposit|deposited|weka|d[eé]p[oô]t|deposito)/i.test(lowerText)) result.transaction_type = "deposit";
+  else if (/(deposit|deposited|cash in|weka|d[eé]p[oô]t|deposito)/i.test(lowerText)) result.transaction_type = "deposit";
   else if (/(withdrawn|withdraw|withdrawal|cash out|retrait|retir[eé]|toa|imetolewa|levantamento|retirado|retiro)/i.test(lowerText)) result.transaction_type = "withdrawal";
   else if (/(sent|paid|debited|bill|purchase|envoy[eé]|transfert|tuma|imetumwa|enviado|transferencia|pago|pagamento|pagado)/i.test(lowerText)) result.transaction_type = "sent";
 
@@ -195,20 +195,37 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   };
 
   // 4. Transaction ID (Extracted Early for Masking)
-  const tidMatch = text.match(/(?:TID|TxID|Txn|Ref|Reference|Transaction ID|ID|Id de transacci[oó]n|R[eé]f[eé]rence|R[eé]f|ID transa[cç][aã]o)\s*[:\-]?\s*([A-Za-z0-9]+)/i);
+  const tidMatch = text.match(/(?:TID|TxID|Txn|Txn ID|Ref|Reference|Transaction ID|Trans ID|ID|Id de transacci[oó]n|R[eé]f[eé]rence|R[eé]f|ID transa[cç][aã]o)\s*[:\-]?\s*([A-Za-z0-9]+)/i);
   if (tidMatch) result.transaction_id = tidMatch[1].trim();
 
   // 5. Amount Extraction
   // Look for currency followed by numbers or numbers followed by currency
+  // We remove the trailing \b for text currencies to allow them to be immediately followed by digits (e.g. UGX1000)
   const amountRegex = new RegExp(
-    `(?:\\b(?:${textCurrencies})\\b|${symbols})\\s*([\\d, \\.]+\\d)|([\\d, \\.]+\\d)\\s*(?:\\b(?:${textCurrencies})\\b|${symbols})`, 
+    `(?:\\b(?:${textCurrencies})|${symbols})\\s*([\\d, \\.]+\\d)|([\\d, \\.]+\\d)\\s*(?:(?:${textCurrencies})\\b|${symbols})`, 
     'i'
   );
-  const fallbackAmountRegex = /(?:amount|cash deposit of|paid|received|sent|transferred|withdrawn|withdraw|montant|somme|kiasi|valor|cantidad)[:\s]*([\d,.\s]+\d)/i;
+  const fallbackAmountRegex = /(?:amount|cash deposit of|cash in|paid|received|sent|transferred|withdrawn|withdraw|montant|somme|kiasi|valor|cantidad)[:\s.,\-]*([A-Z]{2,3})?[:\s.,\-]*([\d,.\s]+\d)/i;
   
   // Mask the transaction ID and phone number before looking for amounts 
   // so we don't accidentally parse a TID or phone number as an amount.
   let textForAmount = text;
+
+  // Mask known secondary amounts (fee, tax, balance) to avoid confusion
+  // We match the whole pattern but only replace the numerical part to keep the text structure
+  const feePattern = /(?:Fee|Charge|Cost|Tax|Taxa|Taxe)[^\d]*([\d, \.]+\d)/i;
+  const balPattern = /(?:Balance|New balance|Available balance|Bal|Amt)[^\d]*([\d, \.]+\d)/i;
+  
+  const tempFeeMatch = textForAmount.match(feePattern);
+  if (tempFeeMatch) {
+    textForAmount = textForAmount.replace(tempFeeMatch[0], "SECONDARY_AMT_MATCH");
+  }
+  
+  const tempBalMatch = textForAmount.match(balPattern);
+  if (tempBalMatch) {
+    textForAmount = textForAmount.replace(tempBalMatch[0], "SECONDARY_AMT_MATCH");
+  }
+
   if (result.transaction_id) {
     textForAmount = textForAmount.replace(result.transaction_id, "XXXXX");
   }
@@ -216,25 +233,88 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const amountMatch = textForAmount.match(amountRegex) || textForAmount.match(fallbackAmountRegex);
   
   if (amountMatch) {
-    result.amount = cleanNumber(amountMatch[1] || amountMatch[2]);
+    // If it's the fallback regex with 3 groups, the amount is in group 2
+    // amountRegex has 2 potential amount groups (group 1 or group 2)
+    // fallback with 2 groups (no currency group) -> amount is in group 1
+    // fallback with 3 groups (action, currency, amount) -> amount is in group 2
+    const val = amountMatch[2] || amountMatch[1];
+    result.amount = cleanNumber(val);
+    
+    // Also capture currency from fallback if found
+    if (amountMatch.length > 2 && /[A-Z]{2,3}/i.test(amountMatch[1]) && !result.currency) {
+      result.currency = amountMatch[1].toUpperCase();
+    }
   }
 
   // 6. Name Detection
-  const fromMatch = text.match(/from\s+([A-Za-z0-9\s]+?)(?=\.|\s+Bal|\s+TID|\s+ID|\s+Ref|\s+on|$)/i);
-  if (fromMatch) result.sender_name = fromMatch[1].trim();
+  const nameCaptureRegex = /([A-Za-z0-9\s,.\-]{3,})?(?=\.|\s+Bal|\s+TID|\s+ID|\s+Ref|\s+on|$)/i;
+  
+  const extractName = (source: string) => {
+    if (!source) return null;
+    let name = source.trim();
+    
+    // Remove leading phone number if present (e.g. "0771234567 Name" or "256771234567 Name")
+    name = name.replace(/^(?:\+?\d{8,15}\b|(?:\+?256|0)\d{9}\b)[,\s.\-]*/i, '').trim();
 
-  const toMatch = text.match(/to\s+([A-Za-z0-9\s]+?)(?=\.|\s+Bal|\s+TID|\s+ID|\s+Ref|\s+on|$)/i);
-  if (toMatch) result.receiver_name = toMatch[1].trim();
+    if (name.includes(',')) {
+      const parts = name.split(',');
+      // Find candidate parts that contain at least some letters (potential names)
+      const candidates = parts.filter(part => {
+        const p = part.trim();
+        // A name part should have at least 2 letters and not just be a number or short code
+        return /[A-Z]{2,}/i.test(p) && !/^\d+$/.test(p);
+      });
+      
+      if (candidates.length > 0) {
+        // Pick the longest name candidate
+        name = candidates.reduce((a, b) => a.trim().length > b.trim().length ? a : b);
+      } else {
+        return null;
+      }
+    }
+    // Final check: if it's purely numeric or too short, it's likely not a name
+    if (!/[A-Z]/i.test(name) || name.trim().length < 2 || /^\d+$/.test(name.trim())) return null;
+    return name.trim();
+  };
+
+  const fromMatchContext = text.match(new RegExp(`from\\s+${nameCaptureRegex.source}`, 'i'));
+  const toMatchContext = text.match(new RegExp(`to\\s+${nameCaptureRegex.source}`, 'i'));
+
+  if (fromMatchContext) result.sender_name = extractName(fromMatchContext[1]);
+  if (toMatchContext) result.receiver_name = extractName(toMatchContext[1]);
 
   // 6. Phone Number Extraction
-  const phoneRegex = /(?:^|\s)(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?=\s|$|\.)/g;
-  let match;
-  while ((match = phoneRegex.exec(text)) !== null) {
-    const phone = match[0].trim();
-    const cleanPhone = phone.replace(/[-.\s+()]/g, '');
-    if (!result.transaction_id || !result.transaction_id.includes(cleanPhone)) {
-      result.phone_number = phone;
-      break;
+  // Flexible regex for global numbers:
+  // - International: starting with + or 00 followed by 8-15 digits
+  // - Local/Regional: sequences of 8-15 digits (often starting with 0 or a country code)
+  const phoneRegex = /(?:\+|00)\d{8,15}\b|\b0\d{8,12}\b|\b\d{9,15}\b/g;
+  
+  // Strategy: Try to find the phone number in the source/destination context first
+  const findPhoneInContext = (context: string | undefined | null) => {
+    if (!context) return null;
+    // Look for any digit sequence of 8-15 digits that isn't trapped in a larger alphanumeric string
+    const ctxMatch = context.match(/\b(\d{8,15})\b/);
+    return ctxMatch ? ctxMatch[1] : null;
+  };
+
+  const phoneInFrom = findPhoneInContext(fromMatchContext?.[1]);
+  const phoneInTo = findPhoneInContext(toMatchContext?.[1]);
+  
+  if (phoneInFrom) {
+    result.phone_number = phoneInFrom;
+  } else if (phoneInTo) {
+    result.phone_number = phoneInTo;
+  } else {
+    // Fallback: Scan entire message
+    let match;
+    while ((match = phoneRegex.exec(text)) !== null) {
+      const phone = match[0].trim();
+      const cleanPhone = phone.replace(/[^\d]/g, '');
+      // Ensure we don't pick up the TID as a phone number
+      if (!result.transaction_id || !result.transaction_id.includes(cleanPhone)) {
+        result.phone_number = phone;
+        break;
+      }
     }
   }
 
@@ -252,6 +332,18 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   // 9. Fee
   const feeMatch = text.match(/(?:Fee|Charge|Cost)[^\d]*([\d, \.]+\d)/i);
   if (feeMatch) result.fee = cleanNumber(feeMatch[1]);
+
+  // Handle missing TID for airtime (some networks don't provide it in the summary)
+  if (!result.transaction_id && result.transaction_type.startsWith('airtime')) {
+    // Create a stable synthetic ID based on the message content and date to avoid duplicates
+    const stablePart = result.raw_message.replace(/\d{2}:\d{2}:\d{2}|\d{2}:\d{2}/g, '').trim();
+    let hash = 0;
+    for (let i = 0; i < stablePart.length; i++) {
+        hash = ((hash << 5) - hash) + stablePart.charCodeAt(i);
+        hash |= 0;
+    }
+    result.transaction_id = `AT-${Math.abs(hash)}-${result.amount}`;
+  }
 
   // 10. Provider Detection (Global scope)
   let foundProvider = null;
@@ -342,11 +434,11 @@ export function extractMultipleTransactions(text: string): ParsedSMS[] {
     
     // Pattern to detect start of a new message/transaction block
     const isDate = /^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, ]|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[, ]*[0-9]{1,2}/i.test(line);
-    const isKeyword = /^(?:SENT|RECEIVED|CASH IN|CASH OUT|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid)/i.test(line);
+    const isKeyword = /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Amount|Confirm|Y'ello|Hello|Airtime)/i.test(line);
     
     const blockHasActionWord = currentBlock.some(l => 
-      /^(?:SENT|RECEIVED|CASH IN|CASH OUT|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid)/i.test(l) || 
-      /\b(?:TID|TxId|Txn|Ref|Reference|ID)\b/i.test(l)
+      /^(?:SENT|RECEIVED|CASH|DEPOSIT|WITHDRAWAL|TRANSFER|PAYMENT|You have|Transferred|Paid|Amount|Confirm|Y'ello)/i.test(l) || 
+      /\b(?:TID|TxId|Txn|Txn ID|Ref|Reference|ID)\b/i.test(l)
     );
     
     if (currentBlock.length > 0 && blockHasActionWord && (isDate || isKeyword)) {
