@@ -97,7 +97,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
 
   // Explicitly ignore promotional, marketing, and lottery messages
   if (
-    /(you have won|to unlock|offer only|extra data|bonus|promotional|promo|win up to|sweepstakes|lucky winner|dear customer, claim|free gift|reward|special offer)/i.test(lowerText)
+    /(you have won|to unlock|offer only|extra data|bonus|promotional|promo|win up to|sweepstakes|lucky winner|dear customer, claim|free gift|reward|special offer|renew now|renew your|dial \*\d+|select option|get \d+\s*(?:gb|mb|sms|mins|minutes|sec))/i.test(lowerText)
   ) {
     return null;
   }
