@@ -95,17 +95,23 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const lowerText = cleanText.toLowerCase();
   const lowerAddress = (address || '').toLowerCase();
 
+  const hasTIDPattern = /(?:Transaction number|Transaction ID|Trans ID|Txn ID|Id de transacci[oó]n|ID transa[cç][aã]o|R[eé]f[eé]rence|Reference|TxID|Txn|TID|Ref|R[eé]f|ID)\s*[:\-\.]?\s*[A-Za-z0-9]+/i.test(lowerText);
+  const hasStrongTxnKeyword = /(?:was successful|successful|has been completed|you have received|you have sent|transferred to|cash deposit of|cash in|cash out|payment of|paid to|withdrawn from|deposited into)/i.test(lowerText);
+
   // Explicitly ignore promotional, marketing, and lottery messages
+  // If it's purely asking to renew, buy a bundle, etc., it's not a transaction record.
   if (
-    /(you have won|to unlock|offer only|extra data|bonus|promotional|promo|win up to|sweepstakes|lucky winner|dear customer, claim|free gift|reward|special offer|renew now|renew your|dial \*\d+|select option|get \d+\s*(?:gb|mb|sms|mins|minutes|sec))/i.test(lowerText)
+    /(you have won|to unlock|offer only|extra data|bonus\b|promotional|promo\b|win up to|sweepstakes|lucky winner|dear customer, claim|free gift|reward|special offer|renew now|renew your|get \d+\s*(?:gb|mb|sms|mins|minutes|sec))/i.test(lowerText)
   ) {
-    return null;
+    if (!hasTIDPattern && !hasStrongTxnKeyword) {
+      return null;
+    }
   }
 
   // Explicitly ignore non-transactional messages like data quota warnings
   if (
-    /(data quota|consumed.*data|mb remaining|gb remaining|renew.*bundle|recharge today)/i.test(lowerText) && 
-    !/(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|was successful|successful|buy|bought|purchase|spend|spent|withdraw|withdrawn|deposit|deposited|cash|credited|debited)/i.test(lowerText)
+    /(data quota|consumed.*data|mb remaining|gb remaining|renew.*bundle|recharge today|dial \*\d+|select option)/i.test(lowerText) && 
+    !(hasTIDPattern || hasStrongTxnKeyword || /(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|buy\s+airtime|bought\s+airtime|purchase|spend|spent|withdraw|withdrawn|deposit|deposited|cash|credited|debited)/i.test(lowerText))
   ) {
     return null;
   }
