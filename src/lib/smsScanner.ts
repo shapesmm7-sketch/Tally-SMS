@@ -92,23 +92,38 @@ export async function scanAndImportSMS(
           const parsed = parseMoMoSMS(body, msg.address);
           
           if (parsed) {
-            let isDuplicate = false;
-            let currentTxInDb = undefined;
-            
-            if (parsed.transaction_id) {
-               currentTxInDb = await db.transactions.where('tid').equals(parsed.transaction_id).first();
-               isDuplicate = existingTids.has(parsed.transaction_id) || !!currentTxInDb;
-            } else if (parsed.raw_message) {
-               const raw = parsed.raw_message.trim();
-               isDuplicate = existingMessages.has(raw);
-               if (!isDuplicate) {
-                   // Fallback check in DB for exact raw message match if not in existingTids
-                   const match = existingTxs.find((t: any) => t.rawMessage === raw);
-                   if (match) isDuplicate = true;
-               }
-            }
-            
-            if (!isDuplicate) {
+              let txDate = new Date().toISOString();
+              let finalTime = parsed.time;
+              
+              if (parsed.date) {
+                txDate = parseTransactionDate(parsed.date, parsed.time);
+              } else if (msg.date) {
+                const d = new Date(msg.date);
+                txDate = d.toISOString();
+                if (!finalTime) {
+                  finalTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+              }
+
+              let isDuplicate = false;
+              let currentTxInDb = undefined;
+              
+              if (parsed.transaction_id) {
+                 currentTxInDb = await db.transactions.where('tid').equals(parsed.transaction_id).first();
+                 isDuplicate = existingTids.has(parsed.transaction_id) || !!currentTxInDb;
+              } else if (parsed.raw_message) {
+                 const raw = parsed.raw_message.trim();
+                 // For messages without TID, check if exact same raw message AND same txDate exist
+                 const matchInDb = await db.transactions.where('rawMessage').equals(raw).toArray();
+                 const isExactMatch = (t: any) => t.rawMessage === raw && t.date === txDate;
+                 
+                 isDuplicate = matchInDb.some(isExactMatch) || existingTxs.some(isExactMatch);
+                 if (isDuplicate) {
+                   currentTxInDb = matchInDb.find(isExactMatch);
+                 }
+              }
+              
+              if (!isDuplicate) {
               const incomeTypes = ['received', 'deposit', 'airtime_sold', 'commission'];
               const type = incomeTypes.includes(parsed.transaction_type) ? 'income' : 'expense';
               let note = '';
@@ -126,21 +141,7 @@ export async function scanAndImportSMS(
               };
               const categoryName = categoryMap[parsed.transaction_type] || "Other";
 
-              // Use the parsed SMS date if available, otherwise fallback to message timestamp
-              let txDate = new Date().toISOString();
-              let finalTime = parsed.time;
-              
-              if (parsed.date) {
-                txDate = parseTransactionDate(parsed.date, parsed.time);
-              } else if (msg.date) {
-                const d = new Date(msg.date);
-                txDate = d.toISOString();
-                if (!finalTime) {
-                  finalTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                }
-              }
-
-              try {
+                try {
                 const newId = await db.transactions.add({
                   amount: parsed.amount || 0,
                   type,
@@ -166,7 +167,9 @@ export async function scanAndImportSMS(
                   rawMessage: parsed.raw_message || body,
                   category: categoryName,
                   provider: parsed.provider,
-                  type: type
+                  type,
+                  senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
+                  phoneNumber: parsed.phone_number || undefined
                 } as any);
                 
                 if (parsed.transaction_id) existingTids.add(parsed.transaction_id);
@@ -185,19 +188,38 @@ export async function scanAndImportSMS(
                 if (parsed.provider && existingTx.provider !== parsed.provider) {
                   updates.provider = parsed.provider;
                 }
-                if (existingTx.category === 'Payment' && parsed.transaction_type === 'sent') {
-                  updates.type = 'expense';
-                  updates.category = 'Sent';
-                  updates.note = parsed.receiver_name ? `To ${parsed.receiver_name}` : '';
-                  updates.senderReceiverName = parsed.receiver_name || undefined;
+                
+                const hasMoreDetails = (!existingTx.senderReceiverName && (parsed.sender_name || parsed.receiver_name)) ||
+                                       (!existingTx.phoneNumber && parsed.phone_number);
+                
+                if ((existingTx.category === 'Payment' && parsed.transaction_type === 'sent') || hasMoreDetails) {
+                  const incomeTypes = ['received', 'deposit', 'airtime_sold', 'commission'];
+                  updates.type = incomeTypes.includes(parsed.transaction_type) ? 'income' : 'expense';
+                  
+                  const categoryMap: Record<string, string> = {
+                    received: "Received", deposit: "Deposit", withdrawal: "Withdrawals",
+                    sent: "Sent/paid", airtime_bought: "Airtime bought", airtime_sold: "Airtime sold",
+                    commission: "Commission"
+                  };
+                  updates.category = categoryMap[parsed.transaction_type] || "Other";
+                  
+                  let n = '';
+                  if (parsed.sender_name) n = `From ${parsed.sender_name}`;
+                  else if (parsed.receiver_name) n = `To ${parsed.receiver_name}`;
+                  updates.note = n;
+                  
+                  updates.senderReceiverName = parsed.sender_name || parsed.receiver_name || undefined;
                   if (parsed.phone_number) updates.phoneNumber = parsed.phone_number;
                   updates.rawMessage = parsed.raw_message || body;
                 }
                 
                 if (Object.keys(updates).length > 0) {
                   await db.transactions.update(existingTx.id, updates);
-                  // Also update it in the existingTxs cache so subsequent checks see the updated category
+                  // Also update it in the existingTxs cache so subsequent checks see the updated cache
                   if (updates.category) existingTx.category = updates.category;
+                  if (updates.senderReceiverName) existingTx.senderReceiverName = updates.senderReceiverName;
+                  if (updates.phoneNumber) existingTx.phoneNumber = updates.phoneNumber;
+                  if (updates.rawMessage) existingTx.rawMessage = updates.rawMessage;
                 }
               }
             }
