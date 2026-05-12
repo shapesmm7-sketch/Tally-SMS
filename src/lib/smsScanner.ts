@@ -79,7 +79,11 @@ export async function scanAndImportSMS(
         const existingTxs = await db.transactions.toArray();
         // Pre-compute sets for faster lookups
         const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
-        const existingMessages = new Set(existingTxs.map(tx => (tx.rawMessage || '').trim()).filter(Boolean));
+        const existingMessagesDate = new Set(existingTxs.map(tx => {
+            if (tx.tid) return null;
+            const raw = (tx.rawMessage || '').trim();
+            return raw + '|' + tx.date;
+        }).filter(Boolean));
 
         for (const msg of messages) {
           if (newTransactionsCount >= limit) break; // ENFORCE LIMIT
@@ -109,17 +113,15 @@ export async function scanAndImportSMS(
               let currentTxInDb = undefined;
               
               if (parsed.transaction_id) {
-                 currentTxInDb = await db.transactions.where('tid').equals(parsed.transaction_id).first();
+                 currentTxInDb = existingTxs.find((t: any) => t.tid === parsed.transaction_id);
                  isDuplicate = existingTids.has(parsed.transaction_id) || !!currentTxInDb;
               } else if (parsed.raw_message) {
                  const raw = parsed.raw_message.trim();
-                 // For messages without TID, check if exact same raw message AND same txDate exist
-                 const matchInDb = await db.transactions.where('rawMessage').equals(raw).toArray();
-                 const isExactMatch = (t: any) => t.rawMessage === raw && t.date === txDate;
-                 
-                 isDuplicate = matchInDb.some(isExactMatch) || existingTxs.some(isExactMatch);
-                 if (isDuplicate) {
-                   currentTxInDb = matchInDb.find(isExactMatch);
+                 const compositeKey = raw + '|' + txDate;
+                 isDuplicate = existingMessagesDate.has(compositeKey);
+                 if (!isDuplicate) {
+                     currentTxInDb = existingTxs.find((t: any) => t.rawMessage === raw && t.date === txDate);
+                     if (currentTxInDb) isDuplicate = true;
                  }
               }
               
@@ -173,7 +175,7 @@ export async function scanAndImportSMS(
                 } as any);
                 
                 if (parsed.transaction_id) existingTids.add(parsed.transaction_id);
-                if (parsed.raw_message) existingMessages.add(parsed.raw_message.trim());
+                if (parsed.raw_message) existingMessagesDate.add(parsed.raw_message.trim() + '|' + txDate);
                 newTransactionsCount++;
               } catch (e) {
                 console.warn('Transaction already exists', e);
