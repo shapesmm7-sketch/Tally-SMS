@@ -71,164 +71,172 @@ export async function scanAndImportSMS(
     smsPlugin.listSMS(
       filter,
       async (messages) => {
-        onProgress(`Found ${messages.length} messages. Analyzing...`);
-        
-        let newTransactionsCount = 0;
-        
-        // Get existing transaction IDs to avoid duplicates
-        const existingTxs = await db.transactions.toArray();
-        // Pre-compute sets for faster lookups
-        const existingTids = new Set(existingTxs.map(tx => tx.tid).filter(Boolean));
-        const existingMessagesDate = new Set(existingTxs.map(tx => {
-            if (tx.tid) return null;
-            const raw = (tx.rawMessage || '').trim();
-            return raw + '|' + tx.date;
-        }).filter(Boolean));
-
-        for (const msg of messages) {
-          if (newTransactionsCount >= limit) break; // ENFORCE LIMIT
-
-          // Basic filter to only parse likely financial messages
-          const body = (msg.body || '').toLowerCase();
+        try {
+          onProgress(`Found ${messages.length} messages. Analyzing...`);
           
-          // We rely on parseMoMoSMS to validate if the SMS is a financial transaction
-          // so we don't need to manually filter by keywords here.
-          const parsed = parseMoMoSMS(body, msg.address);
+          let newTransactionsCount = 0;
           
-          if (parsed) {
-              let txDate = new Date().toISOString();
-              let finalTime = parsed.time;
-              
-              if (parsed.date) {
-                txDate = parseTransactionDate(parsed.date, parsed.time);
-              } else if (msg.date) {
-                const d = new Date(msg.date);
-                txDate = d.toISOString();
-                if (!finalTime) {
-                  finalTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          // Get existing transaction IDs to avoid duplicates
+          const existingTxs = await db.transactions.toArray();
+          // Pre-compute sets and maps for faster lookups (O(1))
+          const existingTidsMap = new Map();
+          const existingMessagesMap = new Map();
+          
+          for (const tx of existingTxs) {
+            if (tx.tid) {
+                existingTidsMap.set(tx.tid, tx);
+            }
+            if (tx.rawMessage) {
+                const raw = tx.rawMessage.trim();
+                const compositeKey = raw + '|' + tx.date;
+                existingMessagesMap.set(compositeKey, tx);
+            }
+          }
+
+          for (const msg of messages) {
+            if (newTransactionsCount >= limit) break; // ENFORCE LIMIT
+
+            // Basic filter to only parse likely financial messages
+            const body = (msg.body || '').toLowerCase();
+            
+            // We rely on parseMoMoSMS to validate if the SMS is a financial transaction
+            // so we don't need to manually filter by keywords here.
+            const parsed = parseMoMoSMS(body, msg.address);
+            
+            if (parsed) {
+                let txDate = new Date().toISOString();
+                let finalTime = parsed.time;
+                
+                if (parsed.date) {
+                  try {
+                    txDate = parseTransactionDate(parsed.date, parsed.time);
+                  } catch (e) {
+                    txDate = new Date().toISOString();
+                  }
+                } else if (msg.date) {
+                  const d = new Date(msg.date);
+                  txDate = d.toISOString();
+                  if (!finalTime) {
+                    finalTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  }
                 }
-              }
 
-              let isDuplicate = false;
-              let currentTxInDb = undefined;
-              
-              if (parsed.transaction_id) {
-                 currentTxInDb = existingTxs.find((t: any) => t.tid === parsed.transaction_id);
-                 isDuplicate = existingTids.has(parsed.transaction_id) || !!currentTxInDb;
-              } else if (parsed.raw_message) {
-                 const raw = parsed.raw_message.trim();
-                 const compositeKey = raw + '|' + txDate;
-                 isDuplicate = existingMessagesDate.has(compositeKey);
-                 if (!isDuplicate) {
-                     currentTxInDb = existingTxs.find((t: any) => t.rawMessage === raw && t.date === txDate);
-                     if (currentTxInDb) isDuplicate = true;
-                 }
-              }
-              
-              if (!isDuplicate) {
-              const incomeTypes = ['received', 'deposit', 'airtime_sold', 'commission'];
-              const type = incomeTypes.includes(parsed.transaction_type) ? 'income' : 'expense';
-              let note = '';
-              if (parsed.sender_name) note = `From ${parsed.sender_name}`;
-              else if (parsed.receiver_name) note = `To ${parsed.receiver_name}`;
-
-              const categoryMap: Record<string, string> = {
-                received: "Received",
-                deposit: "Deposit",
-                withdrawal: "Withdrawals",
-                sent: "Sent/paid",
-                airtime_bought: "Airtime bought",
-                airtime_sold: "Airtime sold",
-                commission: "Commission"
-              };
-              const categoryName = categoryMap[parsed.transaction_type] || "Other";
-
-                try {
-                const newId = await db.transactions.add({
-                  amount: parsed.amount || 0,
-                  type,
-                  category: categoryName,
-                  note,
-                  date: txDate,
-                  createdAt: new Date().toISOString(),
-                  tid: parsed.transaction_id,
-                  senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
-                  smsDate: parsed.date || undefined,
-                  smsTime: finalTime || undefined,
-                  currency: parsed.currency || undefined,
-                  phoneNumber: parsed.phone_number || undefined,
-                  balance: parsed.balance || undefined,
-                  fee: parsed.fee || undefined,
-                  provider: parsed.provider || undefined,
-                  rawMessage: parsed.raw_message || body
-                });
+                let isDuplicate = false;
+                let currentTxInDb = undefined;
                 
-                existingTxs.push({
-                  id: newId,
-                  tid: parsed.transaction_id,
-                  rawMessage: parsed.raw_message || body,
-                  category: categoryName,
-                  provider: parsed.provider,
-                  type,
-                  senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
-                  phoneNumber: parsed.phone_number || undefined
-                } as any);
-                
-                if (parsed.transaction_id) existingTids.add(parsed.transaction_id);
-                if (parsed.raw_message) existingMessagesDate.add(parsed.raw_message.trim() + '|' + txDate);
-                newTransactionsCount++;
-              } catch (e) {
-                console.warn('Transaction already exists', e);
-              }
-            } else {
-              const existingTx = currentTxInDb || existingTxs.find((t: any) => 
-                (parsed.transaction_id && t.tid === parsed.transaction_id) || 
-                (!parsed.transaction_id && parsed.raw_message && t.rawMessage === parsed.raw_message.trim())
-              );
-              if (existingTx && existingTx.id) {
-                let updates: any = {};
-                if (parsed.provider && existingTx.provider !== parsed.provider) {
-                  updates.provider = parsed.provider;
+                if (parsed.transaction_id) {
+                   currentTxInDb = existingTidsMap.get(parsed.transaction_id);
+                   if (currentTxInDb) isDuplicate = true;
+                } else if (parsed.raw_message) {
+                   const raw = parsed.raw_message.trim();
+                   const compositeKey = raw + '|' + txDate;
+                   currentTxInDb = existingMessagesMap.get(compositeKey);
+                   if (currentTxInDb) isDuplicate = true;
                 }
                 
-                const hasMoreDetails = (!existingTx.senderReceiverName && (parsed.sender_name || parsed.receiver_name)) ||
-                                       (!existingTx.phoneNumber && parsed.phone_number);
-                
-                if ((existingTx.category === 'Payment' && parsed.transaction_type === 'sent') || hasMoreDetails) {
-                  const incomeTypes = ['received', 'deposit', 'airtime_sold', 'commission'];
-                  updates.type = incomeTypes.includes(parsed.transaction_type) ? 'income' : 'expense';
+                if (!isDuplicate) {
+                const incomeTypes = ['received', 'deposit', 'airtime_sold', 'commission'];
+                const type = incomeTypes.includes(parsed.transaction_type) ? 'income' : 'expense';
+                let note = '';
+                if (parsed.sender_name) note = `From ${parsed.sender_name}`;
+                else if (parsed.receiver_name) note = `To ${parsed.receiver_name}`;
+
+                const categoryMap: Record<string, string> = {
+                  received: "Received",
+                  deposit: "Deposit",
+                  withdrawal: "Withdrawals",
+                  sent: "Sent/paid",
+                  airtime_bought: "Airtime bought",
+                  airtime_sold: "Airtime sold",
+                  commission: "Commission"
+                };
+                const categoryName = categoryMap[parsed.transaction_type] || "Other";
+
+                  try {
+                  const newId = await db.transactions.add({
+                    amount: parsed.amount || 0,
+                    type,
+                    category: categoryName,
+                    note,
+                    date: txDate,
+                    createdAt: new Date().toISOString(),
+                    tid: parsed.transaction_id,
+                    senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
+                    smsDate: parsed.date || undefined,
+                    smsTime: finalTime || undefined,
+                    currency: parsed.currency || undefined,
+                    phoneNumber: parsed.phone_number || undefined,
+                    balance: parsed.balance || undefined,
+                    fee: parsed.fee || undefined,
+                    provider: parsed.provider || undefined,
+                    rawMessage: parsed.raw_message || body
+                  });
                   
-                  const categoryMap: Record<string, string> = {
-                    received: "Received", deposit: "Deposit", withdrawal: "Withdrawals",
-                    sent: "Sent/paid", airtime_bought: "Airtime bought", airtime_sold: "Airtime sold",
-                    commission: "Commission"
-                  };
-                  updates.category = categoryMap[parsed.transaction_type] || "Other";
+                  existingTidsMap.set(parsed.transaction_id, {
+                    id: newId,
+                    tid: parsed.transaction_id,
+                    rawMessage: parsed.raw_message || body,
+                    category: categoryName,
+                    provider: parsed.provider,
+                    type,
+                    senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
+                    phoneNumber: parsed.phone_number || undefined
+                  });
                   
-                  let n = '';
-                  if (parsed.sender_name) n = `From ${parsed.sender_name}`;
-                  else if (parsed.receiver_name) n = `To ${parsed.receiver_name}`;
-                  updates.note = n;
-                  
-                  updates.senderReceiverName = parsed.sender_name || parsed.receiver_name || undefined;
-                  if (parsed.phone_number) updates.phoneNumber = parsed.phone_number;
-                  updates.rawMessage = parsed.raw_message || body;
+                  if (parsed.raw_message) existingMessagesMap.set(parsed.raw_message.trim() + '|' + txDate, existingTidsMap.get(parsed.transaction_id));
+                  newTransactionsCount++;
+                } catch (e) {
+                  console.warn('Transaction already exists', e);
                 }
-                
-                if (Object.keys(updates).length > 0) {
-                  await db.transactions.update(existingTx.id, updates);
-                  // Also update it in the existingTxs cache so subsequent checks see the updated cache
-                  if (updates.category) existingTx.category = updates.category;
-                  if (updates.senderReceiverName) existingTx.senderReceiverName = updates.senderReceiverName;
-                  if (updates.phoneNumber) existingTx.phoneNumber = updates.phoneNumber;
-                  if (updates.rawMessage) existingTx.rawMessage = updates.rawMessage;
+              } else {
+                const existingTx = currentTxInDb;
+                if (existingTx && existingTx.id) {
+                  let updates: any = {};
+                  if (parsed.provider && existingTx.provider !== parsed.provider) {
+                    updates.provider = parsed.provider;
+                  }
+                  
+                  const hasMoreDetails = (!existingTx.senderReceiverName && (parsed.sender_name || parsed.receiver_name)) ||
+                                         (!existingTx.phoneNumber && parsed.phone_number);
+                  
+                  if ((existingTx.category === 'Payment' && parsed.transaction_type === 'sent') || hasMoreDetails) {
+                    const incomeTypes = ['received', 'deposit', 'airtime_sold', 'commission'];
+                    updates.type = incomeTypes.includes(parsed.transaction_type) ? 'income' : 'expense';
+                    
+                    const categoryMap: Record<string, string> = {
+                      received: "Received", deposit: "Deposit", withdrawal: "Withdrawals",
+                      sent: "Sent/paid", airtime_bought: "Airtime bought", airtime_sold: "Airtime sold",
+                      commission: "Commission"
+                    };
+                    updates.category = categoryMap[parsed.transaction_type] || "Other";
+                    
+                    let n = '';
+                    if (parsed.sender_name) n = `From ${parsed.sender_name}`;
+                    else if (parsed.receiver_name) n = `To ${parsed.receiver_name}`;
+                    updates.note = n;
+                    
+                    updates.senderReceiverName = parsed.sender_name || parsed.receiver_name || undefined;
+                    if (parsed.phone_number) updates.phoneNumber = parsed.phone_number;
+                    updates.rawMessage = parsed.raw_message || body;
+                  }
+                  
+                  if (Object.keys(updates).length > 0) {
+                    await db.transactions.update(existingTx.id, updates);
+                    // Also update it in the existingTxs cache so subsequent checks see the updated cache
+                    if (updates.category) existingTx.category = updates.category;
+                    if (updates.senderReceiverName) existingTx.senderReceiverName = updates.senderReceiverName;
+                    if (updates.phoneNumber) existingTx.phoneNumber = updates.phoneNumber;
+                    if (updates.rawMessage) existingTx.rawMessage = updates.rawMessage;
+                  }
                 }
               }
             }
           }
-        }
 
-        onComplete(newTransactionsCount);
+          onComplete(newTransactionsCount);
+        } catch (e: any) {
+          onError('Error analyzing messages: ' + (e.message || String(e)));
+        }
       },
       (err) => {
         onError('Failed to read SMS messages: ' + JSON.stringify(err));

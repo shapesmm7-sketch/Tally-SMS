@@ -1,5 +1,6 @@
 package com.momotracker.myapp;
 
+import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -10,21 +11,53 @@ import android.provider.MediaStore;
 import android.util.Base64;
 
 import com.getcapacitor.JSObject;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-@CapacitorPlugin(name = "MediaStore")
+@CapacitorPlugin(
+    name = "MediaStore",
+    permissions = {
+        @Permission(
+            alias = "storage",
+            strings = {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }
+        )
+    }
+)
 public class MediaStorePlugin extends Plugin {
 
     @PluginMethod
     public void saveFile(PluginCall call) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (getPermissionState("storage") != PermissionState.GRANTED) {
+                requestPermissionForAlias("storage", call, "storagePermsCallback");
+                return;
+            }
+        }
+        performSave(call);
+    }
+
+    @PermissionCallback
+    private void storagePermsCallback(PluginCall call) {
+        if (getPermissionState("storage") == PermissionState.GRANTED) {
+            performSave(call);
+        } else {
+            call.reject("Storage permission is required to save PDF");
+        }
+    }
+
+    private void performSave(PluginCall call) {
         String base64Data = call.getString("base64Data");
         String fileName = call.getString("fileName");
 
@@ -42,9 +75,10 @@ public class MediaStorePlugin extends Plugin {
                 ContentValues contentValues = new ContentValues();
                 contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
                 contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
-                contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/Reports");
+                contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/TallySMS");
 
-                Uri uri = resolver.insert(MediaStore.Files.getContentUri("external"), contentValues);
+                // Use Downloads instead of Files
+                Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
                 
                 if (uri != null) {
                     OutputStream os = resolver.openOutputStream(uri);
@@ -64,8 +98,8 @@ public class MediaStorePlugin extends Plugin {
                 }
             } else {
                 // Fallback for older Android versions
-                File docsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-                File reportsDir = new File(docsDir, "Reports");
+                File docsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                File reportsDir = new File(docsDir, "TallySMS");
                 if (!reportsDir.exists()) {
                     reportsDir.mkdirs();
                 }

@@ -230,7 +230,7 @@ export default function Reports() {
 
         if (result && result.success) {
           setTimeout(() => {
-            alert(`Report saved to your Documents folder as ${fileName}`);
+            alert(`Report saved to your Downloads folder as ${fileName}`);
             if (needsAdForPdf) forceAd(() => {});
           }, 500);
         }

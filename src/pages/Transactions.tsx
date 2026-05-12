@@ -184,7 +184,7 @@ export default function Transactions() {
 
         if (result && result.success) {
           setTimeout(() => {
-            alert(`History saved to your Documents folder as ${fileName}`);
+            alert(`History saved to your Downloads folder as ${fileName}`);
             if (needsAdForPdf) forceAd(() => {});
           }, 500);
         }
