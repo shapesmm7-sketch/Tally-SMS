@@ -25,6 +25,8 @@ import { syncPendingSMS } from './lib/smsDetector';
 import { db } from './lib/db';
 import { AdManager } from './lib/ads/AdManager';
 
+import { useAppUpdate } from './hooks/useAppUpdate';
+
 // Preload ads on startup
 InterstitialAdController.preload();
 
@@ -64,6 +66,8 @@ function AppContent() {
   const [showGlobalLimitModal, setShowGlobalLimitModal] = useState(false);
   const { showInterstitialModal, handleAdClosed } = useInterstitialAd();
   const { getAutoDetectAllowance, recordAutoDetectUsage } = useAccessControl();
+  
+  useAppUpdate();
 
   useEffect(() => {
     let active = true;
