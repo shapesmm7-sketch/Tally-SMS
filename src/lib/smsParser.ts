@@ -101,7 +101,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   // Explicitly ignore promotional, marketing, and lottery messages
   // If it's purely asking to renew, buy a bundle, etc., it's not a transaction record.
   if (
-    /(you have won|to unlock|offer only|extra data|bonus\b|promotional|promo\b|win up to|sweepstakes|lucky winner|dear customer, claim|free gift|reward|special offer|renew now|renew your|get \d+\s*(?:gb|mb|sms|mins|minutes|sec))/i.test(lowerText)
+    /(you have won|to unlock|offer only|extra data|bonus\b|promotional|promo\b|win up to|sweepstakes|lucky winner|dear customer, claim|free gift|reward|special offer|renew now|renew your|get \d+\s*(?:gb|mb|sms|mins|minutes|sec)|great news!|is now available|available again|bundle at only|dial \d*\*|to activate)/i.test(lowerText)
   ) {
     if (!hasTIDPattern && !hasStrongTxnKeyword) {
       return null;
@@ -110,7 +110,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
 
   // Explicitly ignore non-transactional messages like data quota warnings
   if (
-    /(data quota|consumed.*data|mb remaining|gb remaining|renew.*bundle|recharge today|dial \*\d+|select option)/i.test(lowerText) && 
+    /(data quota|consumed.*data|mb remaining|gb remaining|renew.*bundle|recharge today|dial \d*\*\d+|select option)/i.test(lowerText) && 
     !(hasTIDPattern || hasStrongTxnKeyword || /(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|buy\s+airtime|bought\s+airtime|purchase|spend|spent|withdraw|withdrawn|deposit|deposited|cash|credited|debited)/i.test(lowerText))
   ) {
     return null;
