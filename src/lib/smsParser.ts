@@ -238,7 +238,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
     result.amount = cleanNumber(val);
     
     // Also capture currency from fallback if found
-    if (amountMatch.length > 2 && /[A-Z]{2,3}/i.test(amountMatch[1]) && !result.currency) {
+    if (amountMatch.length > 2 && amountMatch[1] && /[A-Z]{2,3}/i.test(amountMatch[1]) && !result.currency) {
       result.currency = amountMatch[1].toUpperCase();
     }
   }
