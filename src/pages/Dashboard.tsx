@@ -182,8 +182,8 @@ export default function Dashboard() {
                       {tx.type === 'income' ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 dark:text-white truncate">
-                        {tx.senderReceiverName || (tx.type === 'income' ? t('dashboard.money_received') : t('dashboard.money_sent'))}
+                      <p className="font-medium text-gray-800 dark:text-white truncate capitalize">
+                        {tx.senderReceiverName || tx.category.replace('_', ' ') || (tx.type === 'income' ? t('dashboard.money_received') : t('dashboard.money_sent'))}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">{format(parseISO(tx.date), 'MMM d, yyyy')}</p>
                     </div>
