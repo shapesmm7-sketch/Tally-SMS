@@ -96,6 +96,7 @@ export async function scanAndImportSMS(
         box: 'inbox',
         indexFrom: indexFrom,
         maxCount: maxCount,
+        sort: 'date DESC'
       };
 
       smsPlugin.listSMS(

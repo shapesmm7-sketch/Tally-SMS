@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
@@ -37,6 +37,7 @@ export default function Transactions() {
   const [customDate, setCustomDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const scrollRestoredRef = useRef(false);
 
   const availableProviders = useLiveQuery(async () => {
     const all = await db.transactions.toArray();
@@ -81,6 +82,51 @@ export default function Transactions() {
       return matchSearch && matchDate && matchProvider;
     });
   }, [filterType, searchQuery, dateFilter, customDate, providerFilter]) || [];
+
+  // Reset scroll on filter change
+  useEffect(() => {
+    // Only reset if we've already done the initial restoration check
+    // or if we are clearly changing filters after mount
+    if (scrollRestoredRef.current) {
+      const container = document.querySelector('.overflow-y-auto');
+      if (container) {
+        container.scrollTo(0, 0);
+        sessionStorage.setItem('transactions_scroll_pos', '0');
+      }
+    }
+  }, [filterType, searchQuery, dateFilter, customDate, providerFilter]);
+
+  // Restore scroll position
+  useEffect(() => {
+    if (transactions.length > 0 && !scrollRestoredRef.current) {
+      const savedPosition = sessionStorage.getItem('transactions_scroll_pos');
+      if (savedPosition) {
+        // Find the scrollable container in Layout
+        const container = document.querySelector('.overflow-y-auto');
+        if (container) {
+          container.scrollTo(0, parseInt(savedPosition, 10));
+          scrollRestoredRef.current = true;
+        }
+      } else {
+        scrollRestoredRef.current = true;
+      }
+    }
+  }, [transactions.length]);
+
+  // Save scroll position
+  useEffect(() => {
+    const container = document.querySelector('.overflow-y-auto');
+    if (!container) return;
+
+    const handleScroll = () => {
+      sessionStorage.setItem('transactions_scroll_pos', container.scrollTop.toString());
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   const handleDeleteClick = (e: React.MouseEvent, id?: number) => {
     e.stopPropagation();
