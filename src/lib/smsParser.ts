@@ -95,7 +95,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const lowerText = cleanText.toLowerCase();
   const lowerAddress = (address || '').toLowerCase();
 
-  const hasTIDPattern = /(?:Transaction number|Transaction ID|Trans ID|Txn ID|Id de transacci[oó]n|ID transa[cç][aã]o|R[eé]f[eé]rence|Reference|TxID|Txn|TID|Ref|R[eé]f|ID)\s*[:\-\.]?\s*[A-Za-z0-9]+/i.test(lowerText);
+  const hasTIDPattern = /(?:\b(?:Transaction number|Transaction ID|Trans ID|Txn ID|Id de transacci[oó]n|ID transa[cç][aã]o|R[eé]f[eé]rence|Reference|TxID|Txn|TID|Ref|R[eé]f|ID)\b)\s*[:\-\.]?\s*[A-Za-z0-9]+/i.test(lowerText);
   const hasStrongTxnKeyword = /(?:was successful|successful|has been completed|you have received|you have sent|you have bought|you have recharged|transferred to|cash deposit of|cash in|cash out|payment of|paid to|withdrawn from|withdrawn\b|deposited into)/i.test(lowerText);
 
   // Explicitly ignore initiation messages (e.g. Airtel withdrawal secret code, MTN withdrawal requests)
@@ -110,7 +110,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   // Explicitly ignore promotional, marketing, and lottery messages
   // If it's purely asking to renew, buy a bundle, etc., it's not a transaction record.
   if (
-    /(you have won|to unlock|offer only|extra data|bonus\b|promotional|promo\b|win up to|sweepstakes|lucky winner|dear customer, claim|free gift|reward|special offer|renew now|renew your|subscribed to|you have subscribed|recharged (?:with|your)|get \d+\s*(?:gb|mb|sms|min|mins|minutes|sec)|great news!|is now available|available again|bundle at only|to activate|skip the hassle|pay using momo|no charges on payments|dnd\*\d+|boda rider|never has.*change|reminder:|will be collected|to repay|repay and avoid|late payment fee|having money problems|loans from|total up to|resolve your financial issues|onelink.me)/i.test(lowerText) ||
+    /(you have won|to unlock|offer only|extra data|bonus\b|promotional|promo\b|win up to|sweepstakes|lucky winner|dear customer, claim|free gift|reward|special offer|renew now|renew your|subscribed to|you have subscribed|recharged (?:with|your)|get \d+\s*(?:gb|mb|sms|min|mins|minutes|sec)|great news!|is now available|available again|bundle at only|to activate|skip the hassle|pay using momo|no charges on payments|dnd\*\d+|boda rider|never has.*change|reminder:|will be collected|to repay|repay and avoid|late payment fee|having money problems|loans from|total up to|resolve your financial issues|onelink.me|valid for \d+\s*(?:hour|hours|day|days)|check your volume|subscribed to daily|\d+min,\d+mb,\d+sms)/i.test(lowerText) ||
     (/\bdial\s*\*(\d+)/i.test(lowerText) && !hasStrongTxnKeyword)
   ) {
     if (!hasTIDPattern && !hasStrongTxnKeyword) {

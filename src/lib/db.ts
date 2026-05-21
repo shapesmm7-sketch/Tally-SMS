@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import { parseMoMoSMS } from './smsParser';
 
 export interface Transaction {
   id?: number;
@@ -54,8 +55,29 @@ export class MoMoDatabase extends Dexie {
     const seenTids = new Set<string>();
     const duplicateIds: number[] = [];
     const idsWithBadPhones: number[] = [];
+    const idsToPurge: number[] = [];
     
     await this.transactions.orderBy('date').each(tx => {
+      // 1. Check for promotional/subscription/reminder messages we want to delete/purge
+      const rawText = tx.rawMessage;
+      if (rawText) {
+        // Run it through the parser to see if it is classified as a valid transaction
+        const parsed = parseMoMoSMS(rawText, tx.provider || undefined);
+        if (!parsed) {
+          idsToPurge.push(tx.id!);
+          return; // Skip other checks for this item
+        }
+      } else {
+        const noteToTest = (tx.note || '').toLowerCase();
+        if (noteToTest) {
+          const isPromoOrReminder = /(?:boda rider|never has.*change|pay using momo|you have subscribed to daily|\d+min,\d+mb,\d+sms|valid for \d+ hours|repay and avoid|will be collected from your account|late payment fee|repayment reminder|having money problems|loans from|total up to|resolve your financial issues|onelink.me)/i.test(noteToTest);
+          if (isPromoOrReminder) {
+            idsToPurge.push(tx.id!);
+            return; // Skip other checks for this item
+          }
+        }
+      }
+
       if (tx.tid) {
         if (seenTids.has(tx.tid)) {
           duplicateIds.push(tx.id!);
@@ -72,16 +94,21 @@ export class MoMoDatabase extends Dexie {
       }
     });
 
+    if (idsToPurge.length > 0) {
+      console.log(`Purging ${idsToPurge.length} promotional/reminder transactions.`);
+      await this.transactions.bulkDelete(idsToPurge);
+    }
+
     if (duplicateIds.length > 0) {
       console.log(`Removing ${duplicateIds.length} duplicate transactions.`);
-      await this.transactions.bulkDelete(duplicateIds);
+      await this.transactions.bulkDelete(duplicateIds.filter(id => !idsToPurge.includes(id)));
     }
 
     if (idsWithBadPhones.length > 0) {
       console.log(`Clearing ${idsWithBadPhones.length} invalid phone numbers.`);
       for (const id of idsWithBadPhones) {
-        // Only clear the phone number if it's not a duplicate we just deleted
-        if (!duplicateIds.includes(id)) {
+        // Only clear the phone number if it's not a duplicate we just deleted / purged
+        if (!duplicateIds.includes(id) && !idsToPurge.includes(id)) {
            await this.transactions.update(id, { phoneNumber: undefined });
         }
       }

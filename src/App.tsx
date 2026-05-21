@@ -85,15 +85,15 @@ function AppContent() {
 
     const runSync = async () => {
       if (!active) return;
+      try {
+        await db.removeDuplicates();
+      } catch (e) {
+        console.error("Failed to remove duplicates:", e);
+      }
       if (Capacitor.isNativePlatform()) {
         // Initialize ads if not already done
         AdManager.initialize();
 
-        try {
-          await db.removeDuplicates();
-        } catch (e) {
-          console.error("Failed to remove duplicates:", e);
-        }
         if (!active) return;
         const allowance = getAutoDetectAllowance();
         const { count, limitReached } = await syncPendingSMS(allowance);
