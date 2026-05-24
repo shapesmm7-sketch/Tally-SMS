@@ -96,7 +96,7 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   const lowerAddress = (address || '').toLowerCase();
 
   const hasTIDPattern = /(?:\b(?:Transaction number|Transaction ID|Trans ID|Txn ID|Id de transacci[oó]n|ID transa[cç][aã]o|R[eé]f[eé]rence|Reference|TxID|Txn|TID|Ref|R[eé]f|ID)\b)\s*[:\-\.]?\s*[A-Za-z0-9]+/i.test(lowerText);
-  const hasStrongTxnKeyword = /(?:was successful|successful|has been completed|you have received|you have sent|you have bought|you have recharged|transferred to|cash deposit of|cash in|cash out|payment of|paid to|withdrawn from|withdrawn\b|deposited into)/i.test(lowerText);
+  const hasStrongTxnKeyword = /(?:was successful|successful|has been completed|you have received|you have sent|you have bought|you have recharged|transferred to|cash deposit of|cash in|cash out|payment of|paid to|withdrawn from|withdrawn\b|deposited into|deducted)/i.test(lowerText);
 
   // Explicitly ignore initiation messages (e.g. Airtel withdrawal secret code, MTN withdrawal requests)
   if (
@@ -121,14 +121,17 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   // Explicitly ignore non-transactional messages like data quota warnings
   if (
     /(data quota|consumed.*data|mb remaining|gb remaining|renew.*bundle|recharge today|dial \d*\*\d+|select option)/i.test(lowerText) && 
-    !(hasTIDPattern || hasStrongTxnKeyword || /(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|buy\s+airtime|bought\s+airtime|purchase|spend|spent|withdraw|withdrawn|deposit|deposited|cash|credited|debited)/i.test(lowerText))
+    !(hasTIDPattern || hasStrongTxnKeyword || /(recharged|payment|paid|received|sent|transferred|reçu|envoy[eé]|pay[eé]|pokea|tuma|lipa|recebido|enviado|buy\s+airtime|bought\s+airtime|purchase|spend|spent|withdraw|withdrawn|deposit|deposited|cash|credited|debited|deducted)/i.test(lowerText))
   ) {
     return null;
   }
 
   // 1. Transaction Type Detection (English, French, Swahili, Portuguese, Spanish)
+  if (/(deducted)/i.test(lowerText)) {
+    result.transaction_type = "sent";
+  }
   // Check specific types first (commission, airtime)
-  if (/(commission|kamisheni|comissao|comisi[oó]n)/i.test(lowerText)) {
+  else if (/(commission|kamisheni|comissao|comisi[oó]n)/i.test(lowerText)) {
     result.transaction_type = "commission";
   }
   else if (/(airtime|bundle|recharge|cr[eé]dit|worth|muda wa maongezi|recarga)/i.test(lowerText)) {
