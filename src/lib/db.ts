@@ -53,6 +53,7 @@ export class MoMoDatabase extends Dexie {
   async removeDuplicates() {
     // Keep a set of seen tids
     const seenTids = new Set<string>();
+    const seenMessages = new Set<string>();
     const duplicateIds: number[] = [];
     const idsWithBadPhones: number[] = [];
     const idsToPurge: number[] = [];
@@ -70,7 +71,7 @@ export class MoMoDatabase extends Dexie {
       } else {
         const noteToTest = (tx.note || '').toLowerCase();
         if (noteToTest) {
-          const isPromoOrReminder = /(?:boda rider|never has.*change|pay using momo|you have subscribed to daily|\d+min,\d+mb,\d+sms|valid for \d+ hours|repay and avoid|will be collected from your account|late payment fee|repayment reminder|having money problems|loans from|total up to|resolve your financial issues|onelink.me)/i.test(noteToTest);
+          const isPromoOrReminder = /(?:boda rider|never has.*change|pay using momo|you have subscribed to daily|\d+min,\d+mb,\d+sms|valid for \d+ hours|repay and avoid|will be collected from your account|late payment fee|repayment reminder|having money problems|loans from|total up to|resolve your financial issues|onelink.me|big savings|aliexpress|instant off|virtual card|download ayoba|just bought you)/i.test(noteToTest);
           if (isPromoOrReminder) {
             idsToPurge.push(tx.id!);
             return; // Skip other checks for this item
@@ -83,6 +84,13 @@ export class MoMoDatabase extends Dexie {
           duplicateIds.push(tx.id!);
         } else {
           seenTids.add(tx.tid);
+        }
+      } else if (tx.rawMessage) {
+        const raw = tx.rawMessage.trim();
+        if (seenMessages.has(raw)) {
+          duplicateIds.push(tx.id!);
+        } else {
+          seenMessages.add(raw);
         }
       }
       

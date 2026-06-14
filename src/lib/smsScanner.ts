@@ -78,8 +78,7 @@ export async function scanAndImportSMS(
       }
       if (tx.rawMessage) {
           const raw = tx.rawMessage.trim();
-          const compositeKey = raw + '|' + tx.date;
-          existingMessagesMap.set(compositeKey, tx);
+          existingMessagesMap.set(raw, tx);
       }
     }
 
@@ -145,8 +144,7 @@ export async function scanAndImportSMS(
                      if (currentTxInDb) isDuplicate = true;
                   } else if (parsed.raw_message) {
                      const raw = parsed.raw_message.trim();
-                     const compositeKey = raw + '|' + txDate;
-                     currentTxInDb = existingMessagesMap.get(compositeKey);
+                     currentTxInDb = existingMessagesMap.get(raw);
                      if (currentTxInDb) isDuplicate = true;
                   }
                   
@@ -204,7 +202,7 @@ export async function scanAndImportSMS(
                     }
                     
                     if (parsed.raw_message) {
-                      existingMessagesMap.set(parsed.raw_message.trim() + '|' + txDate, txObj);
+                      existingMessagesMap.set(parsed.raw_message.trim(), txObj);
                     }
                     newTransactionsCount++;
                   } catch (e) {

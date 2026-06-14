@@ -29,7 +29,7 @@ export default function Reports() {
     { id: 'all', label: t('reports.all_time') },
   ];
 
-  const [timeframe, setTimeframe] = useState<Timeframe>('today');
+  const [timeframe, setTimeframe] = useState<Timeframe>('all');
   const [customDate, setCustomDate] = useState('');
   const [providerFilter, setProviderFilter] = useState<string>('all');
   const [showCommissionModal, setShowCommissionModal] = useState(false);

@@ -178,7 +178,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
               const existingMessagesMap = new Map();
               for (const tx of existingTxs) {
                 if (tx.rawMessage) {
-                  const key = tx.rawMessage.trim() + '|' + tx.date;
+                  const key = tx.rawMessage.trim();
                   existingMessagesMap.set(key, tx);
                 }
               }
@@ -235,8 +235,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
                      isDuplicate = existingTids.has(parsed.transaction_id) || !!currentTxInDb;
                   } else if (parsed.raw_message) {
                      const raw = parsed.raw_message.trim();
-                     const key = raw + '|' + txDate;
-                     isDuplicate = existingMessagesMap.has(key);
+                     isDuplicate = existingMessagesMap.has(raw);
                   }
 
                   if (!isDuplicate) {
@@ -285,14 +284,14 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
 
                       count++;
                       if (parsed.transaction_id) existingTids.add(parsed.transaction_id);
-                      if (parsed.raw_message) existingMessagesMap.set(parsed.raw_message.trim() + '|' + txDate, { id: newId });
+                      if (parsed.raw_message) existingMessagesMap.set(parsed.raw_message.trim(), { id: newId });
                     } catch (e) {
                       console.warn('Transaction already exists or error adding', e);
                     }
                   } else {
                     const existingTx = currentTxInDb || existingTxs.find((t: any) => 
                       (parsed.transaction_id && t.tid === parsed.transaction_id) || 
-                      (!parsed.transaction_id && parsed.raw_message && (t.rawMessage === parsed.raw_message.trim() && t.date === txDate))
+                      (!parsed.transaction_id && parsed.raw_message && (t.rawMessage === parsed.raw_message.trim()))
                     );
                     if (existingTx && existingTx.id) {
                       let updates: any = {};
