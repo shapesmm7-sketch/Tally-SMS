@@ -179,7 +179,8 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
               for (const tx of existingTxs) {
                 if (tx.rawMessage) {
                   const key = tx.rawMessage.trim();
-                  existingMessagesMap.set(key, tx);
+                  if (!existingMessagesMap.has(key)) existingMessagesMap.set(key, []);
+                  existingMessagesMap.get(key).push(tx);
                 }
               }
 
@@ -230,12 +231,25 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
                   let isDuplicate = false;
                   let currentTxInDb = undefined;
                   
-                  if (parsed.transaction_id) {
+                  if (parsed.raw_message) {
+                     const raw = parsed.raw_message.trim();
+                     const matchingTxs = existingMessagesMap.get(raw);
+                     if (matchingTxs && matchingTxs.length > 0) {
+                        const newMsgDate = new Date(txDate).getTime();
+                        for (const tx of matchingTxs) {
+                           const existDate = tx.smsDate ? new Date(tx.smsDate).getTime() : new Date(tx.date).getTime();
+                           if (Math.abs(newMsgDate - existDate) < 120000) {
+                               currentTxInDb = tx;
+                               isDuplicate = true;
+                               break;
+                           }
+                        }
+                     }
+                  }
+                  
+                  if (!isDuplicate && parsed.transaction_id) {
                      currentTxInDb = await db.transactions.where('tid').equals(parsed.transaction_id).first();
                      isDuplicate = existingTids.has(parsed.transaction_id) || !!currentTxInDb;
-                  } else if (parsed.raw_message) {
-                     const raw = parsed.raw_message.trim();
-                     isDuplicate = existingMessagesMap.has(raw);
                   }
 
                   if (!isDuplicate) {
@@ -284,7 +298,11 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
 
                       count++;
                       if (parsed.transaction_id) existingTids.add(parsed.transaction_id);
-                      if (parsed.raw_message) existingMessagesMap.set(parsed.raw_message.trim(), { id: newId });
+                      if (parsed.raw_message) {
+                        const raw = parsed.raw_message.trim();
+                        if (!existingMessagesMap.has(raw)) existingMessagesMap.set(raw, []);
+                        existingMessagesMap.get(raw).push({ id: newId, smsDate: parsed.date, date: txDate });
+                      }
                     } catch (e) {
                       console.warn('Transaction already exists or error adding', e);
                     }

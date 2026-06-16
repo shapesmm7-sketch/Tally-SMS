@@ -102,7 +102,9 @@ export function parseMoMoSMS(text: string, address?: string): ParsedSMS | null {
   if (
     (/\binitiated\b/i.test(lowerText) && /\bsecret code\b/i.test(lowerText)) ||
     (/\brequested a withdrawal\b/i.test(lowerText) && /\bauthorize\b/i.test(lowerText)) ||
-    /\bselect My Approvals\b/i.test(lowerText)
+    /\bselect My Approvals\b/i.test(lowerText) ||
+    /\bnever share this code\b/i.test(lowerText) ||
+    /\buse code \d+ to send\b/i.test(lowerText)
   ) {
     return null;
   }

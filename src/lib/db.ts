@@ -53,7 +53,7 @@ export class MoMoDatabase extends Dexie {
   async removeDuplicates() {
     // Keep a set of seen tids
     const seenTids = new Set<string>();
-    const seenMessages = new Set<string>();
+    const seenMessages = new Map<string, any[]>();
     const duplicateIds: number[] = [];
     const idsWithBadPhones: number[] = [];
     const idsToPurge: number[] = [];
@@ -79,18 +79,34 @@ export class MoMoDatabase extends Dexie {
         }
       }
 
-      if (tx.tid) {
+      let isDup = false;
+      
+      if (tx.rawMessage) {
+        const raw = tx.rawMessage.trim();
+        const existingList = seenMessages.get(raw);
+        if (existingList) {
+          const newTxDate = tx.smsDate ? new Date(tx.smsDate).getTime() : new Date(tx.date).getTime();
+          for (const extx of existingList) {
+             const existDate = extx.smsDate ? new Date(extx.smsDate).getTime() : new Date(extx.date).getTime();
+             if (Math.abs(newTxDate - existDate) < 120000) {
+               isDup = true;
+               duplicateIds.push(tx.id!);
+               break;
+             }
+          }
+          if (!isDup) {
+            existingList.push(tx);
+          }
+        } else {
+          seenMessages.set(raw, [tx]);
+        }
+      }
+      
+      if (!isDup && tx.tid) {
         if (seenTids.has(tx.tid)) {
           duplicateIds.push(tx.id!);
         } else {
           seenTids.add(tx.tid);
-        }
-      } else if (tx.rawMessage) {
-        const raw = tx.rawMessage.trim();
-        if (seenMessages.has(raw)) {
-          duplicateIds.push(tx.id!);
-        } else {
-          seenMessages.add(raw);
         }
       }
       

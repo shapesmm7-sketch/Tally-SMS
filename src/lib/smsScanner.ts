@@ -78,7 +78,8 @@ export async function scanAndImportSMS(
       }
       if (tx.rawMessage) {
           const raw = tx.rawMessage.trim();
-          existingMessagesMap.set(raw, tx);
+          if (!existingMessagesMap.has(raw)) existingMessagesMap.set(raw, []);
+          existingMessagesMap.get(raw).push(tx);
       }
     }
 
@@ -139,12 +140,24 @@ export async function scanAndImportSMS(
                   let isDuplicate = false;
                   let currentTxInDb = undefined;
                   
-                  if (parsed.transaction_id) {
-                     currentTxInDb = existingTidsMap.get(parsed.transaction_id);
-                     if (currentTxInDb) isDuplicate = true;
-                  } else if (parsed.raw_message) {
+                  if (parsed.raw_message) {
                      const raw = parsed.raw_message.trim();
-                     currentTxInDb = existingMessagesMap.get(raw);
+                     const matchingTxs = existingMessagesMap.get(raw);
+                     if (matchingTxs && matchingTxs.length > 0) {
+                        const newMsgDate = new Date(txDate).getTime();
+                        for (const tx of matchingTxs) {
+                           const existDate = tx.smsDate ? new Date(tx.smsDate).getTime() : new Date(tx.date).getTime();
+                           if (Math.abs(newMsgDate - existDate) < 120000) {
+                               currentTxInDb = tx;
+                               isDuplicate = true;
+                               break;
+                           }
+                        }
+                     }
+                  }
+                  
+                  if (!isDuplicate && parsed.transaction_id) {
+                     currentTxInDb = existingTidsMap.get(parsed.transaction_id);
                      if (currentTxInDb) isDuplicate = true;
                   }
                   
@@ -194,7 +207,9 @@ export async function scanAndImportSMS(
                       provider: parsed.provider,
                       type,
                       senderReceiverName: parsed.sender_name || parsed.receiver_name || undefined,
-                      phoneNumber: parsed.phone_number || undefined
+                      phoneNumber: parsed.phone_number || undefined,
+                      smsDate: parsed.date || undefined,
+                      date: txDate
                     };
 
                     if (parsed.transaction_id) {
@@ -202,7 +217,9 @@ export async function scanAndImportSMS(
                     }
                     
                     if (parsed.raw_message) {
-                      existingMessagesMap.set(parsed.raw_message.trim(), txObj);
+                      const raw = parsed.raw_message.trim();
+                      if (!existingMessagesMap.has(raw)) existingMessagesMap.set(raw, []);
+                      existingMessagesMap.get(raw).push(txObj);
                     }
                     newTransactionsCount++;
                   } catch (e) {
