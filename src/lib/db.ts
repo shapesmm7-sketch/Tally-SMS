@@ -85,9 +85,9 @@ export class MoMoDatabase extends Dexie {
         const raw = tx.rawMessage.trim();
         const existingList = seenMessages.get(raw);
         if (existingList) {
-          const newTxDate = tx.smsDate ? new Date(tx.smsDate).getTime() : new Date(tx.date).getTime();
+          const newTxDate = new Date(tx.date).getTime();
           for (const extx of existingList) {
-             const existDate = extx.smsDate ? new Date(extx.smsDate).getTime() : new Date(extx.date).getTime();
+             const existDate = new Date(extx.date).getTime();
              if (Math.abs(newTxDate - existDate) < 120000) {
                isDup = true;
                duplicateIds.push(tx.id!);

@@ -16,7 +16,7 @@ export default function BannerAd() {
         try {
           await AdMob.showBanner({
             adId: BannerAdController.getAdUnitId(),
-            adSize: BannerAdSize.BANNER,
+            adSize: BannerAdSize.ADAPTIVE_BANNER,
             position: BannerAdPosition.BOTTOM_CENTER,
             margin: 64, // Push up 64 units to sit above the 64px bottom nav
             isTesting: false,

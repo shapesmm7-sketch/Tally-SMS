@@ -237,7 +237,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
                      if (matchingTxs && matchingTxs.length > 0) {
                         const newMsgDate = new Date(txDate).getTime();
                         for (const tx of matchingTxs) {
-                           const existDate = tx.smsDate ? new Date(tx.smsDate).getTime() : new Date(tx.date).getTime();
+                           const existDate = new Date(tx.date).getTime();
                            if (Math.abs(newMsgDate - existDate) < 120000) {
                                currentTxInDb = tx;
                                isDuplicate = true;
