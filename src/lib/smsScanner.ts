@@ -77,7 +77,7 @@ export async function scanAndImportSMS(
           existingTidsMap.set(tx.tid, tx);
       }
       if (tx.rawMessage) {
-          const raw = tx.rawMessage.trim();
+          const raw = tx.rawMessage.trim().toLowerCase();
           if (!existingMessagesMap.has(raw)) existingMessagesMap.set(raw, []);
           existingMessagesMap.get(raw).push(tx);
       }
@@ -141,7 +141,7 @@ export async function scanAndImportSMS(
                   let currentTxInDb = undefined;
                   
                   if (parsed.raw_message) {
-                     const raw = parsed.raw_message.trim();
+                     const raw = parsed.raw_message.trim().toLowerCase();
                      const matchingTxs = existingMessagesMap.get(raw);
                      if (matchingTxs && matchingTxs.length > 0) {
                         const newMsgDate = new Date(txDate).getTime();
@@ -217,7 +217,7 @@ export async function scanAndImportSMS(
                     }
                     
                     if (parsed.raw_message) {
-                      const raw = parsed.raw_message.trim();
+                      const raw = parsed.raw_message.trim().toLowerCase();
                       if (!existingMessagesMap.has(raw)) existingMessagesMap.set(raw, []);
                       existingMessagesMap.get(raw).push(txObj);
                     }

@@ -82,7 +82,7 @@ export class MoMoDatabase extends Dexie {
       let isDup = false;
       
       if (tx.rawMessage) {
-        const raw = tx.rawMessage.trim();
+        const raw = tx.rawMessage.trim().toLowerCase();
         const existingList = seenMessages.get(raw);
         if (existingList) {
           const newTxDate = new Date(tx.date).getTime();

@@ -178,7 +178,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
               const existingMessagesMap = new Map();
               for (const tx of existingTxs) {
                 if (tx.rawMessage) {
-                  const key = tx.rawMessage.trim();
+                  const key = tx.rawMessage.trim().toLowerCase();
                   if (!existingMessagesMap.has(key)) existingMessagesMap.set(key, []);
                   existingMessagesMap.get(key).push(tx);
                 }
@@ -232,7 +232,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
                   let currentTxInDb = undefined;
                   
                   if (parsed.raw_message) {
-                     const raw = parsed.raw_message.trim();
+                     const raw = parsed.raw_message.trim().toLowerCase();
                      const matchingTxs = existingMessagesMap.get(raw);
                      if (matchingTxs && matchingTxs.length > 0) {
                         const newMsgDate = new Date(txDate).getTime();
@@ -299,7 +299,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
                       count++;
                       if (parsed.transaction_id) existingTids.add(parsed.transaction_id);
                       if (parsed.raw_message) {
-                        const raw = parsed.raw_message.trim();
+                        const raw = parsed.raw_message.trim().toLowerCase();
                         if (!existingMessagesMap.has(raw)) existingMessagesMap.set(raw, []);
                         existingMessagesMap.get(raw).push({ id: newId, smsDate: parsed.date, date: txDate });
                       }
@@ -309,7 +309,7 @@ export async function syncPendingSMS(limit: number = Infinity): Promise<{ count:
                   } else {
                     const existingTx = currentTxInDb || existingTxs.find((t: any) => 
                       (parsed.transaction_id && t.tid === parsed.transaction_id) || 
-                      (!parsed.transaction_id && parsed.raw_message && (t.rawMessage === parsed.raw_message.trim()))
+                      (!parsed.transaction_id && parsed.raw_message && t.rawMessage && (t.rawMessage.trim().toLowerCase() === parsed.raw_message.trim().toLowerCase()))
                     );
                     if (existingTx && existingTx.id) {
                       let updates: any = {};
