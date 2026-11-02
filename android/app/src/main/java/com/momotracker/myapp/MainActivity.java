@@ -20,6 +20,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(SMSDetectionPlugin.class);
         registerPlugin(MediaStorePlugin.class);
+        registerPlugin(BluetoothSyncPlugin.class);
         super.onCreate(savedInstanceState);
 
         appUpdateManager = AppUpdateManagerFactory.create(this);

@@ -10,6 +10,7 @@ import Transactions from './pages/Transactions';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Help from './pages/Help';
+import SyncSmallPhone from './pages/SyncSmallPhone';
 import TransactionDetail from './pages/TransactionDetail';
 import Subscription from './pages/Subscription';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -149,6 +150,7 @@ function AppContent() {
             </Route>
             <Route path="/add" element={<AddTransaction />} />
             <Route path="/help" element={<Help />} />
+            <Route path="/sync-small-phone" element={<SyncSmallPhone />} />
             <Route path="/transaction/:id" element={<TransactionDetail />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search, Share2, Zap, RefreshCcw, LogOut, Star } from 'lucide-react';
+import { Shield, Smartphone, Database, FileText, Crown, ChevronRight, AlertCircle, Globe, Moon, Sun, Trash2, Languages, X, Info, Search, Share2, Zap, RefreshCcw, LogOut, Star, Bluetooth } from 'lucide-react';
 import { db } from '../lib/db';
 import { COUNTRIES } from '../lib/utils';
 import { useAccessControl } from '../hooks/useAccessControl';
@@ -343,6 +343,22 @@ export default function Settings() {
                 <div className="text-left">
                   <span className="font-medium text-gray-800 dark:text-white">{t('settings.manual_scan', 'Manual Scan Inbox')}</span>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{t('settings.manual_scan_desc', 'Scan existing SMS for transactions')}</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button 
+              onClick={() => navigate('/sync-small-phone')}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <Bluetooth className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <span className="font-medium text-gray-800 dark:text-white">Sync from Small Phone</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">save Mobile Money SMS from Small button phones.</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
