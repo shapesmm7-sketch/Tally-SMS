@@ -39,6 +39,8 @@ export interface SyncResult {
 
 interface BluetoothSyncNativePlugin {
   isAvailable(): Promise<{ available: boolean; enabled: boolean }>;
+  checkPermissions(): Promise<{ granted: boolean }>;
+  requestBluetoothPermissions(): Promise<{ granted: boolean }>;
   getPairedDevices(): Promise<{ devices: BluetoothDeviceItem[] }>;
   startDiscovery(): Promise<{ started: boolean }>;
   stopDiscovery(): Promise<{ stopped: boolean }>;
@@ -46,7 +48,7 @@ interface BluetoothSyncNativePlugin {
     compatible: boolean;
     verified: boolean;
     profile: string;
-    reason: string;
+    reason?: string;
     hasSPP?: boolean;
     hasMAP?: boolean;
     hasPBAP?: boolean;
@@ -63,16 +65,6 @@ interface BluetoothSyncNativePlugin {
 
 const NativeBluetoothSync = registerPlugin<BluetoothSyncNativePlugin>('BluetoothSync');
 
-// Known test/simulated devices for live test environment
-const ALL_BUTTON_PHONES: BluetoothDeviceItem[] = [
-  { name: 'Nokia 105 Dual SIM', address: '00:1B:DC:09:44:A1', paired: true, isButtonPhone: true, isPhone: true },
-  { name: 'Tecno T301 (Kabiriti)', address: '28:6C:07:33:51:F2', paired: true, isButtonPhone: true, isPhone: true },
-  { name: 'Itel 2160', address: '50:F0:D3:21:88:B4', paired: true, isButtonPhone: true, isPhone: true },
-  { name: 'Nokia 3310 (2017)', address: '94:65:2D:11:00:C8', paired: false, isButtonPhone: true, isPhone: true },
-  { name: 'Tecno T401 Dual SIM', address: 'B4:CD:27:88:99:AA', paired: false, isButtonPhone: true, isPhone: true },
-  { name: 'Handsfree Car Kit (PBAP Only)', address: 'AA:BB:CC:11:22:33', paired: false, isButtonPhone: false, isPhone: false }
-];
-
 export class BluetoothSyncService {
   private static isScanning = false;
 
@@ -88,9 +80,28 @@ export class BluetoothSyncService {
     return { available: true, enabled: true };
   }
 
+  static async requestPermissions(): Promise<boolean> {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const res = await NativeBluetoothSync.requestBluetoothPermissions();
+        return res.granted;
+      } catch (e) {
+        console.warn('Bluetooth permission request failed:', e);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Retrieves real paired Bluetooth devices from the Android system.
+   * Returns empty array if none are paired yet or permission not yet granted.
+   */
   static async getInitialDevices(): Promise<BluetoothDeviceItem[]> {
     if (Capacitor.isNativePlatform()) {
       try {
+        // Ensure permissions are requested
+        await this.requestPermissions();
         const res = await NativeBluetoothSync.getPairedDevices();
         return res.devices || [];
       } catch (e) {
@@ -98,10 +109,13 @@ export class BluetoothSyncService {
         return [];
       }
     }
-    // Web fallback: return known button phones
-    return ALL_BUTTON_PHONES.slice(0, 3);
+    // Web environment: no fake devices
+    return [];
   }
 
+  /**
+   * Scans for real nearby Bluetooth devices over the air.
+   */
   static async startDiscovery(
     onDeviceFound: (device: BluetoothDeviceItem) => void,
     onFinished: () => void
@@ -111,6 +125,7 @@ export class BluetoothSyncService {
 
     if (Capacitor.isNativePlatform()) {
       try {
+        await this.requestPermissions();
         await NativeBluetoothSync.addListener('deviceDiscovered', (device: BluetoothDeviceItem) => {
           onDeviceFound(device);
         });
@@ -122,23 +137,14 @@ export class BluetoothSyncService {
         return;
       } catch (e) {
         this.isScanning = false;
-        console.warn('Native discovery failed:', e);
-      }
-    }
-
-    // Web simulation: stream remaining devices
-    const extraDevices = ALL_BUTTON_PHONES.slice(3);
-    let index = 0;
-    const interval = setInterval(() => {
-      if (index < extraDevices.length) {
-        onDeviceFound(extraDevices[index]);
-        index++;
-      } else {
-        clearInterval(interval);
-        this.isScanning = false;
+        console.warn('Native startDiscovery failed:', e);
         onFinished();
       }
-    }, 1000);
+    } else {
+      // On web browser without Android native Bluetooth hardware
+      this.isScanning = false;
+      onFinished();
+    }
   }
 
   static async stopDiscovery(): Promise<void> {
@@ -168,7 +174,6 @@ export class BluetoothSyncService {
         progressPercent: 20
       });
 
-      // 1. Protocol detection (MAP or SPP)
       let resolvedMethod = 'SPP';
       let isCompatible = true;
 
@@ -186,13 +191,11 @@ export class BluetoothSyncService {
           resolvedMethod = compat.profile || 'SPP';
         }
       } else {
-        await new Promise(r => setTimeout(r, 600));
-        // Incompatible check for test devices
+        // Web fallback check
         if (
           device.name.toLowerCase().includes('pbap') ||
           device.name.toLowerCase().includes('car kit') ||
-          device.name.toLowerCase().includes('headset') ||
-          device.isButtonPhone === false
+          device.name.toLowerCase().includes('headset')
         ) {
           isCompatible = false;
         } else {
@@ -219,10 +222,10 @@ export class BluetoothSyncService {
         };
       }
 
-      // 2. Read SMS messages
+      // 2. Read SMS messages from the phone
       onProgress({
         stage: 'reading_storage',
-        message: `Reading SIM messages from ${device.name} via ${resolvedMethod}...`,
+        message: `Reading SMS messages from ${device.name} via ${resolvedMethod}...`,
         progressPercent: 60
       });
 
@@ -234,19 +237,14 @@ export class BluetoothSyncService {
           profile: resolvedMethod
         });
         rawSmsList = syncResp.messages || [];
-      } else {
-        await new Promise(r => setTimeout(r, 800));
-        rawSmsList = getSampleButtonPhoneMessages();
       }
 
       // 3. Parse Mobile Money SMS
       onProgress({
         stage: 'parsing',
-        message: `Parsing ${rawSmsList.length} SMS messages for Mobile Money transactions...`,
+        message: `Analyzing ${rawSmsList.length} SMS messages for Mobile Money transactions...`,
         progressPercent: 80
       });
-
-      await new Promise(r => setTimeout(r, 300));
 
       const existingTxs = await db.transactions.toArray();
       const existingTidsMap = new Set<string>();
@@ -381,7 +379,7 @@ export class BluetoothSyncService {
         success: false,
         notCompatible: false,
         error: e.message || String(e),
-        errorMessage: 'Connection timed out or failed. Please ensure Bluetooth visibility is turned On.',
+        errorMessage: 'Connection timed out or failed. Please ensure your small phone Bluetooth is On, visible, and paired.',
         totalSmsRead: 0,
         momoTransactionsFound: 0,
         newlyAdded: 0,
@@ -399,32 +397,4 @@ export class BluetoothSyncService {
       }
     }
   }
-}
-
-function getSampleButtonPhoneMessages(): Array<{ address: string; date?: string; body: string }> {
-  const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-
-  return [
-    {
-      address: 'MTN MobileMoney',
-      date: `${dateStr} 09:15:20`,
-      body: `You have received UGX 75,000 from KABUGO DAVID (0772123456) on ${dateStr} 09:15:20. Financial Transaction Id: 18294719284. New MTN MoMo balance: UGX 348,200.`
-    },
-    {
-      address: 'AirtelMoney',
-      date: `${dateStr} 10:45:12`,
-      body: `Trans. ID: AIR92837192. You have sent UGX 50,000 to NAKATO MARY (0701987654) on ${dateStr} 10:45:12. Fee: UGX 1,000. Balance: UGX 112,500.`
-    },
-    {
-      address: 'MTN MobileMoney',
-      date: `${dateStr} 11:30:00`,
-      body: `You have withdrawn UGX 20,000 on ${dateStr} 11:30:00. Fee: UGX 900. New balance: UGX 327,300. Financial Transaction Id: 18295829103.`
-    },
-    {
-      address: '100',
-      date: `${dateStr} 08:00:00`,
-      body: `Your daily bundle will expire at midnight. Dial *100# to renew.`
-    }
-  ];
 }

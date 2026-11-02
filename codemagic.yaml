@@ -19,11 +19,21 @@ workflows:
           
           # If logo.png is uploaded to root, use it as the icon and splash
           if [ -f "logo.png" ]; then
-            cp logo.png assets/icon-only.png
-            cp logo.png assets/icon-foreground.png
-            cp logo.png assets/icon-background.png
-            cp logo.png assets/splash.png
-            cp logo.png assets/splash-dark.png
+            echo "Using root logo.png for app icons..."
+            cp -f logo.png assets/icon-only.png
+            cp -f logo.png assets/icon-foreground.png
+            cp -f logo.png assets/icon-background.png
+            cp -f logo.png assets/splash.png
+            cp -f logo.png assets/splash-dark.png
+            cp -f logo.png assets/logo.png
+            cp -f logo.png assets/icon.png
+          elif [ -f "assets/logo.png" ]; then
+            echo "Using assets/logo.png for app icons..."
+            cp -f assets/logo.png assets/icon-only.png
+            cp -f assets/logo.png assets/icon-foreground.png
+            cp -f assets/logo.png assets/icon-background.png
+            cp -f assets/logo.png assets/splash.png
+            cp -f assets/logo.png assets/splash-dark.png
           fi
           
           # Ensure Android platform exists

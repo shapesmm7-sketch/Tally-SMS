@@ -178,8 +178,27 @@ export default function SyncSmallPhone() {
 
           {/* Unified Device List */}
           {devices.length === 0 ? (
-            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center text-xs text-gray-500 dark:text-gray-400">
-              No phones found yet. Tap <strong>Scan Nearby</strong> with your button phone turned on and visible.
+            <div className="p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center space-y-3">
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                No paired button phones detected yet. Make sure your small phone is paired in your phone's Android Bluetooth settings, or scan for nearby devices.
+              </p>
+              <div className="flex justify-center space-x-2 pt-1">
+                <button
+                  onClick={loadInitialDevices}
+                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                  Refresh Paired Devices
+                </button>
+                <button
+                  onClick={handleStartScan}
+                  disabled={isScanning}
+                  className="px-3.5 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg text-xs font-semibold flex items-center transition-colors"
+                >
+                  <Bluetooth className="w-3.5 h-3.5 mr-1.5" />
+                  {isScanning ? 'Scanning...' : 'Scan Nearby'}
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-2.5">
