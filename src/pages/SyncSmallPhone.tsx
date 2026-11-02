@@ -12,7 +12,9 @@ import {
   Download, 
   ChevronRight,
   Radio,
-  ExternalLink
+  HelpCircle,
+  ShieldCheck,
+  Check
 } from 'lucide-react';
 import { 
   BluetoothSyncService, 
@@ -28,13 +30,14 @@ export default function SyncSmallPhone() {
   const [devices, setDevices] = useState<BluetoothDeviceItem[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<BluetoothDeviceItem | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [isLoadingDevices, setIsLoadingDevices] = useState(false);
 
   // Sync state
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState<SyncProgressUpdate | null>(null);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
 
-  // Pairing guide visibility
+  // Pairing guide toggle
   const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
@@ -45,11 +48,13 @@ export default function SyncSmallPhone() {
   }, []);
 
   const loadInitialDevices = async () => {
+    setIsLoadingDevices(true);
     const list = await BluetoothSyncService.getInitialDevices();
     setDevices(list);
     if (list.length > 0 && !selectedDevice) {
       setSelectedDevice(list[0]);
     }
+    setIsLoadingDevices(false);
   };
 
   const handleStartScan = async () => {
@@ -115,20 +120,20 @@ export default function SyncSmallPhone() {
       </div>
 
       <div className="p-4 space-y-4 pb-16 max-w-2xl mx-auto w-full">
-        {/* Support & Quick Instructions */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-2xl p-4">
+        {/* Device Roles Clarification Banner */}
+        <div className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
           <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-3">
-              <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5">
-                <Info className="w-4 h-4" />
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 block">
+                Setup Roles
+              </span>
+              <div className="flex items-center space-x-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <span className="w-2 h-2 rounded-full bg-blue-600" />
+                <span><strong>Receiver:</strong> This Android Phone (Tally SMS)</span>
               </div>
-              <div>
-                <h2 className="text-sm font-semibold text-blue-950 dark:text-blue-100">
-                  Supported Small Phones (Kabiriti)
-                </h2>
-                <p className="text-xs text-blue-800 dark:text-blue-300 mt-1 leading-relaxed">
-                  Transfer Mobile Money messages live from compatible Nokia, Tecno, Itel, and other feature phones.
-                </p>
+              <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span><strong>Source:</strong> {selectedDevice ? selectedDevice.name : 'Select a Remote Phone below'}</span>
               </div>
             </div>
             <button
@@ -140,47 +145,55 @@ export default function SyncSmallPhone() {
           </div>
 
           {showGuide && (
-            <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800/40 text-xs text-blue-900 dark:text-blue-200 space-y-2">
-              <ol className="list-decimal list-inside space-y-1.5 pl-1">
-                <li>Turn <strong>Bluetooth On</strong> on your button phone and set visibility to On.</li>
-                <li>Make sure your button phone is connected or visible to this Android device.</li>
-                <li>Select the phone below and tap <strong>Sync Messages</strong> to import your transactions.</li>
+            <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 space-y-2">
+              <p className="font-semibold text-slate-900 dark:text-white">Connecting your button phone:</p>
+              <ol className="list-decimal list-inside space-y-1 pl-1">
+                <li>Turn <strong>Bluetooth On</strong> on your button phone (Nokia, Tecno, Itel, etc.) and set Bluetooth visibility to <em>Visible / On</em>.</li>
+                <li>Pair the button phone in this smartphone's Android Bluetooth Settings.</li>
+                <li>Select the paired device below and tap <strong>Sync Messages</strong>.</li>
               </ol>
             </div>
           )}
         </div>
 
-        {/* Unified Devices Selection */}
+        {/* Device Discovery & Selection */}
         <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center">
               <Radio className="w-4 h-4 mr-1.5 text-blue-600" />
-              Select Small Phone
+              Available Bluetooth Devices
             </h2>
-            {isScanning ? (
-              <button
-                onClick={handleStopScan}
-                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-semibold flex items-center transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin text-blue-600" />
-                Stop Scanning
-              </button>
-            ) : (
-              <button
-                onClick={handleStartScan}
-                className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 text-blue-600 dark:text-blue-300 rounded-lg text-xs font-semibold flex items-center transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-                Scan Nearby
-              </button>
-            )}
+            <div className="flex space-x-2">
+              {isScanning ? (
+                <button
+                  onClick={handleStopScan}
+                  className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-semibold flex items-center transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin text-blue-600" />
+                  Stop Scanning
+                </button>
+              ) : (
+                <button
+                  onClick={handleStartScan}
+                  className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/40 hover:bg-blue-100 text-blue-600 dark:text-blue-300 rounded-lg text-xs font-semibold flex items-center transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                  Scan Nearby
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Unified Device List */}
-          {devices.length === 0 ? (
+          {/* Device List */}
+          {isLoadingDevices ? (
+            <div className="p-5 text-center text-xs text-gray-500">
+              <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-2 text-blue-600" />
+              Loading paired Bluetooth devices...
+            </div>
+          ) : devices.length === 0 ? (
             <div className="p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center space-y-3">
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                No paired button phones detected yet. Make sure your small phone is paired in your phone's Android Bluetooth settings, or scan for nearby devices.
+                No paired Bluetooth devices detected. Make sure Bluetooth is turned on, pair your phone in Android Bluetooth settings, or tap Scan Nearby.
               </p>
               <div className="flex justify-center space-x-2 pt-1">
                 <button
@@ -221,15 +234,12 @@ export default function SyncSmallPhone() {
                         <Smartphone className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
                           {dev.name}
-                          {dev.isButtonPhone && (
-                            <span className="ml-2 px-1.5 py-0.5 text-[10px] bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded font-medium">
-                              Button Phone
-                            </span>
-                          )}
                         </p>
-                        <p className="text-[11px] text-gray-400 font-mono">{dev.address}</p>
+                        <p className="text-[11px] text-gray-400 font-mono">
+                          {dev.address} &bull; {dev.deviceType || (dev.paired ? 'Paired' : 'Nearby')}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center">
@@ -270,7 +280,7 @@ export default function SyncSmallPhone() {
               {isSyncing ? (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Synchronizing from {selectedDevice?.name || 'Phone'}...
+                  Testing & Synchronizing {selectedDevice?.name || 'Phone'}...
                 </>
               ) : (
                 <>
@@ -282,134 +292,143 @@ export default function SyncSmallPhone() {
           </div>
         </section>
 
-        {/* Incompatible Alert (If phone type does not accept work with MAP or SPP) */}
-        {syncResult && syncResult.notCompatible && (
-          <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-2xl">
-            <div className="flex items-start space-x-3">
-              <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-bold text-red-900 dark:text-red-100">
-                  Your phone is not compatible for this sync
-                </h3>
-                <p className="text-xs text-red-800 dark:text-red-200 mt-1 leading-relaxed">
-                  This phone does not support Bluetooth MAP (Message Access Profile) or SPP (Serial Port Profile) required for SMS synchronization.
-                </p>
-                <div className="mt-2 text-[11px] text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800">
-                  Please ensure you are using a compatible Nokia, Tecno, Itel, or standard feature phone with Bluetooth SMS capability enabled.
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* General Error (Timeout or Disconnected) */}
-        {syncResult && !syncResult.success && !syncResult.notCompatible && (
-          <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100">
-                  Connection Failed
-                </h3>
-                <p className="text-xs text-amber-800 dark:text-amber-200 mt-1">
-                  {syncResult.errorMessage || syncResult.error || 'Could not connect to the phone. Make sure Bluetooth is visible.'}
-                </p>
-                <button
-                  onClick={handleSyncMessages}
-                  className="mt-2 text-xs text-amber-800 dark:text-amber-300 font-semibold underline"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Synchronization Success Results */}
-        {syncResult && syncResult.success && (
-          <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center">
-                <CheckCircle2 className="w-4 h-4 mr-1.5 text-green-600" />
-                Synchronization Results
-              </h3>
-              <button
-                onClick={() => navigate('/transactions')}
-                className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center hover:underline"
-              >
-                View in History
-                <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
-              </button>
-            </div>
-
-            {/* Metrics */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gray-50 dark:bg-gray-800/60 p-3 rounded-xl border border-gray-100 dark:border-gray-800 text-center">
-                <span className="text-[11px] text-gray-500 dark:text-gray-400 uppercase font-semibold block">
-                  Total SMS Read
-                </span>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  {syncResult.totalSmsRead}
-                </span>
-              </div>
-
-              <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-xl border border-blue-100 dark:border-blue-900/50 text-center">
-                <span className="text-[11px] text-blue-600 dark:text-blue-400 uppercase font-semibold block">
-                  Mobile Money Found
-                </span>
-                <span className="text-xl font-bold text-blue-700 dark:text-blue-300">
-                  {syncResult.momoTransactionsFound}
-                </span>
-              </div>
-
-              <div className="bg-green-50 dark:bg-green-950/30 p-3 rounded-xl border border-green-100 dark:border-green-900/50 text-center">
-                <span className="text-[11px] text-green-600 dark:text-green-400 uppercase font-semibold block">
-                  Newly Added
-                </span>
-                <span className="text-xl font-bold text-green-700 dark:text-green-300">
-                  +{syncResult.newlyAdded}
-                </span>
-              </div>
-
-              <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl border border-amber-100 dark:border-amber-900/50 text-center">
-                <span className="text-[11px] text-amber-600 dark:text-amber-400 uppercase font-semibold block">
-                  Duplicates Skipped
-                </span>
-                <span className="text-xl font-bold text-amber-700 dark:text-amber-300">
-                  {syncResult.duplicatesSkipped}
-                </span>
-              </div>
-            </div>
-
-            {/* Recently Imported Preview */}
-            {syncResult.savedTransactions && syncResult.savedTransactions.length > 0 && (
-              <div className="pt-2">
-                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-2">
-                  Recently Imported Transactions
-                </span>
-                <div className="space-y-2">
-                  {syncResult.savedTransactions.map((tx, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-800 flex items-center justify-between"
-                    >
-                      <div>
-                        <p className="text-xs font-bold text-gray-900 dark:text-white">
-                          {tx.category} ({tx.provider || 'MoMo'})
-                        </p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-[220px]">
-                          {tx.rawMessage}
-                        </p>
-                      </div>
-                      <span className={`text-xs font-bold ${tx.type === 'income' ? 'text-green-600' : 'text-red-500'}`}>
-                        {tx.type === 'income' ? '+' : '-'} {tx.amount.toLocaleString()}
+        {/* Diagnostic Results Banner */}
+        {syncResult && (
+          <div>
+            {/* 1. Successful SMS Retrieval */}
+            {syncResult.success && (
+              <section className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-emerald-200 dark:border-emerald-800/60 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                        SMS retrieval successful
+                      </h3>
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                        Retrieved via {syncResult.method} protocol
                       </span>
                     </div>
-                  ))}
+                  </div>
+                  <button
+                    onClick={() => navigate('/transactions')}
+                    className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center hover:underline"
+                  >
+                    View in History
+                    <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                  </button>
+                </div>
+
+                {/* Metrics */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-50 dark:bg-gray-800/60 p-3 rounded-xl border border-gray-100 dark:border-gray-800 text-center">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400 uppercase font-semibold block">
+                      Total SMS Read
+                    </span>
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
+                      {syncResult.totalSmsRead}
+                    </span>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-xl border border-blue-100 dark:border-blue-900/50 text-center">
+                    <span className="text-[11px] text-blue-600 dark:text-blue-400 uppercase font-semibold block">
+                      Mobile Money Found
+                    </span>
+                    <span className="text-xl font-bold text-blue-700 dark:text-blue-300">
+                      {syncResult.momoTransactionsFound}
+                    </span>
+                  </div>
+
+                  <div className="bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/50 text-center">
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 uppercase font-semibold block">
+                      Newly Added
+                    </span>
+                    <span className="text-xl font-bold text-emerald-700 dark:text-emerald-300">
+                      +{syncResult.newlyAdded}
+                    </span>
+                  </div>
+
+                  <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl border border-amber-100 dark:border-amber-900/50 text-center">
+                    <span className="text-[11px] text-amber-600 dark:text-amber-400 uppercase font-semibold block">
+                      Duplicates Skipped
+                    </span>
+                    <span className="text-xl font-bold text-amber-700 dark:text-amber-300">
+                      {syncResult.duplicatesSkipped}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Recently Imported Preview */}
+                {syncResult.savedTransactions && syncResult.savedTransactions.length > 0 && (
+                  <div className="pt-2">
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 block mb-2">
+                      Imported Mobile Money Transactions
+                    </span>
+                    <div className="space-y-2">
+                      {syncResult.savedTransactions.map((tx, idx) => (
+                        <div
+                          key={idx}
+                          className="p-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-800 flex items-center justify-between"
+                        >
+                          <div>
+                            <p className="text-xs font-bold text-gray-900 dark:text-white">
+                              {tx.category} ({tx.provider || 'MoMo'})
+                            </p>
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-[220px]">
+                              {tx.rawMessage}
+                            </p>
+                          </div>
+                          <span className={`text-xs font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-500'}`}>
+                            {tx.type === 'income' ? '+' : '-'} {tx.amount.toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* 2. Bluetooth available but SMS retrieval unsupported */}
+            {!syncResult.success && syncResult.diagnosticStatus === 'UNSUPPORTED' && (
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl">
+                <div className="flex items-start space-x-3">
+                  <XCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100">
+                      Bluetooth available but SMS retrieval unsupported
+                    </h3>
+                    <p className="text-xs text-amber-800 dark:text-amber-200 mt-1 leading-relaxed">
+                      {syncResult.errorMessage || 'This device does not support Bluetooth MAP or SMS-reading AT commands over SPP.'}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
-          </section>
+
+            {/* 3. Compatibility could not be determined */}
+            {!syncResult.success && syncResult.diagnosticStatus === 'UNDETERMINED' && (
+              <div className="p-4 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                <div className="flex items-start space-x-3">
+                  <HelpCircle className="w-5 h-5 text-slate-600 dark:text-slate-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      Compatibility could not be determined
+                    </h3>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
+                      {syncResult.errorMessage || 'The remote device did not respond to compatibility inspection or connection timed out.'}
+                    </p>
+                    <button
+                      onClick={handleSyncMessages}
+                      className="mt-2 text-xs text-blue-600 dark:text-blue-400 font-semibold underline"
+                    >
+                      Retry Connection
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

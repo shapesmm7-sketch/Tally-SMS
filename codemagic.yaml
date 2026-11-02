@@ -47,7 +47,9 @@ workflows:
           # This assumes logo.png (as icon-only.png) is 1024x1024
           npx -y @capacitor/assets generate --android
       - name: Sync Capacitor Android project
-        script: npx cap sync android
+        script: |
+          rm -rf android/app/src/main/assets/public
+          npx cap sync android
       - name: Build Android release
         script: |
           cd android

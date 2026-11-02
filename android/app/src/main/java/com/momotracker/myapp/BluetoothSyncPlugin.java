@@ -62,11 +62,11 @@ public class BluetoothSyncPlugin extends Plugin {
     private static final String TAG = "BluetoothSyncPlugin";
 
     // Standard Bluetooth Profile UUIDs
-    private static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    private static final UUID UUID_DUN = UUID.fromString("00001103-0000-1000-8000-00805F9B34FB");
-    private static final UUID UUID_MAP_MAS = UUID.fromString("00001132-0000-1000-8000-00805F9B34FB");
-    private static final UUID UUID_PBAP = UUID.fromString("0000112F-0000-1000-8000-00805F9B34FB");
-    private static final UUID UUID_PBAP_PSE = UUID.fromString("00001130-0000-1000-8000-00805F9B34FB");
+    public static final UUID UUID_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    public static final UUID UUID_DUN = UUID.fromString("00001103-0000-1000-8000-00805F9B34FB");
+    public static final UUID UUID_MAP_MAS = UUID.fromString("00001132-0000-1000-8000-00805F9B34FB");
+    public static final UUID UUID_PBAP = UUID.fromString("0000112F-0000-1000-8000-00805F9B34FB");
+    public static final UUID UUID_PBAP_PSE = UUID.fromString("00001130-0000-1000-8000-00805F9B34FB");
 
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothSocket activeSocket = null;
@@ -150,7 +150,7 @@ public class BluetoothSyncPlugin extends Plugin {
         if (hasRequiredBluetoothPermissions()) {
             fetchAndReturnBondedDevices(call);
         } else {
-            call.reject("Bluetooth permission denied. Please allow Bluetooth access in settings to view your paired devices.");
+            call.reject("Bluetooth permission denied. Please allow Bluetooth permission to view paired devices.");
         }
     }
 
@@ -277,8 +277,14 @@ public class BluetoothSyncPlugin extends Plugin {
         }
     }
 
+    /**
+     * Performs separate detection and testing for MAP and SPP:
+     * - Checks MAP separately and tests OBEX connect if present.
+     * - Checks SPP separately and tests AT SMS commands (AT+CMGF, AT+CPMS) if present.
+     * - Returns accurate diagnostic status without assuming SPP = SMS.
+     */
     @PluginMethod
-    public void checkCompatibility(PluginCall call) {
+    public void diagnoseDevice(PluginCall call) {
         String address = call.getString("address");
         if (address == null || address.isEmpty()) {
             call.reject("Device address is required.");
@@ -293,6 +299,7 @@ public class BluetoothSyncPlugin extends Plugin {
         new Thread(() -> {
             try {
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+
                 try {
                     device.fetchUuidsWithSdp();
                 } catch (SecurityException ignored) {}
@@ -302,100 +309,241 @@ public class BluetoothSyncPlugin extends Plugin {
                     uuids = device.getUuids();
                 } catch (SecurityException ignored) {}
 
-                boolean hasSPP = false;
-                boolean hasDUN = false;
-                boolean hasMAP = false;
-                boolean hasPBAP = false;
+                boolean hasMAPUuid = false;
+                boolean hasSPPUuid = false;
+                boolean hasDUNUuid = false;
+                boolean hasPBAPUuid = false;
 
                 if (uuids != null) {
                     for (ParcelUuid parcelUuid : uuids) {
                         UUID u = parcelUuid.getUuid();
-                        if (u.equals(UUID_SPP)) hasSPP = true;
-                        if (u.equals(UUID_DUN)) hasDUN = true;
-                        if (u.equals(UUID_MAP_MAS)) hasMAP = true;
-                        if (u.equals(UUID_PBAP) || u.equals(UUID_PBAP_PSE)) hasPBAP = true;
+                        if (u.equals(UUID_MAP_MAS)) hasMAPUuid = true;
+                        if (u.equals(UUID_SPP)) hasSPPUuid = true;
+                        if (u.equals(UUID_DUN)) hasDUNUuid = true;
+                        if (u.equals(UUID_PBAP) || u.equals(UUID_PBAP_PSE)) hasPBAPUuid = true;
                     }
+                }
+
+                boolean mapTestedSuccess = false;
+                boolean sppTestedSuccess = false;
+                boolean sppSerialOnly = false;
+
+                // 1. Test MAP if advertised
+                if (hasMAPUuid) {
+                    mapTestedSuccess = testMAPHandshake(device);
+                }
+
+                // 2. Test SPP/DUN if advertised OR if UUIDs were null (un-cached SDP)
+                if (hasSPPUuid || hasDUNUuid || uuids == null || uuids.length == 0) {
+                    UUID targetUuid = hasDUNUuid && !hasSPPUuid ? UUID_DUN : UUID_SPP;
+                    int sppResult = testSPPSmsCommands(device, targetUuid);
+                    if (sppResult == 1) { // 1 = SMS AT commands supported
+                        sppTestedSuccess = true;
+                    } else if (sppResult == 2) { // 2 = Serial connects but does NOT support SMS commands
+                        sppSerialOnly = true;
+                    }
+                }
+
+                // Determine final diagnostic status
+                String diagnosticStatus;
+                String diagnosticMessage;
+                String preferredMethod = null;
+
+                if (mapTestedSuccess) {
+                    diagnosticStatus = "MAP_SUPPORTED";
+                    diagnosticMessage = "MAP detected and tested. Phone supports Bluetooth Message Access Profile.";
+                    preferredMethod = "MAP";
+                } else if (sppTestedSuccess) {
+                    diagnosticStatus = "SPP_SUPPORTED";
+                    diagnosticMessage = "SPP detected and tested. Phone modem supports SMS-reading AT commands.";
+                    preferredMethod = "SPP";
+                } else if (sppSerialOnly) {
+                    diagnosticStatus = "UNSUPPORTED";
+                    diagnosticMessage = "Bluetooth available but SMS retrieval unsupported. Device provides a serial port but does not support SMS-reading commands.";
+                } else if (hasPBAPUuid && !hasMAPUuid && !hasSPPUuid) {
+                    diagnosticStatus = "UNSUPPORTED";
+                    diagnosticMessage = "Bluetooth available but SMS retrieval unsupported. Device only supports Phonebook Access (PBAP), which does not allow SMS access.";
+                } else if (hasMAPUuid || hasSPPUuid) {
+                    diagnosticStatus = "UNSUPPORTED";
+                    diagnosticMessage = "Bluetooth available but SMS retrieval unsupported. Device did not respond to SMS retrieval requests.";
+                } else {
+                    diagnosticStatus = "UNDETERMINED";
+                    diagnosticMessage = "Compatibility could not be determined. Device did not expose supported SMS profiles.";
                 }
 
                 JSObject ret = new JSObject();
                 ret.put("address", address);
-                ret.put("hasSPP", hasSPP);
-                ret.put("hasDUN", hasDUN);
-                ret.put("hasMAP", hasMAP);
-                ret.put("hasPBAP", hasPBAP);
+                ret.put("diagnosticStatus", diagnosticStatus);
+                ret.put("diagnosticMessage", diagnosticMessage);
+                ret.put("mapSupported", mapTestedSuccess);
+                ret.put("sppSupported", sppTestedSuccess);
+                ret.put("sppSerialOnly", sppSerialOnly);
+                ret.put("pbapOnly", hasPBAPUuid && !hasMAPUuid && !hasSPPUuid);
+                ret.put("preferredMethod", preferredMethod);
+                ret.put("isCompatible", (mapTestedSuccess || sppTestedSuccess));
 
-                // Check 1: PBAP only
-                if (hasPBAP && !hasSPP && !hasDUN && !hasMAP) {
-                    ret.put("compatible", false);
-                    ret.put("profile", "PBAP_ONLY");
-                    ret.put("reason", "This phone only exposes Phonebook Access (PBAP). It does not support SMS retrieval via Bluetooth MAP or SPP.");
-                    call.resolve(ret);
-                    return;
-                }
-
-                // Check 2: Try SPP Handshake directly if UUIDs were not reported
-                if (!hasSPP && !hasDUN && !hasMAP) {
-                    boolean directSPPVerified = testSPPHandshake(device, UUID_SPP);
-                    if (directSPPVerified) {
-                        ret.put("compatible", true);
-                        ret.put("profile", "SPP");
-                        ret.put("verified", true);
-                        ret.put("reason", "Verified compatible via Bluetooth SPP!");
-                        call.resolve(ret);
-                        return;
-                    }
-
-                    ret.put("compatible", false);
-                    ret.put("profile", "UNSUPPORTED");
-                    ret.put("reason", "Device does not support Bluetooth Message Access Profile (MAP) or Serial Port Profile (SPP).");
-                    call.resolve(ret);
-                    return;
-                }
-
-                if (hasSPP || hasDUN) {
-                    UUID targetUuid = hasSPP ? UUID_SPP : UUID_DUN;
-                    boolean verified = testSPPHandshake(device, targetUuid);
-                    if (verified) {
-                        ret.put("compatible", true);
-                        ret.put("profile", "SPP");
-                        ret.put("verified", true);
-                        call.resolve(ret);
-                        return;
-                    } else if (!hasMAP) {
-                        ret.put("compatible", false);
-                        ret.put("profile", "SPP_UNRESPONSIVE");
-                        ret.put("reason", "SPP detected but phone did not respond to SMS commands.");
-                        call.resolve(ret);
-                        return;
-                    }
-                }
-
-                if (hasMAP) {
-                    ret.put("compatible", true);
-                    ret.put("profile", "MAP");
-                    ret.put("verified", true);
-                    call.resolve(ret);
-                    return;
-                }
-
-                ret.put("compatible", false);
-                ret.put("profile", "UNKNOWN");
                 call.resolve(ret);
-
             } catch (Exception e) {
-                Log.e(TAG, "Error checking compatibility: " + e.getMessage(), e);
+                Log.e(TAG, "Diagnostics error: " + e.getMessage(), e);
                 JSObject ret = new JSObject();
-                ret.put("compatible", false);
-                ret.put("reason", "Connection error: " + e.getMessage());
+                ret.put("address", address);
+                ret.put("diagnosticStatus", "UNDETERMINED");
+                ret.put("diagnosticMessage", "Compatibility could not be determined: " + e.getMessage());
+                ret.put("isCompatible", false);
                 call.resolve(ret);
             }
         }).start();
     }
 
+    /**
+     * Tests MAP OBEX Connect
+     */
+    private boolean testMAPHandshake(BluetoothDevice device) {
+        BluetoothSocket socket = null;
+        try {
+            if (bluetoothAdapter.isDiscovering()) {
+                bluetoothAdapter.cancelDiscovery();
+            }
+            socket = device.createRfcommSocketToServiceRecord(UUID_MAP_MAS);
+            socket.connect();
+
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
+
+            // OBEX Connect with MAP MAS Target (UUID bb582b40-e162-11e0-be50-0800200c9a66)
+            byte[] obexConnect = new byte[] {
+                (byte) 0x80, 0x00, 0x1A, 0x10, 0x00, (byte) 0x20, 0x00,
+                0x46, 0x00, 0x13,
+                (byte) 0xBB, 0x58, 0x2B, 0x40, (byte) 0xE1, 0x62, 0x11, (byte) 0xE0,
+                (byte) 0xBE, 0x50, 0x08, 0x00, 0x20, 0x0C, (byte) 0x9A, 0x66
+            };
+
+            out.write(obexConnect);
+            out.flush();
+
+            byte[] resp = new byte[128];
+            long start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 3000) {
+                if (in.available() > 0) {
+                    int read = in.read(resp);
+                    if (read > 0 && (resp[0] & 0xFF) == 0xA0) { // 0xA0 = OBEX Success
+                        return true;
+                    }
+                }
+                Thread.sleep(100);
+            }
+            return false;
+        } catch (Exception e) {
+            Log.d(TAG, "MAP Handshake test failed: " + e.getMessage());
+            return false;
+        } finally {
+            closeSocket(socket);
+        }
+    }
+
+    /**
+     * Tests SPP RFCOMM connection and verifies SMS-reading AT commands:
+     * Returns:
+     *  0: Could not connect to SPP at all
+     *  1: Connected AND verified SMS commands (AT+CMGF, AT+CPMS)
+     *  2: Connected over SPP, but does NOT support SMS commands
+     */
+    private int testSPPSmsCommands(BluetoothDevice device, UUID targetUuid) {
+        BluetoothSocket socket = null;
+        try {
+            if (bluetoothAdapter.isDiscovering()) {
+                bluetoothAdapter.cancelDiscovery();
+            }
+            socket = device.createRfcommSocketToServiceRecord(targetUuid);
+            socket.connect();
+
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+
+            // Test 1: Basic AT ping
+            out.write("AT\r\n".getBytes(StandardCharsets.UTF_8));
+            out.flush();
+
+            boolean respondedToAt = false;
+            long start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 2500) {
+                if (in.available() > 0) {
+                    respondedToAt = true;
+                    break;
+                }
+                Thread.sleep(100);
+            }
+
+            if (!respondedToAt) {
+                return 0; // Not a responding serial port
+            }
+
+            // Flush buffer
+            while (in.available() > 0) in.read();
+
+            // Test 2: Test SMS mode command (AT+CMGF=1)
+            out.write("AT+CMGF=1\r\n".getBytes(StandardCharsets.UTF_8));
+            out.flush();
+
+            StringBuilder cmgfResp = new StringBuilder();
+            start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 3000) {
+                if (reader.ready()) {
+                    char[] cbuf = new char[128];
+                    int r = reader.read(cbuf);
+                    if (r > 0) {
+                        cmgfResp.append(cbuf, 0, r);
+                        if (cmgfResp.toString().contains("OK") || cmgfResp.toString().contains("ERROR")) {
+                            break;
+                        }
+                    }
+                }
+                Thread.sleep(100);
+            }
+
+            boolean supportsCmgf = cmgfResp.toString().contains("OK");
+
+            // Test 3: Test storage command (AT+CPMS=?)
+            out.write("AT+CPMS=?\r\n".getBytes(StandardCharsets.UTF_8));
+            out.flush();
+
+            StringBuilder cpmsResp = new StringBuilder();
+            start = System.currentTimeMillis();
+            while (System.currentTimeMillis() - start < 3000) {
+                if (reader.ready()) {
+                    char[] cbuf = new char[128];
+                    int r = reader.read(cbuf);
+                    if (r > 0) {
+                        cpmsResp.append(cbuf, 0, r);
+                        if (cpmsResp.toString().contains("OK") || cpmsResp.toString().contains("ERROR")) {
+                            break;
+                        }
+                    }
+                }
+                Thread.sleep(100);
+            }
+
+            boolean supportsCpms = cpmsResp.toString().contains("OK") || cpmsResp.toString().contains("+CPMS:");
+
+            if (supportsCmgf || supportsCpms) {
+                return 1; // Supported SMS AT commands!
+            } else {
+                return 2; // SPP serial port exists, but SMS commands are not supported
+            }
+
+        } catch (Exception e) {
+            Log.d(TAG, "SPP SMS test failed: " + e.getMessage());
+            return 0;
+        } finally {
+            closeSocket(socket);
+        }
+    }
+
     @PluginMethod
     public void syncMessages(PluginCall call) {
         String address = call.getString("address");
-        String profile = call.getString("profile", "SPP");
+        String method = call.getString("method", "SPP");
 
         if (address == null || address.isEmpty()) {
             call.reject("Device address is required.");
@@ -415,17 +563,28 @@ public class BluetoothSyncPlugin extends Plugin {
                     bluetoothAdapter.cancelDiscovery();
                 }
 
-                UUID uuidToUse = "MAP".equalsIgnoreCase(profile) ? UUID_MAP_MAS : UUID_SPP;
+                UUID uuidToUse = "MAP".equalsIgnoreCase(method) ? UUID_MAP_MAS : UUID_SPP;
                 socket = device.createRfcommSocketToServiceRecord(uuidToUse);
                 socket.connect();
                 activeSocket = socket;
 
                 List<JSObject> messages = new ArrayList<>();
 
-                if ("MAP".equalsIgnoreCase(profile)) {
+                if ("MAP".equalsIgnoreCase(method)) {
                     messages = retrieveMessagesViaMAP(socket);
                 } else {
                     messages = retrieveMessagesViaSPP(socket);
+                }
+
+                // If 0 messages retrieved, report failure
+                if (messages == null || messages.isEmpty()) {
+                    JSObject ret = new JSObject();
+                    ret.put("success", false);
+                    ret.put("count", 0);
+                    ret.put("method", method);
+                    ret.put("error", "No SMS messages could be retrieved from the device.");
+                    call.resolve(ret);
+                    return;
                 }
 
                 JSArray messagesArray = new JSArray();
@@ -435,14 +594,18 @@ public class BluetoothSyncPlugin extends Plugin {
 
                 JSObject ret = new JSObject();
                 ret.put("success", true);
-                ret.put("method", profile);
+                ret.put("method", method);
                 ret.put("count", messages.size());
                 ret.put("messages", messagesArray);
                 call.resolve(ret);
 
             } catch (Exception e) {
                 Log.e(TAG, "Sync error: " + e.getMessage(), e);
-                call.reject("Sync failed: " + e.getMessage());
+                JSObject ret = new JSObject();
+                ret.put("success", false);
+                ret.put("count", 0);
+                ret.put("error", "Sync connection failed: " + e.getMessage());
+                call.resolve(ret);
             } finally {
                 closeSocket(socket);
                 activeSocket = null;
@@ -457,46 +620,6 @@ public class BluetoothSyncPlugin extends Plugin {
         JSObject ret = new JSObject();
         ret.put("disconnected", true);
         call.resolve(ret);
-    }
-
-    private boolean testSPPHandshake(BluetoothDevice device, UUID uuid) {
-        BluetoothSocket testSocket = null;
-        try {
-            if (bluetoothAdapter.isDiscovering()) {
-                bluetoothAdapter.cancelDiscovery();
-            }
-            testSocket = device.createRfcommSocketToServiceRecord(uuid);
-            testSocket.connect();
-
-            OutputStream out = testSocket.getOutputStream();
-            InputStream in = testSocket.getInputStream();
-
-            out.write("AT\r\n".getBytes(StandardCharsets.UTF_8));
-            out.flush();
-
-            byte[] buffer = new byte[256];
-            long startTime = System.currentTimeMillis();
-            boolean gotResponse = false;
-
-            while (System.currentTimeMillis() - startTime < 3500) {
-                if (in.available() > 0) {
-                    int read = in.read(buffer);
-                    String resp = new String(buffer, 0, read, StandardCharsets.UTF_8);
-                    if (resp.contains("OK") || resp.contains("ERROR") || resp.length() > 0) {
-                        gotResponse = true;
-                        break;
-                    }
-                }
-                Thread.sleep(100);
-            }
-
-            return gotResponse;
-        } catch (Exception e) {
-            Log.d(TAG, "SPP Handshake test failed: " + e.getMessage());
-            return false;
-        } finally {
-            closeSocket(testSocket);
-        }
     }
 
     private List<JSObject> retrieveMessagesViaSPP(BluetoothSocket socket) throws Exception {
@@ -527,7 +650,7 @@ public class BluetoothSyncPlugin extends Plugin {
             StringBuilder responseBuilder = new StringBuilder();
             char[] buf = new char[512];
 
-            while (System.currentTimeMillis() - startRead < 6000) {
+            while (System.currentTimeMillis() - startRead < 7000) {
                 if (reader.ready()) {
                     int charsRead = reader.read(buf);
                     if (charsRead > 0) {
@@ -611,11 +734,7 @@ public class BluetoothSyncPlugin extends Plugin {
             InputStream in = socket.getInputStream();
 
             byte[] obexConnect = new byte[] {
-                (byte) 0x80,
-                0x00, 0x1A,
-                0x10,
-                0x00,
-                (byte) 0x20, 0x00,
+                (byte) 0x80, 0x00, 0x1A, 0x10, 0x00, (byte) 0x20, 0x00,
                 0x46, 0x00, 0x13,
                 (byte) 0xBB, 0x58, 0x2B, 0x40, (byte) 0xE1, 0x62, 0x11, (byte) 0xE0,
                 (byte) 0xBE, 0x50, 0x08, 0x00, 0x20, 0x0C, (byte) 0x9A, 0x66
@@ -627,7 +746,7 @@ public class BluetoothSyncPlugin extends Plugin {
 
             byte[] resp = new byte[256];
             int read = in.read(resp);
-            if (read > 0 && resp[0] == (byte) 0xA0) {
+            if (read > 0 && (resp[0] & 0xFF) == 0xA0) {
                 Log.d(TAG, "OBEX Connected to MAP MAS successfully");
             }
         } catch (Exception e) {
@@ -658,19 +777,23 @@ public class BluetoothSyncPlugin extends Plugin {
         obj.put("address", device.getAddress());
         obj.put("paired", paired);
 
-        boolean isPhone = true;
+        String deviceTypeStr = "Bluetooth Device";
         try {
             BluetoothClass btClass = device.getBluetoothClass();
             if (btClass != null) {
                 int major = btClass.getMajorDeviceClass();
-                isPhone = (major == BluetoothClass.Device.Major.PHONE);
+                if (major == BluetoothClass.Device.Major.PHONE) {
+                    deviceTypeStr = "Phone";
+                } else if (major == BluetoothClass.Device.Major.AUDIO_VIDEO) {
+                    deviceTypeStr = "Audio Device";
+                } else if (major == BluetoothClass.Device.Major.COMPUTER) {
+                    deviceTypeStr = "Computer";
+                }
                 obj.put("deviceClass", btClass.getDeviceClass());
             }
         } catch (SecurityException ignored) {}
 
-        obj.put("isPhone", isPhone);
-        obj.put("isButtonPhone", true);
-
+        obj.put("deviceType", deviceTypeStr);
         return obj;
     }
 

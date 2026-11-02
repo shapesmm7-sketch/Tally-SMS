@@ -6,9 +6,25 @@ export interface BluetoothDeviceItem {
   name: string;
   address: string;
   paired: boolean;
-  isButtonPhone?: boolean;
-  isPhone?: boolean;
-  rssi?: number;
+  deviceType?: string;
+  deviceClass?: number;
+}
+
+export type DiagnosticStatus = 
+  | 'MAP_SUPPORTED' 
+  | 'SPP_SUPPORTED' 
+  | 'UNSUPPORTED' 
+  | 'UNDETERMINED';
+
+export interface DeviceDiagnostics {
+  diagnosticStatus: DiagnosticStatus;
+  diagnosticMessage: string;
+  mapSupported: boolean;
+  sppSupported: boolean;
+  sppSerialOnly: boolean;
+  pbapOnly: boolean;
+  preferredMethod: 'MAP' | 'SPP' | null;
+  isCompatible: boolean;
 }
 
 export interface SyncProgressUpdate {
@@ -19,7 +35,8 @@ export interface SyncProgressUpdate {
 
 export interface SyncResult {
   success: boolean;
-  notCompatible?: boolean;
+  diagnosticStatus?: DiagnosticStatus;
+  statusLabel?: string;
   totalSmsRead: number;
   momoTransactionsFound: number;
   newlyAdded: number;
@@ -44,20 +61,13 @@ interface BluetoothSyncNativePlugin {
   getPairedDevices(): Promise<{ devices: BluetoothDeviceItem[] }>;
   startDiscovery(): Promise<{ started: boolean }>;
   stopDiscovery(): Promise<{ stopped: boolean }>;
-  checkCompatibility(options: { address: string }): Promise<{
-    compatible: boolean;
-    verified: boolean;
-    profile: string;
-    reason?: string;
-    hasSPP?: boolean;
-    hasMAP?: boolean;
-    hasPBAP?: boolean;
-  }>;
-  syncMessages(options: { address: string; profile?: string }): Promise<{
+  diagnoseDevice(options: { address: string }): Promise<DeviceDiagnostics>;
+  syncMessages(options: { address: string; method?: string }): Promise<{
     success: boolean;
     count: number;
     method: string;
-    messages: Array<{ address: string; date?: string; body: string }>;
+    error?: string;
+    messages?: Array<{ address: string; date?: string; body: string }>;
   }>;
   disconnect(): Promise<{ disconnected: boolean }>;
   addListener(eventName: string, listenerFunc: (data: any) => void): Promise<any>;
@@ -95,12 +105,10 @@ export class BluetoothSyncService {
 
   /**
    * Retrieves real paired Bluetooth devices from the Android system.
-   * Returns empty array if none are paired yet or permission not yet granted.
    */
   static async getInitialDevices(): Promise<BluetoothDeviceItem[]> {
     if (Capacitor.isNativePlatform()) {
       try {
-        // Ensure permissions are requested
         await this.requestPermissions();
         const res = await NativeBluetoothSync.getPairedDevices();
         return res.devices || [];
@@ -109,7 +117,6 @@ export class BluetoothSyncService {
         return [];
       }
     }
-    // Web environment: no fake devices
     return [];
   }
 
@@ -141,7 +148,6 @@ export class BluetoothSyncService {
         onFinished();
       }
     } else {
-      // On web browser without Android native Bluetooth hardware
       this.isScanning = false;
       onFinished();
     }
@@ -159,9 +165,44 @@ export class BluetoothSyncService {
   }
 
   /**
-   * Directly attempts live synchronization.
-   * Tests MAP and SPP under the hood. If the phone does not support or accept either method,
-   * returns notCompatible = true with "Your phone is not compatible for this sync".
+   * Runs diagnostic compatibility tests on MAP and SPP separately.
+   */
+  static async diagnoseDevice(device: BluetoothDeviceItem): Promise<DeviceDiagnostics> {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        return await NativeBluetoothSync.diagnoseDevice({ address: device.address });
+      } catch (e: any) {
+        return {
+          diagnosticStatus: 'UNDETERMINED',
+          diagnosticMessage: `Compatibility could not be determined: ${e.message || e}`,
+          mapSupported: false,
+          sppSupported: false,
+          sppSerialOnly: false,
+          pbapOnly: false,
+          preferredMethod: null,
+          isCompatible: false
+        };
+      }
+    }
+
+    return {
+      diagnosticStatus: 'UNDETERMINED',
+      diagnosticMessage: 'Diagnostics requires Android native Bluetooth.',
+      mapSupported: false,
+      sppSupported: false,
+      sppSerialOnly: false,
+      pbapOnly: false,
+      preferredMethod: null,
+      isCompatible: false
+    };
+  }
+
+  /**
+   * Performs live synchronization:
+   * 1. Diagnoses MAP and SPP separately.
+   * 2. If neither method is supported for SMS, reports: "Bluetooth available but SMS retrieval unsupported".
+   * 3. If supported, connects using the verified method and retrieves SMS messages.
+   * 4. Only reports success when actual SMS messages have been retrieved.
    */
   static async syncDirectly(
     device: BluetoothDeviceItem,
@@ -171,50 +212,50 @@ export class BluetoothSyncService {
       onProgress({
         stage: 'connecting',
         message: `Connecting to ${device.name}...`,
-        progressPercent: 20
+        progressPercent: 15
       });
 
-      let resolvedMethod = 'SPP';
-      let isCompatible = true;
+      // 1. Separate protocol detection and verification
+      onProgress({
+        stage: 'verifying',
+        message: 'Checking Bluetooth MAP and SPP protocol support...',
+        progressPercent: 35
+      });
 
+      let diag: DeviceDiagnostics;
       if (Capacitor.isNativePlatform()) {
-        onProgress({
-          stage: 'verifying',
-          message: `Checking Bluetooth MAP and SPP protocol support...`,
-          progressPercent: 40
-        });
-
-        const compat = await NativeBluetoothSync.checkCompatibility({ address: device.address });
-        if (!compat.compatible) {
-          isCompatible = false;
-        } else {
-          resolvedMethod = compat.profile || 'SPP';
-        }
+        diag = await NativeBluetoothSync.diagnoseDevice({ address: device.address });
       } else {
-        // Web fallback check
-        if (
-          device.name.toLowerCase().includes('pbap') ||
-          device.name.toLowerCase().includes('car kit') ||
-          device.name.toLowerCase().includes('headset')
-        ) {
-          isCompatible = false;
-        } else {
-          resolvedMethod = 'SPP';
-        }
+        diag = {
+          diagnosticStatus: 'UNDETERMINED',
+          diagnosticMessage: 'Web environment does not support native Bluetooth RFCOMM/MAP sockets.',
+          mapSupported: false,
+          sppSupported: false,
+          sppSerialOnly: false,
+          pbapOnly: false,
+          preferredMethod: null,
+          isCompatible: false
+        };
       }
 
-      // If the phone does not accept or work with our methods:
-      if (!isCompatible) {
+      if (!diag.isCompatible || !diag.preferredMethod) {
         onProgress({
           stage: 'error',
-          message: 'Your phone is not compatible for this sync',
+          message: diag.diagnosticMessage,
           progressPercent: 100
         });
+
+        let statusLabel = 'Compatibility could not be determined';
+        if (diag.diagnosticStatus === 'UNSUPPORTED') {
+          statusLabel = 'Bluetooth available but SMS retrieval unsupported';
+        }
+
         return {
           success: false,
-          notCompatible: true,
-          error: 'Your phone is not compatible for this sync',
-          errorMessage: 'This phone does not support Bluetooth MAP or SPP protocols required for SMS retrieval.',
+          diagnosticStatus: diag.diagnosticStatus,
+          statusLabel,
+          error: statusLabel,
+          errorMessage: diag.diagnosticMessage,
           totalSmsRead: 0,
           momoTransactionsFound: 0,
           newlyAdded: 0,
@@ -222,10 +263,13 @@ export class BluetoothSyncService {
         };
       }
 
-      // 2. Read SMS messages from the phone
+      // 2. Retrieve SMS messages using the verified method
+      const method = diag.preferredMethod;
+      const statusLabel = method === 'MAP' ? 'MAP detected and tested' : 'SPP detected and tested';
+
       onProgress({
         stage: 'reading_storage',
-        message: `Reading SMS messages from ${device.name} via ${resolvedMethod}...`,
+        message: `Reading SMS messages from ${device.name} via ${method}...`,
         progressPercent: 60
       });
 
@@ -234,16 +278,36 @@ export class BluetoothSyncService {
       if (Capacitor.isNativePlatform()) {
         const syncResp = await NativeBluetoothSync.syncMessages({
           address: device.address,
-          profile: resolvedMethod
+          method
         });
-        rawSmsList = syncResp.messages || [];
+
+        if (!syncResp.success || !syncResp.messages || syncResp.messages.length === 0) {
+          onProgress({
+            stage: 'error',
+            message: syncResp.error || 'No SMS messages could be retrieved from the device.',
+            progressPercent: 100
+          });
+          return {
+            success: false,
+            diagnosticStatus: diag.diagnosticStatus,
+            statusLabel,
+            error: 'No SMS messages retrieved',
+            errorMessage: syncResp.error || 'Connection completed but 0 SMS messages were retrieved. Make sure the phone has SMS messages in memory.',
+            totalSmsRead: 0,
+            momoTransactionsFound: 0,
+            newlyAdded: 0,
+            duplicatesSkipped: 0
+          };
+        }
+
+        rawSmsList = syncResp.messages;
       }
 
       // 3. Parse Mobile Money SMS
       onProgress({
         stage: 'parsing',
         message: `Analyzing ${rawSmsList.length} SMS messages for Mobile Money transactions...`,
-        progressPercent: 80
+        progressPercent: 85
       });
 
       const existingTxs = await db.transactions.toArray();
@@ -361,25 +425,29 @@ export class BluetoothSyncService {
 
       onProgress({
         stage: 'complete',
-        message: `Sync complete! Saved ${newlyAdded} new Mobile Money transactions.`,
+        message: `SMS retrieval successful! Processed ${rawSmsList.length} messages.`,
         progressPercent: 100
       });
 
       return {
         success: true,
+        diagnosticStatus: diag.diagnosticStatus,
+        statusLabel: 'SMS retrieval successful',
         totalSmsRead: rawSmsList.length,
         momoTransactionsFound,
         newlyAdded,
         duplicatesSkipped,
-        method: resolvedMethod,
+        method,
         savedTransactions
       };
+
     } catch (e: any) {
       return {
         success: false,
-        notCompatible: false,
+        diagnosticStatus: 'UNDETERMINED',
+        statusLabel: 'Compatibility could not be determined',
         error: e.message || String(e),
-        errorMessage: 'Connection timed out or failed. Please ensure your small phone Bluetooth is On, visible, and paired.',
+        errorMessage: 'Connection failed or timed out. Please verify that Bluetooth is turned on and visible on the remote phone.',
         totalSmsRead: 0,
         momoTransactionsFound: 0,
         newlyAdded: 0,
